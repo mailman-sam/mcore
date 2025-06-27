@@ -5,13 +5,13 @@
 
 /* Define CSS Variables for Theming */
 :root {
-    --primary-blue: #0d6efd; /* UPDATED: USPS Blue */
+    --primary-blue: #0d6efd; /* USPS Blue */
     --light-bg: #f3f4f6; /* Light gray for wrapper */
     --dark-bg: #1a202c; /* Dark gray for wrapper */
     --light-text: #333;
-    --dark-text: #f8f8f8; /* UPDATED: Brighter white for dark mode text */
+    --dark-text: #f8f8f8; /* Brighter white for dark mode text */
     --light-card-bg: #ffffff; /* Background for main content/cards in light mode */
-    --dark-card-bg: #212833; /* UPDATED: Slightly darker for main content/cards in dark mode */
+    --dark-card-bg: #212833; /* Slightly darker for main content/cards in dark mode */
     --highlight-outline-light: #fff; /* Outline color for carrier highlights in light mode */
     --highlight-outline-dark: #000; /* Outline color for carrier highlights in dark mode */
     --border-light: #e5e7eb; /* Border color for tables/elements in light mode */
@@ -203,7 +203,7 @@ header nav button#install-app-button:hover { /* Apply hover styles to all */
 }
 
 
-/* Carrier Color Buttons (new style) */
+/* Carrier Color Buttons */
 .carrier-color-button {
     /* REMOVED flex: 1 1 auto; - now handled by grid-template-columns */
     min-width: 3.5rem; /* Adjusted minimum width to allow more buttons per row */

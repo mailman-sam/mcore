@@ -75,9 +75,7 @@ self.addEventListener('fetch', (event) => {
                             if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
                                 return networkResponse;
                             }
-                            // IMPORTANT: Clone the response. A response is a stream
-                            // and can only be consumed once. We must clone it so that
-                            // we can consume one in the cache and one in the browser.
+                            // IMPORTANT: Clone the response.
                             const responseToCache = networkResponse.clone();
 
                             caches.open(CACHE_NAME)

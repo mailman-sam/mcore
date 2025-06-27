@@ -11,9 +11,6 @@ let federalHolidaysData = []; // To store fetched holiday data
 
 // Carrier color definitions and their corresponding Tailwind classes for styling.
 // The 'baseDayOffIndex' maps to an offset from Monday (0=Mon, 1=Tue, ..., 5=Sat).
-// This is derived from the user's example where Green had Thursday off for week 1 of the cycle.
-// Green off Thursday (index 3), so the order Black, Yellow, Blue, Green, Brown, Red
-// maps to Mon, Tue, Wed, Thu, Fri, Sat for their initial (week 1) designated day off.
 const CARRIER_COLORS = {
     'black': { name: 'Black', class: 'carrier-black', baseDayOffIndex: 0 }, // Monday
     'yellow': { name: 'Yellow', class: 'carrier-yellow', baseDayOffIndex: 1 }, // Tuesday
@@ -24,9 +21,6 @@ const CARRIER_COLORS = {
 };
 
 // Reference date for calculating pay periods.
-// User stated: "Pay period 25-02 would be the second pay period of 2025(that starts in 2024),
-// this period would contain the work weeks 12-28-24 to 01-03 and 01-04 to 01-10-25)".
-// This implies PP 25-01 starts Dec 14, 2024.
 const PP_REFERENCE_DATE = new Date('2024-12-14T00:00:00'); // Start of PP 25-01 (Saturday)
 const PP_REFERENCE_NUMBER = 1; // Corresponds to PP 01
 const PP_REFERENCE_YEAR = 2025; // This is PP 25-01
@@ -208,8 +202,7 @@ function getFederalHoliday(date) {
 
 /**
  * Calculates the work week number relative to the postal cycle start (Jan 4, 2025).
- * This date is chosen as it's the start of a postal work week (Saturday) and
- * helps align with the user's provided example for Green carrier.
+ * This date is chosen as it's the start of a postal work week (Saturday)
  *
  * @param {Date} date - The date for which to calculate the work week.
  * @returns {number} The 1-indexed work week number since Jan 4, 2025.
