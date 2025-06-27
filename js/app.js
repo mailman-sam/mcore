@@ -572,10 +572,9 @@ function getPayPeriodInfo(date) {
     const ppEndDate = new Date(ppStartDate);
     ppEndDate.setDate(ppStartDate.getDate() + 13);
 
-    // Calculate the pay date (Thursday after the end of the pay period)
-    // If PP ends Friday (day 5), next Thursday is 6 days later.
+    // Calculate the pay date (Friday after the end of the pay period)
     const payDate = new Date(ppEndDate);
-    payDate.setDate(ppEndDate.getDate() + 6); // Add 6 days to get to next Thursday
+    payDate.setDate(ppEndDate.getDate() + 7); // UPDATED: Add 7 days to get to the *next* Friday (payday)
 
     return {
         payPeriodYear: currentPayPeriodYear,
