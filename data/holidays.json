@@ -1,0 +1,68 @@
+[
+    {
+        "name": "New Year's Day",
+        "month": 1,
+        "day": 1,
+        "info": "Celebrates the start of the new year. Observed on January 1st. If Jan 1 falls on a Saturday, it's observed on the preceding Friday. If it falls on a Sunday, it's observed on the following Monday."
+    },
+    {
+        "name": "Martin Luther King, Jr. Day",
+        "month": 1,
+        "day": "third-monday",
+        "info": "Honors the civil rights leader Martin Luther King, Jr. Observed on the third Monday of January."
+    },
+    {
+        "name": "Washington's Birthday (Presidents' Day)",
+        "month": 2,
+        "day": "third-monday",
+        "info": "A federal holiday celebrating George Washington's birthday, now commonly known as Presidents' Day. Observed on the third Monday of February."
+    },
+    {
+        "name": "Memorial Day",
+        "month": 5,
+        "day": "last-monday",
+        "info": "A day of remembrance for those who have died in military service for the United States. Observed on the last Monday of May."
+    },
+    {
+        "name": "Juneteenth National Independence Day",
+        "month": 6,
+        "day": 19,
+        "info": "Commemorates the emancipation of enslaved African Americans. Observed on June 19th. If June 19 falls on a Saturday, it's observed on the preceding Friday. If it falls on a Sunday, it's observed on the following Monday."
+    },
+    {
+        "name": "Independence Day",
+        "month": 7,
+        "day": 4,
+        "info": "Celebrates the Declaration of Independence. Observed on July 4th. If July 4 falls on a Saturday, it's observed on the preceding Friday. If it falls on a Sunday, it's observed on the following Monday."
+    },
+    {
+        "name": "Labor Day",
+        "month": 9,
+        "day": "first-monday",
+        "info": "Celebrates the contributions of workers to the American economy. Observed on the first Monday of September."
+    },
+    {
+        "name": "Columbus Day",
+        "month": 10,
+        "day": "second-monday",
+        "info": "A federal holiday observed on the second Monday of October. Historically, it commemorates the arrival of Christopher Columbus in the Americas. In many areas, this day is increasingly recognized as Indigenous Peoples' Day."
+    },
+    {
+        "name": "Veterans Day",
+        "month": 11,
+        "day": 11,
+        "info": "Honors military veterans. Observed on November 11th. If Nov 11 falls on a Saturday, it's observed on the preceding Friday. If it falls on a Sunday, it's observed on the following Monday."
+    },
+    {
+        "name": "Thanksgiving Day",
+        "month": 11,
+        "day": "fourth-thursday",
+        "info": "A national holiday for giving thanks. Observed on the fourth Thursday of November."
+    },
+    {
+        "name": "Christmas Day",
+        "month": 12,
+        "day": 25,
+        "info": "A federal holiday widely observed for celebration, family gatherings, and reflection, taking place on December 25th. If December 25 falls on a Saturday, it's observed on the preceding Friday. If it falls on a Sunday, it's observed on the following Monday."
+    }
+]
