@@ -1,5 +1,5 @@
 // Define a cache name for your application assets
-const CACHE_NAME = 'mcore-cache-v12'; // UPDATED: Increment cache version for critical path fix
+const CACHE_NAME = 'mcore-cache-v14'; // UPDATED: Increment cache version for acronyms.json and header layout
 
 // List of URLs to cache during installation
 // Ensure these paths are correct relative to the service-worker.js file (root of 'mcore/')
@@ -9,7 +9,8 @@ const urlsToCache = [
     '/mcore/css/style.css',
     '/mcore/js/app.js',
     '/mcore/data/holidays.json',
-    '/mcore/manifest.json', // Point to the consolidated manifest.json
+    '/mcore/data/acronyms.json', // NEW: Added acronyms.json to cache
+    '/mcore/manifest.json',
     'https://cdn.tailwindcss.com', // External CDN
     'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap', // External CDN
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css', // External CDN

@@ -22,25 +22,32 @@
     <div class="wrapper min-h-screen flex flex-col">
         <!-- Header section with navigation and theme toggle -->
         <header class="header bg-usps-blue text-white p-4 shadow-md relative">
-            <nav class="container mx-auto flex flex-col md:flex-row justify-between items-center">
-                <!-- App Title/Logo with a link to the home page -->
-                <a href="#landing" id="home-link" class="text-2xl font-bold rounded-md hover:opacity-80 p-2 flex items-center">
-                    <!-- mCORE Logo Image -->
-                    <img id="mcore-logo" src="/mcore/icons/mcore-logo.png" alt="mCORE Logo" class="h-8 mr-2" onerror="this.onerror=null; this.src='https://placehold.co/32x32/0d6efd/ffffff?text=M';" />
-                    mCORE
-                </a>
-                <!-- Navigation links, App Install button, and theme toggle -->
-                <div class="flex items-center space-x-4 mt-4 md:mt-0">
-                    <!-- App Install Button -->
-                    <button id="install-app-button" class="p-2 rounded-md hover:bg-white hover:text-usps-blue transition-colors duration-300 hidden">
-                        <i class="fas fa-download"></i> <span class="hidden md:inline">Install App</span>
+            <nav class="container mx-auto flex flex-col">
+                <!-- Top Row: Logo & Install Button (Mobile) / Logo only (Desktop) -->
+                <div class="flex justify-between items-center w-full">
+                    <!-- App Title/Logo with a link to the home page -->
+                    <a href="#landing" id="home-link" class="text-2xl font-bold rounded-md hover:opacity-80 p-2 flex items-center">
+                        <!-- mCORE Logo Image -->
+                        <img id="mcore-logo" src="/mcore/icons/mcore-logo.png" alt="mCORE Logo" class="h-8 mr-2" onerror="this.onerror=null; this.src='https://placehold.co/32x32/0d6efd/ffffff?text=M';" />
+                        mCORE
+                    </a>
+                    <!-- App Install Button (Mobile aligned right) -->
+                    <button id="install-app-button" class="p-2 rounded-md hover:bg-white hover:text-usps-blue transition-colors duration-300 hidden md:hidden">
+                        <i class="fas fa-download"></i>
                     </button>
-                    <button id="theme-toggle" class="p-2 rounded-md hover:bg-white hover:text-usps-blue transition-colors duration-300" aria-label="Toggle dark/light theme">
-                        <i class="fas fa-moon" id="theme-icon"></i>
-                    </button>
-                    <a href="#calendar" id="calendar-nav-link" class="p-2 rounded-md hover:bg-white hover:text-usps-blue transition-colors duration-300">Calendar</a>
-                    <a href="#pay-periods" id="pay-periods-nav-link" class="p-2 rounded-md hover:bg-white hover:text-usps-blue transition-colors duration-300">Pay Periods</a>
-                    <a href="#acronyms" id="acronyms-nav-link" class="p-2 rounded-md hover:bg-white hover:text-usps-blue transition-colors duration-300">Acronyms</a>
+                </div>
+
+                <!-- Bottom Row: Theme Toggle and Main Navigation Links -->
+                <div class="flex flex-col md:flex-row justify-between items-center w-full mt-4 md:mt-0">
+                    <div class="hidden md:flex flex-grow justify-start"></div> <!-- Placeholder for desktop alignment -->
+                    <div class="flex items-center space-x-4">
+                        <button id="theme-toggle" class="p-2 rounded-md hover:bg-white hover:text-usps-blue transition-colors duration-300" aria-label="Toggle dark/light theme">
+                            <i class="fas fa-moon" id="theme-icon"></i>
+                        </button>
+                        <a href="#calendar" id="calendar-nav-link" class="p-2 rounded-md hover:bg-white hover:text-usps-blue transition-colors duration-300">Calendar</a>
+                        <a href="#pay-periods" id="pay-periods-nav-link" class="p-2 rounded-md hover:bg-white hover:text-usps-blue transition-colors duration-300">Pay Periods</a>
+                        <a href="#acronyms" id="acronyms-nav-link" class="p-2 rounded-md hover:bg-white hover:text-usps-blue transition-colors duration-300">Acronyms</a>
+                    </div>
                 </div>
             </nav>
             <!-- Thin red accent line -->
@@ -72,6 +79,6 @@
     </div>
 
     <!-- Custom JavaScript for mCORE -->
-    <script src="/mcore/js/app.js"></script> <!-- Explicitly point to JS in /mcore/js/ -->
+    <script src="/mcore/js/app.js"></script>
 </body>
 </html>

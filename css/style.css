@@ -116,7 +116,7 @@ header nav button#install-app-button:hover { /* Apply hover styles to all */
 /* Specific Carrier Colors */
 .carrier-black { background-color: #28282B; color: white; }
 .carrier-yellow { background-color: #FFEA00; color: black; } /* Tailwind yellow-300 */
-.carrier-blue { background-color: #1F51FF; color: white; } /* Tailwind blue-400 */
+.carrier-blue { background-color: #1F51FF; color: white; } /* UPDATED: Blue color */
 .carrier-green { background-color: #008000; color: black; } /* Tailwind green-400 */
 .carrier-brown { background-color: 	#7B3F00; color: white; } /* Tailwind purple-400 - useing Chocolate*/
 .carrier-red { background-color: #FF0000; color: white; } /* Tailwind red-500 */
@@ -128,11 +128,11 @@ header nav button#install-app-button:hover { /* Apply hover styles to all */
 }
 
 /* Classes for Calendar Heading Text Colors */
-.text-calendar-heading-black { color: #808080; } 
+.text-calendar-heading-black { color: #808080; }
 .text-calendar-heading-yellow { color: #FFEA00; }
-.text-calendar-heading-blue { color: #1F51FF; } 
+.text-calendar-heading-blue { color: #1F51FF; } /* UPDATED: Blue heading color */
 .text-calendar-heading-green { color: #008000; }
-.text-calendar-heading-brown { color: #7B3F00; } 
+.text-calendar-heading-brown { color: #7B3F00; }
 .text-calendar-heading-red { color: #FF0000; }
 .text-calendar-heading-all { color: var(--sunday-highlight-bg); }
 
@@ -215,12 +215,11 @@ header nav button#install-app-button:hover { /* Apply hover styles to all */
 
 /* Carrier Color Buttons */
 .carrier-color-button {
-    /* REMOVED flex: 1 1 auto; - now handled by grid-template-columns */
     min-width: 3.5rem; /* Adjusted minimum width to allow more buttons per row */
     height: 4rem; /* Bigger height */
     border-radius: 0.5rem; /* Rounded corners */
-    display: flex; /* Kept flex for vertical centering of text */
-    flex-direction: column; /* Stack text vertically */
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     font-size: 0.8rem;
@@ -231,7 +230,6 @@ header nav button#install-app-button:hover { /* Apply hover styles to all */
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     text-align: center; /* Center text */
 }
-/* Removed SVG size adjustments as SVG is removed */
 .carrier-color-button .button-text {
     font-size: 0.9rem; /* Larger text for button */
     display: inline-block; /* Ensure text wraps if needed */

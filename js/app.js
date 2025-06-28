@@ -72,95 +72,23 @@ async function fetchHolidays() {
     }
 }
 
-async function fetchAcronyms() {
-    // This data would typically come from a JSON file for scalability,
-    // but is hardcoded here for self-contained example.
-    // In a real app, you'd fetch from data/acronyms.json similar to holidays.json
-    return [
-        { acronym: "AAS", meaning: "Automated Advanced Sortation (machine)" },
-        { acronym: "ACT", meaning: "Automated Call Tree" },
-        { acronym: "ADPC", meaning: "Associate Data Processing Center" },
-        { acronym: "AFSM", meaning: "Automated Flat Sorting Machine" },
-        { acronym: "AM", meaning: "Accountable Mail" },
-        { acronym: "AO", meaning: "Associate Office (a smaller post office)" },
-        { acronym: "APS", meaning: "Alternate Picking System / Automated Parcel Sorter" },
-        { acronym: "AR", meaning: "Accountable Registered (mail)" },
-        { acronym: "ART", meaning: "Auxiliary Rural T6" },
-        { acronym: "AUX", meaning: "Auxiliary Route" },
-        { acronym: "BOD", meaning: "Beginning of Day" },
-        { acronym: "CAG", meaning: "Carrier Ancillary Guide" },
-        { acronym: "CBA", meaning: "Collective Bargaining Agreement" },
-        { acronym: "CBU", meaning: "Cluster Box Unit" },
-        { acronym: "CCA", meaning: "City Carrier Assistant" },
-        { acronym: "COA", meaning: "Change of Address" },
-        { acronym: "CPC", meaning: "Customer Post Card" },
-        { acronym: "CRIS", meaning: "Carrier Route Information System" },
-        { acronym: "CSA", meaning: "Carrier Sequence Automation" },
-        { acronym: "DDU", meaning: "Destination Delivery Unit" },
-        { acronym: "DOIS", meaning: "Dynamic Official Information System (Forecasting Tool)" },
-        { acronym: "DPS", meaning: "Delivery Point Sequencing" },
-        { acronym: "EAP", meaning: "Employee Assistance Program" },
-        { acronym: "EDDM", meaning: "Every Door Direct Mail" },
-        { acronym: "ELM", meaning: "Employee and Labor Relations Manual" },
-        { acronym: "EOD", meaning: "End of Day" },
-        { acronym: "ESS", meaning: "Employee Self Service" },
-        { acronym: "FEHB", meaning: "Federal Employees Health Benefits" },
-        { acronym: "FLSA", meaning: "Fair Labor Standards Act" },
-        { acronym: "FMLA", meaning: "Family and Medical Leave Act" },
-        { acronym: "FSS", meaning: "Flat Sequencing System" },
-        { acronym: "GIS", meaning: "Geographic Information System" },
-        { acronym: "IRM", meaning: "Information Resources Management" },
-        { acronym: "JCAM", meaning: "Joint Contract Administration Manual" },
-        { acronym: "LLV", meaning: "Long Life Vehicle" },
-        { acronym: "LV", meaning: "Annual Leave" },
-        { acronym: "MDD", meaning: "Mobile Delivery Device" },
-        { acronym: "MHA", meaning: "Mail Handler Assistant" },
-        { acronym: "MOU", meaning: "Memorandum of Understanding" },
-        { acronym: "MPC", meaning: "Mail Processing Center" },
-        { acronym: "NALC", meaning: "National Association of Letter Carriers" },
-        { acronym: "NDS", meaning: "National Delivery Service" },
-        { acronym: "NPA", meaning: "Non-Postal Associations" },
-        { acronym: "OWCP", meaning: "Office of Workers' Compensation Programs" },
-        { acronym: "PARS", meaning: "Package Analysis and Reporting System" },
-        { acronym: "PM", meaning: "Postmaster" },
-        { acronym: "PMG", meaning: "Postmaster General" },
-        { acronym: "POS", meaning: "Point of Sale" },
-        { acronym: "POOM", meaning: "Post Office Operations Manager" },
-        { acronym: "PDI", meaning: "Performance Dialogue Initiative" },
-        { acronym: "PQI", meaning: "Personalized Quality Improvement" },
-        { acronym: "PSDS", meaning: "Postal Service Data System" },
-        { acronym: "PS Form 1260", meaning: "Certificate of Time Worked" },
-        { acronym: "PS Form 3971", meaning: "Request for or Notification of Absence" },
-        { acronym: "PS Form 1571", meaning: "Undelivered Mail Report" },
-        { acronym: "PS Form 3849", meaning: "Delivery Notice/Reminder/Receipt" },
-        { acronym: "PS Form 8176", meaning: "Letter Carrier Daily Inspection Report (LLV)" },
-        { acronym: "RCA", meaning: "Rural Carrier Associate" },
-        { acronym: "RMD", meaning: "Route Management Data" },
-        { acronym: "RTD", meaning: "Return to Duty" },
-        { acronym: "SL", meaning: "Sick Leave" },
-        { acronym: "SSA", meaning: "Staffing and Scheduling Analyst" },
-        { acronym: "SSP", meaning: "Scanning System Project" },
-        { acronym: "TACS", meaning: "Time and Attendance Collection System" },
-        { acronym: "TSP", meaning: "Thrift Savings Plan" },
-        { acronym: "UNDEL", meaning: "Undeliverable as Addressed" },
-        { acronym: "USPS", meaning: "United States Postal Service" },
-        { acronym: "VERT", meaning: "Vehicle Efficiency Report Tool" },
-        { acronym: "VMF", meaning: "Vehicle Maintenance Facility" },
-        { acronym: "WA", meaning: "Work Assignment" },
-        { acronym: "WMS", meaning: "Workload Management System" },
-        { acronyms: "WO", meaning: "Walking Operations" },
-        { acronym: "ZIP", meaning: "Zone Improvement Plan" },
-
-        // Carrier Endorsements
-        { acronym: "ANC", meaning: "Ancillary Service Endorsement" },
-        { acronym: "AC", meaning: "Address Correction" },
-        { acronym: "FWD", meaning: "Forward (mail)" },
-        { acronym: "RET", meaning: "Return (mail to sender)" },
-        { acronym: "COV", meaning: "Carrier's Own Vacation" },
-        { acronym: "VAC", meaning: "Vacant (property)" },
-        { acronym: "UTF", meaning: "Unable to Forward" },
-        { acronym: "DPV", meaning: "Delivery Point Validation" }
-    ];
+async function fetchAcronymsData() { // Renamed to avoid conflict with renderAcronymsPage
+    if (allAcronymsData.length > 0) {
+        return allAcronymsData;
+    }
+    try {
+        const response = await fetch('/mcore/data/acronyms.json'); // Corrected path for GitHub Pages
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        allAcronymsData = data;
+        console.log('Acronyms loaded:', allAcronymsData);
+        return data;
+    } catch (error) {
+        console.error('Could not fetch acronyms:', error);
+        return [];
+    }
 }
 
 
@@ -392,7 +320,6 @@ async function renderCalendarPage(year, selectedCarrier = null) {
 
     const currentCarrierInfo = selectedCarrier ? CARRIER_COLORS[selectedCarrier] : CARRIER_COLORS['all'];
     const headingTextColorClass = currentCarrierInfo.textClass;
-    // Removed headingOutlineClass from here as the text-shadow rule is removed from CSS
 
     appContent.innerHTML = `
         <h2 class="text-3xl font-bold mb-6 text-center ${headingTextColorClass}">Carrier Calendar</h2>
@@ -632,93 +559,7 @@ function renderPayPeriodsPage(year) {
 
 // --- Acronyms Page Rendering and Functionality ---
 async function renderAcronymsPage() {
-    if (allAcronymsData.length === 0) {
-        allAcronymsData = [
-            { acronym: "AAS", meaning: "Automated Advanced Sortation (machine)" },
-            { acronym: "ACT", meaning: "Automated Call Tree" },
-            { acronym: "ADPC", meaning: "Associate Data Processing Center" },
-            { acronym: "AFSM", meaning: "Automated Flat Sorting Machine" },
-            { acronym: "AM", meaning: "Accountable Mail" },
-            { acronym: "AO", meaning: "Associate Office (a smaller post office)" },
-            { acronym: "APS", meaning: "Alternate Picking System / Automated Parcel Sorter" },
-            { acronym: "AR", meaning: "Accountable Registered (mail)" },
-            { acronym: "ART", meaning: "Auxiliary Rural T6" },
-            { acronym: "AUX", meaning: "Auxiliary Route" },
-            { acronym: "BOD", meaning: "Beginning of Day" },
-            { acronym: "CAG", meaning: "Carrier Ancillary Guide" },
-            { acronym: "CBA", meaning: "Collective Bargaining Agreement" },
-            { acronym: "CBU", meaning: "Cluster Box Unit" },
-            { acronym: "CCA", meaning: "City Carrier Assistant" },
-            { acronym: "COA", meaning: "Change of Address" },
-            { acronym: "CPC", meaning: "Customer Post Card" },
-            { acronym: "CRIS", meaning: "Carrier Route Information System" },
-            { acronym: "CSA", meaning: "Carrier Sequence Automation" },
-            { acronym: "DDU", meaning: "Destination Delivery Unit" },
-            { acronym: "DOIS", meaning: "Dynamic Official Information System (Forecasting Tool)" },
-            { acronym: "DPS", meaning: "Delivery Point Sequencing" },
-            { acronym: "EAP", meaning: "Employee Assistance Program" },
-            { acronym: "EDDM", meaning: "Every Door Direct Mail" },
-            { acronym: "ELM", meaning: "Employee and Labor Relations Manual" },
-            { acronym: "EOD", meaning: "End of Day" },
-            { acronym: "ESS", meaning: "Employee Self Service" },
-            { acronym: "FEHB", meaning: "Federal Employees Health Benefits" },
-            { acronym: "FLSA", meaning: "Fair Labor Standards Act" },
-            { acronym: "FMLA", meaning: "Family and Medical Leave Act" },
-            { acronym: "FSS", meaning: "Flat Sequencing System" },
-            { acronym: "GIS", meaning: "Geographic Information System" },
-            { acronym: "IRM", meaning: "Information Resources Management" },
-            { acronym: "JCAM", meaning: "Joint Contract Administration Manual" },
-            { acronym: "LLV", meaning: "Long Life Vehicle" },
-            { acronym: "LV", meaning: "Annual Leave" },
-            { acronym: "MDD", meaning: "Mobile Delivery Device" },
-            { acronym: "MHA", meaning: "Mail Handler Assistant" },
-            { acronym: "MOU", meaning: "Memorandum of Understanding" },
-            { acronym: "MPC", meaning: "Mail Processing Center" },
-            { acronym: "NALC", meaning: "National Association of Letter Carriers" },
-            { acronym: "NDS", meaning: "National Delivery Service" },
-            { acronym: "NPA", meaning: "Non-Postal Associations" },
-            { acronym: "OWCP", meaning: "Office of Workers' Compensation Programs" },
-            { acronym: "PARS", meaning: "Package Analysis and Reporting System" },
-            { acronym: "PM", meaning: "Postmaster" },
-            { acronym: "PMG", meaning: "Postmaster General" },
-            { acronym: "POS", meaning: "Point of Sale" },
-            { acronym: "POOM", meaning: "Post Office Operations Manager" },
-            { acronym: "PDI", meaning: "Performance Dialogue Initiative" },
-            { acronym: "PQI", meaning: "Personalized Quality Improvement" },
-            { acronym: "PSDS", meaning: "Postal Service Data System" },
-            { acronym: "PS Form 1260", meaning: "Certificate of Time Worked" },
-            { acronym: "PS Form 3971", meaning: "Request for or Notification of Absence" },
-            { acronym: "PS Form 1571", meaning: "Undelivered Mail Report" },
-            { acronym: "PS Form 3849", meaning: "Delivery Notice/Reminder/Receipt" },
-            { acronym: "PS Form 8176", meaning: "Letter Carrier Daily Inspection Report (LLV)" },
-            { acronym: "RCA", meaning: "Rural Carrier Associate" },
-            { acronym: "RMD", meaning: "Route Management Data" },
-            { acronym: "RTD", meaning: "Return to Duty" },
-            { acronym: "SL", meaning: "Sick Leave" },
-            { acronym: "SSA", meaning: "Staffing and Scheduling Analyst" },
-            { acronym: "SSP", meaning: "Scanning System Project" },
-            { acronym: "TACS", meaning: "Time and Attendance Collection System" },
-            { acronym: "TSP", meaning: "Thrift Savings Plan" },
-            { acronym: "UNDEL", meaning: "Undeliverable as Addressed" },
-            { acronym: "USPS", meaning: "United States Postal Service" },
-            { acronym: "VERT", meaning: "Vehicle Efficiency Report Tool" },
-            { acronym: "VMF", meaning: "Vehicle Maintenance Facility" },
-            { acronym: "WA", meaning: "Work Assignment" },
-            { acronym: "WMS", meaning: "Workload Management System" },
-            { acronym: "WO", meaning: "Walking Operations" },
-            { acronym: "ZIP", meaning: "Zone Improvement Plan" },
-
-            // Carrier Endorsements
-            { acronym: "ANC", meaning: "Ancillary Service Endorsement" },
-            { acronym: "AC", meaning: "Address Correction" },
-            { acronym: "FWD", meaning: "Forward (mail)" },
-            { acronym: "RET", meaning: "Return (mail to sender)" },
-            { acronym: "COV", meaning: "Carrier's Own Vacation" },
-            { acronym: "VAC", meaning: "Vacant (property)" },
-            { acronym: "UTF", meaning: "Unable to Forward" },
-            { acronym: "DPV", meaning: "Delivery Point Validation" }
-        ];
-    }
+    await fetchAcronymsData(); // Fetch acronyms from JSON file
 
     appContent.innerHTML = `
         <h2 class="text-3xl font-bold mb-6 text-center text-usps-blue">Useful Acronyms</h2>
@@ -749,7 +590,6 @@ async function renderAcronymsPage() {
     const sortAcronymAscBtn = document.getElementById('sort-acronym-asc');
     const sortAcronymDescBtn = document.getElementById('sort-acronym-desc');
 
-    let currentAcronyms = [...allAcronymsData]; // Work with a copy for sorting/filtering
     let currentSortOrder = 'asc'; // 'asc' or 'desc'
 
     function sortAcronyms(data, order) {
@@ -808,7 +648,7 @@ async function router() {
     const currentYear = new Date().getFullYear();
 
     await fetchHolidays(); // Always fetch holidays as they are broadly used
-    // No need to fetch acronyms here, fetchAcronyms() will handle lazy loading in its page render
+    // Acronyms are now fetched by renderAcronymsPage()
 
     if (hash.startsWith('#calendar')) {
         const year = parseInt(urlParams.get('year')) || currentYear;
@@ -834,7 +674,7 @@ function renderLandingPage() {
             <p class="text-xl mb-8">Your Mail Carrier Operational Resource & Encyclopedia</p>
             <p class="mb-4 max-w-2xl mx-auto">
                 mCORE is a free, open-source tool built by a mail carrier, for mail carriers.
-                It provides essential resources and tools to help manage your schedule and understand pay periods,
+                It provides essential resources and and tools to help manage your schedule and understand pay periods,
                 all designed to be minimalist, streamlined, and easy to use.
             </p>
             <p class="mb-8 max-w-2xl mx-auto">
@@ -900,6 +740,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
+        // Show the install button only on mobile by default, as requested.
+        // It's hidden by default in index.html, so we only need to make it block here.
+        // The desktop nav structure will implicitly hide it on larger screens.
         installAppButton.style.display = 'block';
         console.log('beforeinstallprompt fired');
     });
