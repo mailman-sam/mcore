@@ -76,7 +76,7 @@ header nav button#install-app-button:hover { /* Apply hover styles to all */
     color: white; /* Ensure text remains white on hover */
 }
 
-/* mCORE Logo Sizing */
+/* NEW: mCORE Logo Sizing */
 #mcore-logo {
     height: 1.8rem; /* Adjust height to fit navigation bar */
     vertical-align: middle; /* Align with text */
@@ -99,6 +99,7 @@ header nav button#install-app-button:hover { /* Apply hover styles to all */
     margin-top: 0.5rem; /* Space below header */
     margin-bottom: 0.5rem; /* Space above days */
 }
+
 
 /* Carrier Color Highlights & Outlines */
 /* These styles are applied dynamically to day cells */
@@ -127,7 +128,7 @@ header nav button#install-app-button:hover { /* Apply hover styles to all */
 }
 
 /* Classes for Calendar Heading Text Colors */
-.text-calendar-heading-black { color: #36454F; } 
+.text-calendar-heading-black { color: #808080; } 
 .text-calendar-heading-yellow { color: #FFEA00; }
 .text-calendar-heading-blue { color: #1F51FF; } 
 .text-calendar-heading-green { color: #008000; }
@@ -205,7 +206,7 @@ header nav button#install-app-button:hover { /* Apply hover styles to all */
     color: var(--primary-blue); /* Color for holiday symbol */
 }
 
-/* Date coloring preference */
+/* Date coloring preference - REMOVED SPECIFIC color-date-number rules, keeping only default behavior */
 .calendar-day.day-off-highlight .day-number {
     /* When a day is highlighted, the number color is inherited from the carrier background or default */
     font-weight: bold; /* Keep the number bold */

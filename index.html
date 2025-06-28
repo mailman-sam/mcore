@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>mCORE - Mail Carrier Operational Resource & Encyclopedia</title>
     <!-- Favicon and Apple Touch Icons (consolidated in manifest.json where possible) -->
-    <link rel="shortcut icon" href="/mcore/favicon.ico"> <!-- For traditional favicons -->
-    <link rel="manifest" href="/mcore/manifest.json"> <!-- Consolidated manifest -->
+    <link rel="shortcut icon" href="/mcore/favicon.ico"> <!-- Explicitly point to favicon.ico in /mcore/ -->
+    <link rel="manifest" href="/mcore/manifest.json"> <!-- Explicitly point to manifest.json in /mcore/ -->
 
     <!-- Tailwind CSS CDN for utility classes -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,7 +15,7 @@
     <!-- Font Awesome for icons (e.g., moon for theme toggle) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Custom CSS for mCORE -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="/mcore/css/style.css"> <!-- Explicitly point to CSS in /mcore/css/ -->
 </head>
 <body class="theme-light">
     <!-- Main wrapper for the entire application -->
@@ -72,6 +72,6 @@
     </div>
 
     <!-- Custom JavaScript for mCORE -->
-    <script src="js/app.js"></script>
+    <script src="/mcore/js/app.js"></script> <!-- Explicitly point to JS in /mcore/js/ -->
 </body>
 </html>

@@ -58,7 +58,7 @@ async function fetchHolidays() {
         return federalHolidaysData;
     }
     try {
-        const response = await fetch('data/holidays.json');
+        const response = await fetch('/mcore/data/holidays.json'); // Corrected path for GitHub Pages
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -148,7 +148,7 @@ async function fetchAcronyms() {
         { acronym: "VMF", meaning: "Vehicle Maintenance Facility" },
         { acronym: "WA", meaning: "Work Assignment" },
         { acronym: "WMS", meaning: "Workload Management System" },
-        { acronym: "WO", meaning: "Walking Operations" },
+        { acronyms: "WO", meaning: "Walking Operations" },
         { acronym: "ZIP", meaning: "Zone Improvement Plan" },
 
         // Carrier Endorsements
@@ -392,7 +392,7 @@ async function renderCalendarPage(year, selectedCarrier = null) {
 
     const currentCarrierInfo = selectedCarrier ? CARRIER_COLORS[selectedCarrier] : CARRIER_COLORS['all'];
     const headingTextColorClass = currentCarrierInfo.textClass;
-    // Removed headingOutlineClass as the text-shadow rule is removed from CSS
+    // Removed headingOutlineClass from here as the text-shadow rule is removed from CSS
 
     appContent.innerHTML = `
         <h2 class="text-3xl font-bold mb-6 text-center ${headingTextColorClass}">Carrier Calendar</h2>
@@ -846,7 +846,7 @@ function renderLandingPage() {
                 <a href="#disclaimer" id="disclaimer-link" class="text-usps-blue underline hover:no-underline font-semibold">Terms & Conditions</a>
             </div>
             <div class="flex justify-center mt-8">
-                <img src="icons/mcore-logo.png" alt="mCORE Logo" class="h-16" onerror="this.onerror=null; this.src='https://placehold.co/64x64/0d6efd/ffffff?text=M';" />
+                <img src="/mcore/icons/mcore-logo.png" alt="mCORE Logo" class="h-16" onerror="this.onerror=null; this.src='https://placehold.co/64x64/0d6efd/ffffff?text=M';" />
             </div>
         </div>
     `;
@@ -869,7 +869,7 @@ function renderDisclaimerPage() {
                     </a>
                 </div>
                 <div class="flex justify-center mt-8">
-                    <img src="icons/mcore-logo.png" alt="mCORE Logo" class="h-16" onerror="this.onerror=null; this.src='https://placehold.co/64x64/0d6efd/ffffff?text=M';" />
+                    <img src="/mcore/icons/mcore-logo.png" alt="mCORE Logo" class="h-16" onerror="this.onerror=null; this.src='https://placehold.co/64x64/0d6efd/ffffff?text=M';" />
                 </div>
             </div>
         </div>
@@ -922,7 +922,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/mcore/service-worker.js') // Updated to include /mcore/
+            navigator.serviceWorker.register('/mcore/service-worker.js') // Correct path for GitHub Pages subfolder
                 .then(registration => {
                     console.log('ServiceWorker registration successful with scope: ', registration.scope);
                 })

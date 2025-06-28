@@ -1,37 +1,37 @@
 // Define a cache name for your application assets
-const CACHE_NAME = 'mcore-cache-v11'; // UPDATED: Increment cache version for manifest consolidation and icon paths
+const CACHE_NAME = 'mcore-cache-v12'; // UPDATED: Increment cache version for critical path fix
 
 // List of URLs to cache during installation
 // Ensure these paths are correct relative to the service-worker.js file (root of 'mcore/')
 const urlsToCache = [
-    '/mcore/', // Caches the index.html served from /mcore/
+    '/mcore/', // Caches the base URL for the app
     '/mcore/index.html',
     '/mcore/css/style.css',
     '/mcore/js/app.js',
     '/mcore/data/holidays.json',
-    '/mcore/manifest.json', // UPDATED: Path to consolidated manifest
-    'https://cdn.tailwindcss.com', // Tailwind CSS CDN
-    'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap', // Inter font CSS
-    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css', // Font Awesome CSS
+    '/mcore/manifest.json', // Point to the consolidated manifest.json
+    'https://cdn.tailwindcss.com', // External CDN
+    'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap', // External CDN
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css', // External CDN
     '/mcore/icons/mcore-logo.png',
     '/mcore/icons/android-chrome-192x192.png',
     '/mcore/icons/android-chrome-512x512.png',
     '/mcore/icons/apple-touch-icon.png',
     '/mcore/icons/favicon-32x32.png',
     '/mcore/icons/favicon-16x16.png',
-    '/mcore/favicon.ico' // Favicon.ico
+    '/mcore/favicon.ico'
 ];
 
 // --- Install Event ---
-// This event is fired when the service worker is first registered.
-// It's used to populate the cache with essential app shell assets.
 self.addEventListener('install', (event) => {
     console.log('Service Worker: Installing...');
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
                 console.log('Service Worker: Caching App Shell');
-                const filteredUrlsToCache = urlsToCache.filter(url => url !== '/mcore/service-worker.js' && url !== 'service-worker.js');
+                const filteredUrlsToCache = urlsToCache.filter(url => 
+                    !url.includes('service-worker.js')
+                );
                 return cache.addAll(filteredUrlsToCache);
             })
             .catch(error => {
@@ -41,8 +41,6 @@ self.addEventListener('install', (event) => {
 });
 
 // --- Activate Event ---
-// This event is fired when the service worker is activated.
-// It's typically used to clean up old caches.
 self.addEventListener('activate', (event) => {
     console.log('Service Worker: Activating...');
     event.waitUntil(
@@ -61,7 +59,6 @@ self.addEventListener('activate', (event) => {
 });
 
 // --- Fetch Event ---
-// This event intercepts network requests and serves content from the cache if available.
 self.addEventListener('fetch', (event) => {
     if (event.request.url.startsWith('http') || event.request.url.startsWith('https')) {
         event.respondWith(
