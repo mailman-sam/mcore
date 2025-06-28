@@ -76,7 +76,7 @@ header nav button#install-app-button:hover { /* Apply hover styles to all */
     color: white; /* Ensure text remains white on hover */
 }
 
-/* NEW: mCORE Logo Sizing */
+/* mCORE Logo Sizing */
 #mcore-logo {
     height: 1.8rem; /* Adjust height to fit navigation bar */
     vertical-align: middle; /* Align with text */
@@ -100,7 +100,6 @@ header nav button#install-app-button:hover { /* Apply hover styles to all */
     margin-bottom: 0.5rem; /* Space above days */
 }
 
-
 /* Carrier Color Highlights & Outlines */
 /* These styles are applied dynamically to day cells */
 .day-off-highlight {
@@ -116,7 +115,7 @@ header nav button#install-app-button:hover { /* Apply hover styles to all */
 /* Specific Carrier Colors */
 .carrier-black { background-color: #28282B; color: white; }
 .carrier-yellow { background-color: #FFEA00; color: black; } /* Tailwind yellow-300 */
-.carrier-blue { background-color: #0000FF; color: white; } /* Tailwind blue-400 */
+.carrier-blue { background-color: #1F51FF; color: white; } /* Tailwind blue-400 */
 .carrier-green { background-color: #008000; color: black; } /* Tailwind green-400 */
 .carrier-brown { background-color: 	#7B3F00; color: white; } /* Tailwind purple-400 - useing Chocolate*/
 .carrier-red { background-color: #FF0000; color: white; } /* Tailwind red-500 */
@@ -126,6 +125,16 @@ header nav button#install-app-button:hover { /* Apply hover styles to all */
     background-color: var(--sunday-highlight-bg);
     color: var(--sunday-highlight-text);
 }
+
+/* Classes for Calendar Heading Text Colors */
+.text-calendar-heading-black { color: #36454F; } 
+.text-calendar-heading-yellow { color: #FFEA00; }
+.text-calendar-heading-blue { color: #1F51FF; } 
+.text-calendar-heading-green { color: #008000; }
+.text-calendar-heading-brown { color: #7B3F00; } 
+.text-calendar-heading-red { color: #FF0000; }
+.text-calendar-heading-all { color: var(--sunday-highlight-bg); }
+
 
 /* Calendar Grid and Tile Styling */
 .calendar-grid {
@@ -196,7 +205,7 @@ header nav button#install-app-button:hover { /* Apply hover styles to all */
     color: var(--primary-blue); /* Color for holiday symbol */
 }
 
-/* Date coloring preference - REMOVED SPECIFIC color-date-number rules, keeping only default behavior */
+/* Date coloring preference */
 .calendar-day.day-off-highlight .day-number {
     /* When a day is highlighted, the number color is inherited from the carrier background or default */
     font-weight: bold; /* Keep the number bold */
@@ -273,6 +282,15 @@ header nav button#install-app-button:hover { /* Apply hover styles to all */
     font-weight: 700;
     color: var(--primary-blue); /* Highlight pay dates */
 }
+
+/* Acronyms Table Specific Hover (to override .pay-period-table tr:nth-child(even) in dark mode) */
+.acronyms-table tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.1); /* Light transparent background for hover in light mode */
+}
+.theme-dark .acronyms-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Dark transparent background for hover in dark mode */
+}
+
 
 /* Lightbox Styling (for holiday info) */
 .lightbox-overlay {
