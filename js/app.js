@@ -392,10 +392,10 @@ async function renderCalendarPage(year, selectedCarrier = null) {
 
     const currentCarrierInfo = selectedCarrier ? CARRIER_COLORS[selectedCarrier] : CARRIER_COLORS['all'];
     const headingTextColorClass = currentCarrierInfo.textClass;
-    const headingOutlineClass = 'calendar-heading-outline';
+    // Removed headingOutlineClass as the text-shadow rule is removed from CSS
 
     appContent.innerHTML = `
-        <h2 class="text-3xl font-bold mb-6 text-center ${headingTextColorClass} ${headingOutlineClass}">Carrier Calendar</h2>
+        <h2 class="text-3xl font-bold mb-6 text-center ${headingTextColorClass}">Carrier Calendar</h2>
         <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 mb-6">
             <div class="flex items-center space-x-4 text-lg font-semibold">
                 <button id="prev-year-btn" class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">&laquo; Previous</button>
@@ -776,7 +776,7 @@ async function renderAcronymsPage() {
         const sortedAcronyms = sortAcronyms(filteredAcronyms, currentSortOrder);
 
         acronymsTableBody.innerHTML = sortedAcronyms.map(item => `
-            <tr> <!-- Removed hover:bg-gray-100 dark:hover:bg-gray-700 from here to prevent overriding -->
+            <tr>
                 <td class="font-semibold">${item.acronym}</td>
                 <td>${item.meaning}</td>
             </tr>
@@ -922,7 +922,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/service-worker.js')
+            navigator.serviceWorker.register('/mcore/service-worker.js') // Updated to include /mcore/
                 .then(registration => {
                     console.log('ServiceWorker registration successful with scope: ', registration.scope);
                 })
