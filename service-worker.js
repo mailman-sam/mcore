@@ -1,5 +1,5 @@
 // Define a cache name for your application assets
-const CACHE_NAME = 'mcore-cache-v14'; // UPDATED: Increment cache version for acronyms.json and header layout
+const CACHE_NAME = 'mcore-cache-v16'; // UPDATED: Increment cache version for acronyms.json and header layout
 
 // List of URLs to cache during installation
 // Ensure these paths are correct relative to the service-worker.js file (root of 'mcore/')
