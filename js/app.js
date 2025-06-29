@@ -674,14 +674,13 @@ function renderLandingPage() {
             <p class="text-xl mb-8">Your Mail Carrier Operational Resource & Encyclopedia</p>
             <p class="mb-4 max-w-2xl mx-auto">
                 mCORE is a free, open-source tool built by a mail carrier, for mail carriers.
-                It provides essential resources and and tools to help manage your schedule and understand pay periods,
+                It provides essential resources and tools to help manage your schedule and understand pay periods,
                 all designed to be minimalist, streamlined, and easy to use.
             </p>
             <p class="mb-8 max-w-2xl mx-auto">
                 This application is not affiliated with the USPS or any union.
                 It respects your privacy with no ads, no cost, and no user data sold.
             </p>
-            <!-- Removed the three navigational buttons from landing page -->
             <div class="mt-8">
                 <a href="#disclaimer" id="disclaimer-link" class="text-usps-blue underline hover:no-underline font-semibold">Terms & Conditions</a>
             </div>
