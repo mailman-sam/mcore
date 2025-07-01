@@ -681,6 +681,7 @@ function renderLandingPage() {
                 This application is not affiliated with the USPS or any union.
                 It respects your privacy with no ads, no cost, and no user data sold.
             </p>
+            <!-- Removed the three navigational buttons from landing page -->
             <div class="mt-8">
                 <a href="#disclaimer" id="disclaimer-link" class="text-usps-blue underline hover:no-underline font-semibold">Terms & Conditions</a>
             </div>
@@ -718,6 +719,11 @@ function renderDisclaimerPage() {
 
 // --- Event Listeners and Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
+    const currentYearSpan = document.getElementById('current-year');
+    if (currentYearSpan) {
+        currentYearSpan.textContent = new Date().getFullYear();
+    }
+
     initPreferences();
     router();
 
@@ -739,9 +745,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        // Show the install button only on mobile by default, as requested.
-        // It's hidden by default in index.html, so we only need to make it block here.
-        // The desktop nav structure will implicitly hide it on larger screens.
         installAppButton.style.display = 'block';
         console.log('beforeinstallprompt fired');
     });
