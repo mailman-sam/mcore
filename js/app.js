@@ -58,7 +58,7 @@ async function fetchHolidays() {
         return federalHolidaysData;
     }
     try {
-        const response = await fetch('/mcore/data/holidays.json'); // Corrected path for GitHub Pages
+        const response = await fetch('/mcore/data/holidays.json');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -77,7 +77,7 @@ async function fetchAcronymsData() { // Renamed to avoid conflict with renderAcr
         return allAcronymsData;
     }
     try {
-        const response = await fetch('/mcore/data/acronyms.json'); // Corrected path for GitHub Pages
+        const response = await fetch('/mcore/data/acronyms.json');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -724,6 +724,17 @@ document.addEventListener('DOMContentLoaded', () => {
         currentYearSpan.textContent = new Date().getFullYear();
     }
 
+    // Email Obfuscation
+    const contactEmailLink = document.getElementById('contact-email-link');
+    if (contactEmailLink) {
+        const user = 'a.mailman.sam';
+        const domain = 'gmail.com';
+        const email = `${user}@${domain}`;
+        contactEmailLink.href = `mailto:${email}`;
+        contactEmailLink.textContent = 'Contact';
+    }
+
+
     initPreferences();
     router();
 
@@ -767,7 +778,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/mcore/service-worker.js') // Correct path for GitHub Pages subfolder
+            navigator.serviceWorker.register('/mcore/service-worker.js')
                 .then(registration => {
                     console.log('ServiceWorker registration successful with scope: ', registration.scope);
                 })

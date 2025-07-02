@@ -1,5 +1,5 @@
 // Define a cache name for your application assets
-const CACHE_NAME = 'mcore-cache-v18'; // UPDATED: Increment cache version for acronyms.json and header layout
+const CACHE_NAME = 'mcore-cache-v19';
 
 const urlsToCache = [
     '/mcore/', // Caches the base URL for the app
