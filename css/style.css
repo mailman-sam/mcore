@@ -97,7 +97,7 @@ header nav button#install-app-button:hover { /* Apply hover styles to all */
     width: 100%; /* Take full width on mobile */
     justify-content: space-between; /* Logo left, Install button right on mobile */
     align-items: center; /* Vertically align items in the row */
-	padding-bottom: 1.1rem;
+    padding-bottom: 1.1rem; /* Space below top row on mobile */
 }
 
 .header-bottom-row-container {
@@ -108,55 +108,57 @@ header nav button#install-app-button:hover { /* Apply hover styles to all */
     overflow-x: auto; /* Allow horizontal scrolling on mobile if needed */
 }
 
+/* Install App Button text visibility */
+#install-app-button .install-app-text {
+    display: none; /* Hidden by default (mobile) */
+}
+
 /* Desktop Styles (md breakpoint and up) */
 @media (min-width: 768px) {
     .header-nav-container {
-        /* On desktop, the container itself aligns the whole nav block */
         align-items: center;
     }
 
     .header-top-row-container {
-        /* Desktop: Logo and Install button are within this container. */
-        /* We want the logo/text to be centered, and install button to be on the far right. */
-        /* This requires a bit of a trick: make this container a flex container */
-        /* and use margin-left: auto on the install button. */
-        justify-content: flex-start; /* Align logo/text to start of its flex container */
-        position: relative; /* For install button's absolute positioning */
-        /* max-width: var(--main-content-max-width, 960px); */ /* This should be handled by the outer container mx-auto */
-        /* Remove margin auto here, as we want it to span the full container width for positioning */
-        margin: 0; /* Override any previous margin-auto */
+        /* Desktop: Logo centered, Install button right */
+        justify-content: space-between; /* Use space-between to push items to ends */
+        position: relative; /* For absolute positioning of install button */
+        /* Use max-width for confinement, matching the main content container */
+        max-width: 960px; /* Example max-width, adjust to match your main content container */
+        margin-left: auto;
+        margin-right: auto;
+		padding-top: 0.5rem;
+        padding-bottom: 0.8rem; /* Remove mobile padding */
     }
     
     /* Center the home-link (logo + text) within the header's top row for desktop */
     #home-link {
-        position: absolute;
+        position: absolute; /* Position absolutely to center it */
         left: 50%;
         transform: translateX(-50%);
-        /* Ensure it's above other elements if they overlap due to absolute positioning */
-        z-index: 10; 
+        z-index: 10; /* Ensure it's above other elements if they overlap */
     }
 
-    /* Install button on desktop: fixed to the right */
+    /* Install button on desktop: fixed to the right within the header-top-row-container */
     #install-app-button {
         display: block !important; /* Ensure it's visible on desktop */
-        position: absolute;
+        position: absolute; /* Position absolutely relative to its parent */
         right: 0;
         top: 50%;
         transform: translateY(-50%);
-        margin-left: 0; /* Override any ml-2/ml-4 from mobile */
+        margin-left: 0; /* Override any mobile margin-left */
     }
-
-    /* Hide mobile-only install button on desktop */
-    #install-app-button-mobile {
-        display: none !important;
+    /* Show "Install App" text on desktop */
+    #install-app-button .install-app-text {
+        display: inline;
+        margin-left: 0.5rem; /* Space between icon and text */
     }
 
     .header-bottom-row-container {
         justify-content: center; /* Center the nav links group on desktop */
         gap: 1rem; /* Larger gap for desktop */
         overflow-x: visible; /* Disable horizontal scroll on desktop */
-        /* Confinement for desktop navigation links group */
-        max-width: var(--main-content-max-width, 960px); /* Confine width */
+        max-width: 960px; /* Example max-width, adjust to match your main content container */
         margin-left: auto;
         margin-right: auto;
     }

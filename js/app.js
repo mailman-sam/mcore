@@ -846,7 +846,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     installAppButton.addEventListener('click', () => handleInstallClick(installAppButton));
-    installAppButtonMobile.addEventListener('click', () => handleInstallClick(installAppButtonMobile));
+    // installAppButtonMobile.addEventListener('click', () => handleInstallClick(installAppButtonMobile));
 
 
     window.addEventListener('appinstalled', () => {
