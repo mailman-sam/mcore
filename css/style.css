@@ -76,12 +76,110 @@ header nav button#install-app-button:hover { /* Apply hover styles to all */
     color: white; /* Ensure text remains white on hover */
 }
 
-/* NEW: mCORE Logo Sizing */
+/* mCORE Logo Sizing */
 #mcore-logo {
-    height: 1.8rem; /* Adjust height to fit navigation bar */
+    height: 1.5rem; /* Adjust height to fit navigation bar */
     vertical-align: middle; /* Align with text */
     margin-right: 0.5rem; /* Space between logo and text */
 }
+
+/* Header Row Layouts */
+/* Mobile: Top row has logo left, install button right. Bottom row has nav links left, scrollable. */
+/* Desktop: Top row has logo centered, install button right. Bottom row has nav links centered. */
+
+.header-nav-container {
+    display: flex;
+    flex-direction: column; /* Stacks rows vertically by default (mobile) */
+    align-items: center; /* Centers content horizontally on mobile */
+}
+
+.header-top-row-container {
+    width: 100%; /* Take full width on mobile */
+    justify-content: space-between; /* Logo left, Install button right on mobile */
+    align-items: center; /* Vertically align items in the row */
+	padding-bottom: 1.1rem;
+}
+
+.header-bottom-row-container {
+    width: 100%; /* Take full width on mobile */
+    justify-content: flex-start; /* Align nav links to start on mobile */
+    gap: 0.5rem; /* Small gap between items on mobile */
+    flex-wrap: nowrap; /* Ensure links don't wrap on mobile */
+    overflow-x: auto; /* Allow horizontal scrolling on mobile if needed */
+}
+
+/* Desktop Styles (md breakpoint and up) */
+@media (min-width: 768px) {
+    .header-nav-container {
+        /* On desktop, the container itself aligns the whole nav block */
+        align-items: center;
+    }
+
+    .header-top-row-container {
+        /* Desktop: Logo and Install button are within this container. */
+        /* We want the logo/text to be centered, and install button to be on the far right. */
+        /* This requires a bit of a trick: make this container a flex container */
+        /* and use margin-left: auto on the install button. */
+        justify-content: flex-start; /* Align logo/text to start of its flex container */
+        position: relative; /* For install button's absolute positioning */
+        /* max-width: var(--main-content-max-width, 960px); */ /* This should be handled by the outer container mx-auto */
+        /* Remove margin auto here, as we want it to span the full container width for positioning */
+        margin: 0; /* Override any previous margin-auto */
+    }
+    
+    /* Center the home-link (logo + text) within the header's top row for desktop */
+    #home-link {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        /* Ensure it's above other elements if they overlap due to absolute positioning */
+        z-index: 10; 
+    }
+
+    /* Install button on desktop: fixed to the right */
+    #install-app-button {
+        display: block !important; /* Ensure it's visible on desktop */
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        margin-left: 0; /* Override any ml-2/ml-4 from mobile */
+    }
+
+    /* Hide mobile-only install button on desktop */
+    #install-app-button-mobile {
+        display: none !important;
+    }
+
+    .header-bottom-row-container {
+        justify-content: center; /* Center the nav links group on desktop */
+        gap: 1rem; /* Larger gap for desktop */
+        overflow-x: visible; /* Disable horizontal scroll on desktop */
+        /* Confinement for desktop navigation links group */
+        max-width: var(--main-content-max-width, 960px); /* Confine width */
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+
+/* Navigation Link Sizing and No-Wrap */
+header nav a,
+header nav button#theme-toggle,
+header nav button#install-app-button {
+    white-space: nowrap; /* Prevent text from wrapping */
+    font-size: clamp(0.8rem, 2.5vw, 1rem); /* Fluid font size: min 0.8rem, preferred 2.5vw, max 1rem */
+}
+
+/* Custom scrollbar for navigation if it overflows horizontally */
+.custom-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+.custom-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
 
 /* Accent Red Line */
 .header-accent-line {
@@ -115,11 +213,11 @@ header nav button#install-app-button:hover { /* Apply hover styles to all */
 
 /* Specific Carrier Colors */
 .carrier-black { background-color: #28282B; color: white; }
-.carrier-yellow { background-color: #FFEA00; color: black; } /* Tailwind yellow-300 */
-.carrier-blue { background-color: #1F51FF; color: white; } /* UPDATED: Blue color */
-.carrier-green { background-color: #008000; color: black; } /* Tailwind green-400 */
-.carrier-brown { background-color: 	#7B3F00; color: white; } /* Tailwind purple-400 - useing Chocolate*/
-.carrier-red { background-color: #FF0000; color: white; } /* Tailwind red-500 */
+.carrier-yellow { background-color: #FFEA00; color: black; }
+.carrier-blue { background-color: #1F51FF; color: white; }
+.carrier-green { background-color: #008000; color: black; }
+.carrier-brown { background-color: 	#7B3F00; color: white; }
+.carrier-red { background-color: #FF0000; color: white; }
 
 /* Sunday Specific Highlight for 'All Colors' view */
 .carrier-sunday {
@@ -130,7 +228,7 @@ header nav button#install-app-button:hover { /* Apply hover styles to all */
 /* Classes for Calendar Heading Text Colors */
 .text-calendar-heading-black { color: #808080; }
 .text-calendar-heading-yellow { color: #FFEA00; }
-.text-calendar-heading-blue { color: #1F51FF; } /* UPDATED: Blue heading color */
+.text-calendar-heading-blue { color: #1F51FF; }
 .text-calendar-heading-green { color: #008000; }
 .text-calendar-heading-brown { color: #7B3F00; }
 .text-calendar-heading-red { color: #FF0000; }

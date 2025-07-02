@@ -1,5 +1,5 @@
 // Define a cache name for your application assets
-const CACHE_NAME = 'mcore-cache-v19';
+const CACHE_NAME = 'mcore-cache-v21'; 
 
 const urlsToCache = [
     '/mcore/', // Caches the base URL for the app
@@ -7,7 +7,8 @@ const urlsToCache = [
     '/mcore/css/style.css',
     '/mcore/js/app.js',
     '/mcore/data/holidays.json',
-    '/mcore/data/acronyms.json', // NEW: Added acronyms.json to cache
+    '/mcore/data/acronyms.json',
+    '/mcore/data/nalc-resources.json', 
     '/mcore/manifest.json',
     'https://cdn.tailwindcss.com', // External CDN
     'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap', // External CDN

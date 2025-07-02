@@ -3,14 +3,17 @@ const appContent = document.getElementById('app-content');
 const themeToggle = document.getElementById('theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
 const body = document.body;
+// Get both desktop and mobile install buttons
 const installAppButton = document.getElementById('install-app-button');
+const installAppButtonMobile = document.getElementById('install-app-button-mobile');
+
 
 let deferredPrompt;
 
 let federalHolidaysData = [];
-let allAcronymsData = []; // Store original acronyms data
+let allAcronymsData = [];
+let nalcResourcesData = [];
 
-// Carrier color definitions, including text classes for calendar heading
 const CARRIER_COLORS = {
     'black': { name: 'Black', class: 'carrier-black', textClass: 'text-calendar-heading-black', baseDayOffIndex: 0 },
     'yellow': { name: 'Yellow', class: 'carrier-yellow', textClass: 'text-calendar-heading-yellow', baseDayOffIndex: 1 },
@@ -18,7 +21,7 @@ const CARRIER_COLORS = {
     'green': { name: 'Green', class: 'carrier-green', textClass: 'text-calendar-heading-green', baseDayOffIndex: 3 },
     'brown': { name: 'Brown', class: 'carrier-brown', textClass: 'text-calendar-heading-brown', baseDayOffIndex: 4 },
     'red': { name: 'Red', class: 'carrier-red', textClass: 'text-calendar-heading-red', baseDayOffIndex: 5 },
-    'all': { name: 'All', class: 'carrier-sunday', textClass: 'text-calendar-heading-all' } // 'All' for Sunday highlight, matches new CSS text class
+    'all': { name: 'All', class: 'carrier-sunday', textClass: 'text-calendar-heading-all' }
 };
 
 const PP_REFERENCE_DATE = new Date('2024-12-14T00:00:00'); // Start of PP 25-01 (Saturday)
@@ -52,7 +55,7 @@ function initPreferences() {
     }
 }
 
-// --- Data Fetching (Holidays & Acronyms) ---
+// --- Data Fetching ---
 async function fetchHolidays() {
     if (federalHolidaysData.length > 0) {
         return federalHolidaysData;
@@ -72,7 +75,7 @@ async function fetchHolidays() {
     }
 }
 
-async function fetchAcronymsData() { // Renamed to avoid conflict with renderAcronymsPage
+async function fetchAcronymsData() {
     if (allAcronymsData.length > 0) {
         return allAcronymsData;
     }
@@ -91,6 +94,25 @@ async function fetchAcronymsData() { // Renamed to avoid conflict with renderAcr
     }
 }
 
+async function fetchNalcResourcesData() {
+    if (nalcResourcesData.length > 0) {
+        return nalcResourcesData;
+    }
+    try {
+        const response = await fetch('/mcore/data/nalc-resources.json');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        nalcResourcesData = data;
+        console.log('NALC Resources loaded:', nalcResourcesData);
+        return data;
+    } catch (error) {
+        console.error('Could not fetch NALC resources:', error);
+        return [];
+    }
+}
+
 
 // --- Date and Holiday Utilities ---
 function isLeapYear(year) {
@@ -103,10 +125,10 @@ function getDaysInMonth(month, year) {
 
 function getObservedHolidayDate(holidayDate) {
     let observedDate = new Date(holidayDate);
-    if (observedDate.getDay() === 6) { // Saturday
-        observedDate.setDate(observedDate.getDate() - 1); // Preceding Friday
-    } else if (observedDate.getDay() === 0) { // Sunday
-        observedDate.setDate(observedDate.getDate() + 1); // Following Monday
+    if (observedDate.getDay() === 6) {
+        observedDate.setDate(observedDate.getDate() - 1);
+    } else if (observedDate.getDay() === 0) {
+        observedDate.setDate(observedDate.getDate() + 1);
     }
     return observedDate;
 }
@@ -118,7 +140,7 @@ function getFederalHoliday(date) {
         if (typeof holiday.day === 'string' && holiday.day.includes('monday')) {
             let tempDate = new Date(year, holiday.month - 1, 1);
             let count = 0;
-            const targetDay = 1; // Monday
+            const targetDay = 1;
             const nth = parseInt(holiday.day.split('-')[0].replace('first', '1').replace('second', '2').replace('third', '3').replace('fourth', '4').replace('last', '0'));
 
             if (holiday.day === 'last-monday') {
@@ -142,7 +164,7 @@ function getFederalHoliday(date) {
         } else if (typeof holiday.day === 'string' && holiday.day.includes('thursday')) {
             let tempDate = new Date(year, holiday.month - 1, 1);
             let count = 0;
-            const targetDay = 4; // Thursday
+            const targetDay = 4;
             const nth = parseInt(holiday.day.split('-')[0].replace('first', '1').replace('second', '2').replace('third', '3').replace('fourth', '4'));
 
             while (count < nth) {
@@ -178,7 +200,7 @@ function getFederalHoliday(date) {
 
 // --- Carrier Schedule Logic ---
 function getPostalWorkWeekNumber(date) {
-    const cycleStart = new Date('2025-01-04T00:00:00'); // Saturday, Jan 4, 2025 (Week 1 of 2025 cycle)
+    const cycleStart = new Date('2025-01-04T00:00:00');
     const targetDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const dayOfWeek = targetDate.getDay();
     if (dayOfWeek !== 6) {
@@ -190,7 +212,7 @@ function getPostalWorkWeekNumber(date) {
 }
 
 function getCarrierDayOff(date, carrierColor) {
-    if (date.getDay() === 0) { // Sunday (0) is always a day off.
+    if (date.getDay() === 0) {
         return true;
     }
     if (!carrierColor) {
@@ -559,7 +581,7 @@ function renderPayPeriodsPage(year) {
 
 // --- Acronyms Page Rendering and Functionality ---
 async function renderAcronymsPage() {
-    await fetchAcronymsData(); // Fetch acronyms from JSON file
+    await fetchAcronymsData();
 
     appContent.innerHTML = `
         <h2 class="text-3xl font-bold mb-6 text-center text-usps-blue">Useful Acronyms</h2>
@@ -571,7 +593,7 @@ async function renderAcronymsPage() {
             </div>
         </div>
         <div class="overflow-x-auto rounded-lg shadow-lg">
-            <table class="pay-period-table acronyms-table"> <!-- Added specific class for acronyms table -->
+            <table class="pay-period-table acronyms-table">
                 <thead>
                     <tr>
                         <th>Acronym</th>
@@ -590,7 +612,7 @@ async function renderAcronymsPage() {
     const sortAcronymAscBtn = document.getElementById('sort-acronym-asc');
     const sortAcronymDescBtn = document.getElementById('sort-acronym-desc');
 
-    let currentSortOrder = 'asc'; // 'asc' or 'desc'
+    let currentSortOrder = 'asc';
 
     function sortAcronyms(data, order) {
         return data.sort((a, b) => {
@@ -603,7 +625,7 @@ async function renderAcronymsPage() {
     }
 
     function renderAcronymsTable() {
-        let filteredAcronyms = [...allAcronymsData]; // Filter from original data
+        let filteredAcronyms = [...allAcronymsData];
         const searchTerm = acronymsSearchInput.value.toLowerCase();
 
         if (searchTerm) {
@@ -623,10 +645,8 @@ async function renderAcronymsPage() {
         `).join('');
     }
 
-    // Initial render
     renderAcronymsTable();
 
-    // Event listeners for search and sort
     acronymsSearchInput.addEventListener('keyup', renderAcronymsTable);
 
     sortAcronymAscBtn.addEventListener('click', () => {
@@ -647,18 +667,29 @@ async function router() {
     const urlParams = new URLSearchParams(hash.split('?')[1]);
     const currentYear = new Date().getFullYear();
 
-    await fetchHolidays(); // Always fetch holidays as they are broadly used
-    // Acronyms are now fetched by renderAcronymsPage()
+    await fetchHolidays();
+
+    // Prioritize more specific routes first
+    const carrierMatch = hash.match(/^#calendar-([a-z]+)$/);
+    if (carrierMatch) {
+        const carrierColor = carrierMatch[1];
+        if (CARRIER_COLORS[carrierColor]) {
+            renderCalendarPage(currentYear, carrierColor);
+            return;
+        }
+    }
 
     if (hash.startsWith('#calendar')) {
         const year = parseInt(urlParams.get('year')) || currentYear;
         const carrier = urlParams.get('carrier') || null;
         renderCalendarPage(year, carrier);
+    } else if (hash.startsWith('#resources')) {
+        renderNalcResourcesPage();
+    } else if (hash.startsWith('#acronyms')) {
+        renderAcronymsPage();
     } else if (hash.startsWith('#pay-periods')) {
         const year = parseInt(urlParams.get('year')) || currentYear;
         renderPayPeriodsPage(year);
-    } else if (hash === '#acronyms') {
-        renderAcronymsPage();
     } else if (hash === '#disclaimer') {
         renderDisclaimerPage();
     } else {
@@ -666,14 +697,14 @@ async function router() {
     }
 }
 
-// --- Page Rendering Functions (Landing, Disclaimer) ---
+// --- Page Rendering Functions (Landing, Disclaimer, Resources) ---
 function renderLandingPage() {
     appContent.innerHTML = `
         <div class="text-center py-10">
             <h2 class="text-4xl font-extrabold mb-4 text-usps-blue">Welcome to mCORE</h2>
             <p class="text-xl mb-8">Your Mail Carrier Operational Resource & Encyclopedia</p>
             <p class="mb-4 max-w-2xl mx-auto">
-                mCORE is a free, open-source tool built by a mail carrier, for mail carriers.
+                mCORE is a free, open-source tool built by a mail carrier, for ALL mail carriers.
                 It provides essential resources and tools to help manage your schedule and understand pay periods,
                 all designed to be minimalist, streamlined, and easy to use.
             </p>
@@ -681,7 +712,6 @@ function renderLandingPage() {
                 This application is not affiliated with the USPS or any union.
                 It respects your privacy with no ads, no cost, and no user data sold.
             </p>
-            <!-- Removed the three navigational buttons from landing page -->
             <div class="mt-8">
                 <a href="#disclaimer" id="disclaimer-link" class="text-usps-blue underline hover:no-underline font-semibold">Terms & Conditions</a>
             </div>
@@ -698,7 +728,7 @@ function renderDisclaimerPage() {
             <h2 class="text-3xl font-bold mb-6 text-usps-blue">Terms & Conditions / Disclaimer of Responsibility</h2>
             <div class="text-left max-w-3xl mx-auto space-y-4">
                 <p><strong>Important Disclaimer:</strong> This mCORE application is provided for informational and reference purposes only. It is developed independently by a mail carrier, for mail carriers, and is not affiliated with, endorsed by, or sponsored by the United States Postal Service (USPS), any labor union, or any other official entity.</p>
-                <p>While every effort has been made to ensure the accuracy of the information provided (including, but not limited to, calendar schedules, a, and federal holidays), this application does not constitute official guidance or legal advice. Postal regulations, labor laws, union contracts, and operational procedures are complex and subject to change.</p>
+                <p>While every effort has been made to ensure the accuracy of the information provided (including, but not limited to, calendar schedules, NALC Resource and federal holidays), this application does not constitute official guidance or legal advice. Postal regulations, labor laws, union contracts, and operational procedures are complex and subject to change.</p>
                 <p><strong>Users are solely responsible for verifying all information presented in this application with official USPS sources, union representatives, and/or relevant legal counsel.</strong></p>
                 <p>The developer(s) of this application disclaim all liability for any errors or omissions in the content provided, or for any actions taken or not taken in reliance on the information contained herein. By using this application, you agree to these terms and understand that you use it at your own risk. The developer(s) shall not be liable for any direct, indirect, incidental, consequential, or punitive damages arising out of your access to, use of, or inability to use this application.</p>
                 <p>This application is provided "as is" without warranty of any kind, either express or implied, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement.</p>
@@ -716,9 +746,42 @@ function renderDisclaimerPage() {
     `;
 }
 
+function renderNalcResourcesPage() {
+    appContent.innerHTML = `
+        <h2 class="text-3xl font-bold mb-6 text-center text-usps-blue">Useful Resources</h2>
+        <div class="text-left max-w-3xl mx-auto space-y-4">
+            <p class="mb-4">This section provides links to publicly available resources from the National Association of Letter Carriers (NALC) and other relevant sources. Please note that mCORE is an independent application and is not affiliated with NALC or any union. Always verify information with official sources.</p>
+            <ul id="nalc-resources-list" class="list-disc pl-5 space-y-2">
+                <!-- Resources will be dynamically loaded here -->
+            </ul>
+            <div class="mt-8">
+                <a href="#landing" class="inline-block bg-usps-blue text-white py-2 px-4 rounded-lg text-md font-semibold shadow-md hover:opacity-90 transition-opacity duration-300">
+                    Back to Home
+                </a>
+            </div>
+        </div>
+    `;
+    const resourcesList = document.getElementById('nalc-resources-list');
+    fetchNalcResourcesData().then(data => {
+        if (data && data.length > 0) {
+            resourcesList.innerHTML = data.map(item => `
+                <li>
+                    <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="text-usps-blue underline hover:no-underline font-semibold">
+                        ${item.title}
+                    </a>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">${item.description}</p>
+                </li>
+            `).join('');
+        } else {
+            resourcesList.innerHTML = '<li>No resources available at this time.</li>';
+        }
+    });
+}
+
 
 // --- Event Listeners and Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
+    // Set the dynamic copyright year
     const currentYearSpan = document.getElementById('current-year');
     if (currentYearSpan) {
         currentYearSpan.textContent = new Date().getFullYear();
@@ -729,8 +792,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (contactEmailLink) {
         const user = 'a.mailman.sam';
         const domain = 'gmail.com';
-        const email = `${user}@${domain}`;
-        contactEmailLink.href = `mailto:${email}`;
+        const email = `mailto:${user}@${domain}`;
+        contactEmailLink.href = email;
         contactEmailLink.textContent = 'Contact';
     }
 
@@ -738,10 +801,13 @@ document.addEventListener('DOMContentLoaded', () => {
     initPreferences();
     router();
 
+    // Navigation event listeners
     document.getElementById('home-link').addEventListener('click', () => { window.location.hash = '#landing'; });
     document.getElementById('calendar-nav-link').addEventListener('click', () => { window.location.hash = '#calendar'; });
-    document.getElementById('pay-periods-nav-link').addEventListener('click', () => { window.location.hash = '#pay-periods'; });
+    document.getElementById('resources-nav-link').addEventListener('click', () => { window.location.hash = '#resources'; });
     document.getElementById('acronyms-nav-link').addEventListener('click', () => { window.location.hash = '#acronyms'; });
+    document.getElementById('pay-periods-nav-link').addEventListener('click', () => { window.location.hash = '#pay-periods'; });
+
 
     window.addEventListener('hashchange', router);
     themeToggle.addEventListener('click', toggleTheme);
@@ -753,29 +819,44 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // PWA Install Event Listeners
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        installAppButton.style.display = 'block';
+        // Show the install button only if it's not already shown by a browser prompt.
+        // It's hidden by default in index.html, so we only need to make it block here.
+        // The desktop nav structure will implicitly hide it on larger screens.
+        if (window.innerWidth <= 768) { // Assuming 768px is our mobile breakpoint
+             installAppButtonMobile.style.display = 'block';
+        } else {
+            installAppButton.style.display = 'block';
+        }
         console.log('beforeinstallprompt fired');
     });
 
-    installAppButton.addEventListener('click', async () => {
-        installAppButton.style.display = 'none';
+    // Handle clicks for both install buttons
+    const handleInstallClick = async (button) => {
+        button.style.display = 'none';
         if (deferredPrompt) {
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
             console.log(`User response to the install prompt: ${outcome}`);
             deferredPrompt = null;
         }
-    });
+    };
+
+    installAppButton.addEventListener('click', () => handleInstallClick(installAppButton));
+    installAppButtonMobile.addEventListener('click', () => handleInstallClick(installAppButtonMobile));
+
 
     window.addEventListener('appinstalled', () => {
         installAppButton.style.display = 'none';
+        installAppButtonMobile.style.display = 'none'; // Hide both if app is installed
         deferredPrompt = null;
         console.log('PWA was installed');
     });
 
+    // Service Worker Registration
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/mcore/service-worker.js')

@@ -23,30 +23,28 @@
         <!-- Header section with navigation and theme toggle -->
         <header class="header bg-usps-blue text-white p-4 shadow-md relative">
             <nav class="container mx-auto flex flex-col">
-                <!-- Top Row: Logo & Install Button (Mobile) / Logo only (Desktop) -->
-                <div class="flex justify-between items-center w-full">
-                    <!-- App Title/Logo with a link to the home page -->
+                <!-- Top Row: Logo & Install Button (grouped and centered on desktop) -->
+                <div class="flex items-center justify-between w-full md:justify-center header-top-row-container">
                     <a href="#landing" id="home-link" class="text-2xl font-bold rounded-md hover:opacity-80 p-2 flex items-center">
-                        <!-- mCORE Logo Image -->
                         <img id="mcore-logo" src="/mcore/icons/mcore-logo.png" alt="mCORE Logo" class="h-8 mr-2" onerror="this.onerror=null; this.src='https://placehold.co/32x32/0d6efd/ffffff?text=M';" />
                         mCORE
                     </a>
-                    <!-- App Install Button (Mobile aligned right) -->
-                    <button id="install-app-button" class="p-2 rounded-md hover:bg-white hover:text-usps-blue transition-colors duration-300 hidden md:hidden">
-                        <i class="fas fa-download"></i>
+                    <!-- Install App Button - now always part of this flex group -->
+                    <button id="install-app-button" class="p-2 rounded-md hover:bg-white hover:text-usps-blue transition-colors duration-300 ml-2 md:ml-4">
+                        <i class="fas fa-download"></i> <span class="hidden md:inline">Install App</span>
                     </button>
                 </div>
 
-                <!-- Bottom Row: Theme Toggle and Main Navigation Links -->
-                <div class="flex flex-col md:flex-row justify-between items-center w-full mt-4 md:mt-0">
-                    <div class="hidden md:flex flex-grow justify-start"></div> <!-- Placeholder for desktop alignment -->
-                    <div class="flex items-center space-x-4">
+                <!-- Bottom Row: Theme Toggle and Main Navigation Links (centered and confined) -->
+                <div class="flex items-center justify-center w-full mt-4 md:mt-0 header-bottom-row-container">
+                    <div class="flex items-center space-x-2 md:space-x-4 overflow-x-auto custom-scrollbar nav-links-group">
                         <button id="theme-toggle" class="p-2 rounded-md hover:bg-white hover:text-usps-blue transition-colors duration-300" aria-label="Toggle dark/light theme">
                             <i class="fas fa-moon" id="theme-icon"></i>
                         </button>
                         <a href="#calendar" id="calendar-nav-link" class="p-2 rounded-md hover:bg-white hover:text-usps-blue transition-colors duration-300">Calendar</a>
-                        <a href="#pay-periods" id="pay-periods-nav-link" class="p-2 rounded-md hover:bg-white hover:text-usps-blue transition-colors duration-300">Pay Periods</a>
+                        <a href="#resources" id="resources-nav-link" class="p-2 rounded-md hover:bg-white hover:text-usps-blue transition-colors duration-300">Resources</a>
                         <a href="#acronyms" id="acronyms-nav-link" class="p-2 rounded-md hover:bg-white hover:text-usps-blue transition-colors duration-300">Acronyms</a>
+                        <a href="#pay-periods" id="pay-periods-nav-link" class="p-2 rounded-md hover:bg-white hover:text-usps-blue transition-colors duration-300">Pay Periods</a>
                     </div>
                 </div>
             </nav>
@@ -63,7 +61,7 @@
         <footer class="footer bg-usps-blue text-white p-4 text-center text-sm mt-auto shadow-inner">
             <div class="container mx-auto">
                 <p>&copy; <span id="current-year"></span> mCORE. All Rights Reserved. Not affiliated with USPS or any union.</p>
-                <p>Version 1.1.0 | <a href="#" id="contact-email-link" class="underline hover:no-underline">Contact</a> | <a href="https://opensource.org/licenses/MIT" target="_blank" class="underline hover:no-underline">License (MIT)</a></p>
+                <p>Version 1.2.0 | <a href="#" id="contact-email-link" class="underline hover:no-underline">Contact</a> | <a href="https://opensource.org/licenses/MIT" target="_blank" class="underline hover:no-underline">License (MIT)</a></p>
                 <p>Built with <i class="fas fa-heart text-red-500"></i> by a mail carrier, for ALL mail carriers.</p>
             </div>
         </footer>
