@@ -49,7 +49,6 @@ This application is completely free, open-source, and committed to user privacy:
 
 ## Project Structure
 
-```
 
 mcore/
 ├── index.html                \# Main application entry point
@@ -72,7 +71,6 @@ mcore/
 └── manifest.json             \# Web App Manifest for PWA features
 └── service-worker.js         \# Service Worker for offline caching
 
-````
 
 ## Installation and Setup
 
