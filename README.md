@@ -1,126 +1,146 @@
-mCORE - Mail Carrier Operational Resource & Encyclopedia
-Project Overview
+```markdown
+# mCORE - Mail Carrier Operational Resource & Encyclopedia
+
+## Project Overview
+
 mCORE is a minimalist, streamlined, and modern web application designed to be a functional and user-friendly resource for mail carriers. Built by a mail carrier, for all mail carriers, it provides essential tools and information to help manage schedules, understand pay periods, and quickly reference postal acronyms and NALC resources.
 
 This application is completely free, open-source, and committed to user privacy: it collects no user data, serves no ads, and has no affiliation with USPS or any union.
 
-Key Features
-Responsive Design: Optimized for seamless use across desktop, Android, and Apple mobile devices.
+## Key Features
 
-Theme Toggle: Switch between light and dark modes for optimal viewing comfort.
+* **Responsive Design:** Optimized for seamless use across desktop, Android, and Apple mobile devices.
 
-Dynamic Calendar:
+* **Theme Toggle:** Switch between light and dark modes for optimal viewing comfort.
 
-Generates monthly calendars for various years.
+* **Dynamic Calendar:**
 
-Highlights carrier-specific non-service days (Black, Yellow, Blue, Green, Brown, Red) based on rotating schedules.
+    * Generates monthly calendars for various years.
 
-Highlights universal Sundays with a distinct color.
+    * Highlights carrier-specific non-service days (Black, Yellow, Blue, Green, Brown, Red) based on rotating schedules.
 
-Identifies and provides information on Federal Holidays via interactive lightboxes.
+    * Highlights universal Sundays with a distinct color.
 
-Continuous Pay Periods: Displays a scrollable table of pay periods, including start dates, end dates, and pay dates, with the current pay period highlighted.
+    * Identifies and provides information on Federal Holidays via interactive lightboxes.
 
-Useful Acronyms: A searchable and sortable table of common USPS acronyms and their meanings, including carrier endorsements and forms.
+* **Continuous Pay Periods:** Displays a scrollable table of pay periods, including start dates, end dates, and pay dates, with the current pay period highlighted.
 
-NALC Resources: Provides direct, safe links to official NALC website pages for contract information, CCA resources, retirement, and more.
+* **Useful Acronyms:** A searchable and sortable table of common USPS acronyms and their meanings, including carrier endorsements and forms.
 
-PWA (Progressive Web App): Installable on mobile and desktop devices for an app-like experience and offline access.
+* **NALC Resources:** Provides direct, safe links to official NALC website pages for contract information, CCA resources, retirement, and more.
 
-Disclaimer: Clear terms and conditions outlining the app's independent nature and disclaimer of liability.
+* **PWA (Progressive Web App):** Installable on mobile and desktop devices for an app-like experience and offline access.
 
-Technologies Used
-HTML5: For semantic structure.
+* **Disclaimer:** Clear terms and conditions outlining the app's independent nature and disclaimer of liability.
 
-CSS3: Custom styling and responsive design.
+## Technologies Used
 
-Tailwind CSS (CDN): Utility-first CSS framework for rapid styling.
+* **HTML5:** For semantic structure.
 
-JavaScript (ES6+): For all dynamic content generation, routing, and interactive features.
+* **CSS3:** Custom styling and responsive design.
 
-JSON: For storing dynamic data (Federal Holidays, Acronyms, NALC Resources).
+* **Tailwind CSS (CDN):** Utility-first CSS framework for rapid styling.
 
-Service Worker: Enables offline capabilities and faster loading.
+* **JavaScript (ES6+):** For all dynamic content generation, routing, and interactive features.
 
-Project Structure
+* **JSON:** For storing dynamic data (Federal Holidays, Acronyms, NALC Resources).
+
+* **Service Worker:** Enables offline capabilities and faster loading.
+
+## Project Structure
+
+```
+
 mcore/
-├── index.html                # Main application entry point
+├── index.html                \# Main application entry point
 ├── css/
-│   └── style.css             # Custom CSS for styling and responsive layouts
+│   └── style.css             \# Custom CSS for styling and responsive layouts
 ├── js/
-│   └── app.js                # Core JavaScript logic for dynamic content and interactions
+│   └── app.js                \# Core JavaScript logic for dynamic content and interactions
 ├── data/
-│   ├── acronyms.json         # JSON data for USPS acronyms (sorted alphabetically)
-│   ├── holidays.json         # JSON data for US Federal Holidays
-│   └── nalc-resources.json   # JSON data for NALC external resource links
+│   ├── acronyms.json         \# JSON data for USPS acronyms (sorted alphabetically)
+│   ├── holidays.json         \# JSON data for US Federal Holidays
+│   └── nalc-resources.json   \# JSON data for NALC external resource links
 ├── icons/
-│   ├── android-chrome-192x192.png  # PWA icon (192x192)
-│   ├── android-chrome-512x512.png  # PWA icon (512x512)
-│   ├── apple-touch-icon.png        # Apple touch icon
-│   ├── favicon-16x16.png           # Favicon (16x16)
-│   ├── favicon-32x32.png           # Favicon (32x32)
-│   └── mcore-logo.png              # Main app logo
-├── favicon.ico               # Standard favicon
-└── manifest.json             # Web App Manifest for PWA features
-└── service-worker.js         # Service Worker for offline caching
+│   ├── android-chrome-192x192.png  \# PWA icon (192x192)
+│   ├── android-chrome-512x512.png  \# PWA icon (512x512)
+│   ├── apple-touch-icon.png        \# Apple touch icon
+│   ├── favicon-16x16.png           \# Favicon (16x16)
+│   ├── favicon-32x32.png           \# Favicon (32x32)
+│   └── mcore-logo.png              \# Main app logo
+├── favicon.ico               \# Standard favicon
+└── manifest.json             \# Web App Manifest for PWA features
+└── service-worker.js         \# Service Worker for offline caching
 
-Installation and Setup
-Local Development Server (Apache2)
-Clone the repository:
+````
 
-git clone https://github.com/mailman-sam/mcore.git
+## Installation and Setup
 
-Place the mcore folder: Copy the entire mcore directory into your Apache web server's document root (e.g., /var/www/html/ on Linux, htdocs/ for XAMPP/WAMP).
+### Local Development Server (Apache2)
 
-Access in browser: Open your web browser and navigate to http://localhost/mcore/ (or your server's IP address if configured differently).
+1.  **Clone the repository:**
 
-GitHub Pages Deployment
-This project is configured for deployment to GitHub Pages when hosted from a repository that is not named after your GitHub username (i.e., it's hosted in a subdirectory like yourusername.github.io/mcore/).
+    ```bash
+    git clone [https://github.com/mailman-sam/mcore.git](https://github.com/mailman-sam/mcore.git)
+    ```
 
-Create a GitHub Repository: Create a new public repository on GitHub (e.g., mcore).
+2.  **Place the `mcore` folder:** Copy the entire `mcore` directory into your Apache web server's document root (e.g., `/var/www/html/` on Linux, `htdocs/` for XAMPP/WAMP).
 
-Push your code: Push your local mcore project files to this new repository.
+3.  **Access in browser:** Open your web browser and navigate to `http://localhost/mcore/` (or your server's IP address if configured differently).
 
-Configure GitHub Pages:
+### GitHub Pages Deployment
 
-Go to your repository on GitHub.
+This project is configured for deployment to GitHub Pages when hosted from a repository that is *not* named after your GitHub username (i.e., it's hosted in a subdirectory like `yourusername.github.io/mcore/`).
 
-Navigate to Settings > Pages.
+1.  **Create a GitHub Repository:** Create a new public repository on GitHub (e.g., `mcore`).
 
-Under "Build and deployment", set "Source" to Deploy from a branch.
+2.  **Push your code:** Push your local `mcore` project files to this new repository.
 
-Select your primary branch (e.g., main or master) and the / (root) folder.
+3.  **Configure GitHub Pages:**
 
-Click Save.
+    * Go to your repository on GitHub.
 
-Access your app: Your app should be live at https://yourusername.github.io/mcore/ within a few minutes.
+    * Navigate to **Settings > Pages**.
 
-Important Note on Tailwind CSS CDN Warning:
-You might see a console warning: cdn.tailwindcss.com should not be used in production. This is an optimization suggestion. For a small, static project like this hosted on GitHub Pages, the performance impact is usually negligible, and the site will function correctly. To remove this warning and optimize CSS size, you would typically set up a local build process using Node.js and Tailwind CLI to purge unused CSS, then deploy the optimized CSS file. This is outside the scope of basic setup but is a recommended next step for larger projects.
+    * Under "Build and deployment", set "Source" to **Deploy from a branch**.
 
-Usage
-Simply open the index.html file in your browser (or navigate to your deployed GitHub Pages URL).
+    * Select your primary branch (e.g., `main` or `master`) and the `/ (root)` folder.
 
-Navigation: Use the links in the header to jump between Calendar, Resources, Acronyms, and Pay Periods.
+    * Click **Save**.
 
-Theme Toggle: Click the moon/sun icon in the header to switch between light and dark modes.
+4.  **Access your app:** Your app should be live at `https://yourusername.github.io/mcore/` within a few minutes.
 
-Calendar: Use the "Previous", "Next", and "Current Year" buttons to navigate years. Select a carrier color button (or "All") to view specific schedules. Click on a highlighted Federal Holiday to see more information.
+**Important Note on Tailwind CSS CDN Warning:**
+You might see a console warning: `cdn.tailwindcss.com should not be used in production.` This is an optimization suggestion. For a small, static project like this hosted on GitHub Pages, the performance impact is usually negligible, and the site will function correctly. To remove this warning and optimize CSS size, you would typically set up a local build process using Node.js and Tailwind CLI to purge unused CSS, then deploy the optimized CSS file. This is outside the scope of basic setup but is a recommended next step for larger projects.
 
-Pay Periods: Use the "Previous Year", "Next Year", and "Current Year" buttons to browse pay periods by year. The current pay period row will be highlighted.
+## Usage
 
-Acronyms: Use the search bar to filter acronyms by term or meaning. Use the "Sort A-Z" and "Sort Z-A" buttons to reorder the list.
+Simply open the `index.html` file in your browser (or navigate to your deployed GitHub Pages URL).
 
-Install App: If your browser supports PWAs, an "Install App" button will appear in the header. Click it to add mCORE to your device's home screen for an app-like experience and offline access.
+* **Navigation:** Use the links in the header to jump between Calendar, Resources, Acronyms, and Pay Periods.
 
-Contributing
+* **Theme Toggle:** Click the moon/sun icon in the header to switch between light and dark modes.
+
+* **Calendar:** Use the "Previous", "Next", and "Current Year" buttons to navigate years. Select a carrier color button (or "All") to view specific schedules. Click on a highlighted Federal Holiday to see more information.
+
+* **Pay Periods:** Use the "Previous Year", "Next Year", and "Current Year" buttons to browse pay periods by year. The current pay period row will be highlighted.
+
+* **Acronyms:** Use the search bar to filter acronyms by term or meaning. Use the "Sort A-Z" and "Sort Z-A" buttons to reorder the list.
+
+* **Install App:** If your browser supports PWAs, an "Install App" button will appear in the header. Click it to add mCORE to your device's home screen for an app-like experience and offline access.
+
+## Contributing
+
 This project is open-source under the MIT License. Contributions are welcome! If you have suggestions for new features, bug fixes, or improvements, please feel free to fork the repository and submit a pull request.
 
-Contact
+## Contact
+
 For any inquiries, please contact: a.mailman.sam@gmail.com
 
-Versioning
+## Versioning
+
 Current Version: 1.2.1
 Next Version: 1.3.0 (or similar, depending on future changes)
 
-This project adheres to Semantic Versioning.
+This project adheres to [Semantic Versioning](https://semver.org/).
+````
