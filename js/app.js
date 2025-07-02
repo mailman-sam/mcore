@@ -3,9 +3,7 @@ const appContent = document.getElementById('app-content');
 const themeToggle = document.getElementById('theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
 const body = document.body;
-// Get both desktop and mobile install buttons
 const installAppButton = document.getElementById('install-app-button');
-const installAppButtonMobile = document.getElementById('install-app-button-mobile');
 
 
 let deferredPrompt;
@@ -702,11 +700,8 @@ function renderLandingPage() {
     appContent.innerHTML = `
         <div class="text-center py-10">
             <h2 class="text-4xl font-extrabold mb-4 text-usps-blue">Welcome to mCORE</h2>
-            <p class="text-xl mb-8">Your Mail Carrier Operational Resource & Encyclopedia</p>
-            <p class="mb-4 max-w-2xl mx-auto">
-                mCORE is a free, open-source tool built by a mail carrier, for ALL mail carriers.
-                It provides essential resources and tools to help manage your schedule and understand pay periods,
-                all designed to be minimalist, streamlined, and easy to use.
+            <p class="text-xl mb-8 homepage-description">
+                <span class="acronym-highlight">m</span>ail <span class="acronym-highlight">C</span>arrier <span class="acronym-highlight">O</span>perational <span class="acronym-highlight">R</span>esource & <span class="acronym-highlight">E</span>ncyclopedia
             </p>
             <p class="mb-8 max-w-2xl mx-auto">
                 This application is not affiliated with the USPS or any union.
@@ -727,7 +722,7 @@ function renderDisclaimerPage() {
         <div class="text-center py-10">
             <h2 class="text-3xl font-bold mb-6 text-usps-blue">Terms & Conditions / Disclaimer of Responsibility</h2>
             <div class="text-left max-w-3xl mx-auto space-y-4">
-                <p><strong>Important Disclaimer:</strong> This mCORE application is provided for informational and reference purposes only. It is developed independently by a mail carrier, for mail carriers, and is not affiliated with, endorsed by, or sponsored by the United States Postal Service (USPS), any labor union, or any other official entity.</p>
+                <p><strong>Important Disclaimer:</strong> This mCORE application is provided for informational and reference purposes only. It is developed independently by a mail carrier, for ALL mail carriers, and is not affiliated with, endorsed by, or sponsored by the United States Postal Service (USPS), any labor union, or any other official entity.</p>
                 <p>While every effort has been made to ensure the accuracy of the information provided (including, but not limited to, calendar schedules, NALC Resource and federal holidays), this application does not constitute official guidance or legal advice. Postal regulations, labor laws, union contracts, and operational procedures are complex and subject to change.</p>
                 <p><strong>Users are solely responsible for verifying all information presented in this application with official USPS sources, union representatives, and/or relevant legal counsel.</strong></p>
                 <p>The developer(s) of this application disclaim all liability for any errors or omissions in the content provided, or for any actions taken or not taken in reliance on the information contained herein. By using this application, you agree to these terms and understand that you use it at your own risk. The developer(s) shall not be liable for any direct, indirect, incidental, consequential, or punitive damages arising out of your access to, use of, or inability to use this application.</p>
@@ -823,35 +818,23 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        // Show the install button only if it's not already shown by a browser prompt.
-        // It's hidden by default in index.html, so we only need to make it block here.
-        // The desktop nav structure will implicitly hide it on larger screens.
-        if (window.innerWidth <= 768) { // Assuming 768px is our mobile breakpoint
-             installAppButtonMobile.style.display = 'block';
-        } else {
-            installAppButton.style.display = 'block';
-        }
+        // Show the install button
+        installAppButton.style.display = 'block';
         console.log('beforeinstallprompt fired');
     });
 
-    // Handle clicks for both install buttons
-    const handleInstallClick = async (button) => {
-        button.style.display = 'none';
+    installAppButton.addEventListener('click', async () => {
+        installAppButton.style.display = 'none';
         if (deferredPrompt) {
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
             console.log(`User response to the install prompt: ${outcome}`);
             deferredPrompt = null;
         }
-    };
-
-    installAppButton.addEventListener('click', () => handleInstallClick(installAppButton));
-    // installAppButtonMobile.addEventListener('click', () => handleInstallClick(installAppButtonMobile));
-
+    });
 
     window.addEventListener('appinstalled', () => {
         installAppButton.style.display = 'none';
-        installAppButtonMobile.style.display = 'none'; // Hide both if app is installed
         deferredPrompt = null;
         console.log('PWA was installed');
     });

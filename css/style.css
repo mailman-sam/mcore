@@ -21,6 +21,7 @@
     --accent-red: #ef4444; /* Tailwind red-500 for accent lines */
     --sunday-highlight-bg: #C0C0C0; 
     --sunday-highlight-text: #333;
+    --acronym-highlight-color: var(--accent-red); /* Variable for acronym highlights */
 }
 
 /* Base Body Styles */
@@ -235,6 +236,12 @@ header nav button#install-app-button {
 .text-calendar-heading-brown { color: #7B3F00; }
 .text-calendar-heading-red { color: #FF0000; }
 .text-calendar-heading-all { color: var(--sunday-highlight-bg); }
+
+/* NEW: Acronym Highlight Color */
+.acronym-highlight {
+    color: var(--acronym-highlight-color);
+	font-weight: bold;
+}
 
 
 /* Calendar Grid and Tile Styling */

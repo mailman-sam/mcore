@@ -1,7 +1,7 @@
 {
-  "name": "mCORE - Mail Carrier Ops Resource",
+  "name": "mCORE - Mail Carrier Ops Resource Encyclopedia",
   "short_name": "mCORE",
-  "description": "Your Mail Carrier Operational Resource & Encyclopedia for schedules and pay periods.",
+  "description": "Your Mail Carrier Operational Resource & Encyclopedia",
   "start_url": "/mcore/index.html",
   "display": "standalone",
   "background_color": "#f3f4f6",
