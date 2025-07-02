@@ -1,10 +1,13 @@
 mCORE - Mail Carrier Operational Resource & Encyclopedia
+
 Project Overview
+
 mCORE is a minimalist, streamlined, and modern web application designed to be a functional and user-friendly resource for mail carriers. Built by a mail carrier, for all mail carriers, it provides essential tools and information to help manage schedules, understand pay periods, and quickly reference postal acronyms and NALC resources.
 
 This application is completely free, open-source, and committed to user privacy: it collects no user data, serves no ads, and has no affiliation with USPS or any union.
 
 Key Features
+
 Responsive Design: Optimized for seamless use across desktop, Android, and Apple mobile devices.
 
 Theme Toggle: Switch between light and dark modes for optimal viewing comfort.
@@ -30,6 +33,7 @@ PWA (Progressive Web App): Installable on mobile and desktop devices for an app-
 Disclaimer: Clear terms and conditions outlining the app's independent nature and disclaimer of liability.
 
 Technologies Used
+
 HTML5: For semantic structure.
 
 CSS3: Custom styling and responsive design.
@@ -43,6 +47,7 @@ JSON: For storing dynamic data (Federal Holidays, Acronyms, NALC Resources).
 Service Worker: Enables offline capabilities and faster loading.
 
 Project Structure
+
 mcore/
 ├── index.html                # Main application entry point
 ├── css/
@@ -65,7 +70,9 @@ mcore/
 └── service-worker.js         # Service Worker for offline caching
 
 Installation and Setup
+
 Local Development Server (Apache2)
+
 Clone the repository:
 
 git clone https://github.com/mailman-sam/mcore.git
@@ -75,6 +82,7 @@ Place the mcore folder: Copy the entire mcore directory into your Apache web ser
 Access in browser: Open your web browser and navigate to http://localhost/mcore/ (or your server's IP address if configured differently).
 
 GitHub Pages Deployment
+
 This project is configured for deployment to GitHub Pages when hosted from a repository that is not named after your GitHub username (i.e., it's hosted in a subdirectory like yourusername.github.io/mcore/).
 
 Create a GitHub Repository: Create a new public repository on GitHub (e.g., mcore).
@@ -99,6 +107,7 @@ Important Note on Tailwind CSS CDN Warning:
 You might see a console warning: cdn.tailwindcss.com should not be used in production. This is an optimization suggestion. For a small, static project like this hosted on GitHub Pages, the performance impact is usually negligible, and the site will function correctly. To remove this warning and optimize CSS size, you would typically set up a local build process using Node.js and Tailwind CLI to purge unused CSS, then deploy the optimized CSS file. This is outside the scope of basic setup but is a recommended next step for larger projects.
 
 Usage
+
 Simply open the index.html file in your browser (or navigate to your deployed GitHub Pages URL).
 
 Navigation: Use the links in the header to jump between Calendar, Resources, Acronyms, and Pay Periods.
@@ -114,12 +123,15 @@ Acronyms: Use the search bar to filter acronyms by term or meaning. Use the "Sor
 Install App: If your browser supports PWAs, an "Install App" button will appear in the header. Click it to add mCORE to your device's home screen for an app-like experience and offline access.
 
 Contributing
+
 This project is open-source under the MIT License. Contributions are welcome! If you have suggestions for new features, bug fixes, or improvements, please feel free to fork the repository and submit a pull request.
 
 Contact
+
 For any inquiries, please contact: a.mailman.sam@gmail.com
 
 Versioning
+
 Current Version: 1.2.1
 Next Version: 1.3.0 (or similar, depending on future changes)
 
