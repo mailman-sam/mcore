@@ -1,5 +1,4 @@
-# mCORE
-## Mail Carrier Operational Resource & Encyclopedia
+# mCORE - Mail Carrier Operational Resource & Encyclopedia
 
 ## Project Overview
 
