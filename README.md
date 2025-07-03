@@ -131,7 +131,7 @@ For any inquiries, please contact: a.mailman.sam@gmail.com
 
 ## Versioning
 
-Current Version: 1.2.3
-mcore-cache-v47
+Current Version: 1.2.4
+mcore-cache-v48
 
 This project adheres to [Semantic Versioning](https://semver.org/).

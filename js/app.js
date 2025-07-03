@@ -715,7 +715,7 @@ function renderLandingPage() {
                 <a href="#disclaimer" id="disclaimer-link" class="text-usps-blue underline hover:no-underline font-semibold">Terms & Conditions</a>
             </div>
             <div class="flex justify-center mt-8">
-                <img src="/mcore/icons/mcore-logo.png" alt="mCORE Logo" class="h-16" onerror="this.onerror=null; this.src='https://placehold.co/64x64/0d6efd/ffffff?text=M';" />
+                <img src="/mcore/icons/mcore-logo.png" alt="mCORE Logo" class="h-44" onerror="this.onerror=null; this.src='https://placehold.co/64x64/0d6efd/ffffff?text=M';" />
             </div>
         </div>
     `;
