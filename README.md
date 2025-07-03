@@ -116,9 +116,6 @@ Install App: If your browser supports PWAs, an "Install App" button will appear 
 Contributing
 This project is open-source under the MIT License. Contributions are welcome! If you have suggestions for new features, bug fixes, or improvements, please feel free to fork the repository and submit a pull request.
 
-Contact
-For any inquiries, please contact: a.mailman.sam@gmail.com
-
 Versioning
 Current Version: 1.2.1
 Next Version: 1.3.0 (or similar, depending on future changes)
