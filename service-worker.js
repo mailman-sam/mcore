@@ -1,5 +1,5 @@
 // Define a cache name for your application assets
-const CACHE_NAME = 'mcore-cache-v32'; 
+const CACHE_NAME = 'mcore-cache-v47'; 
 
 const urlsToCache = [
     '/mcore/', // Caches the base URL for the app

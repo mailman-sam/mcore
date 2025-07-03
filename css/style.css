@@ -235,13 +235,13 @@ header nav button#install-app-button {
 .text-calendar-heading-red { color: #FF0000; }
 .text-calendar-heading-all { color: var(--sunday-highlight-bg); }
 
-/* NEW: Acronym Highlight Color 
+/* Acronym Highlight Color Size*/
 .acronym-highlight {
-    color: var(--acronym-highlight-color);
+    /*color: var(--acronym-highlight-color);*/
 	font-weight: bold;
-	font-size: 1.2rem;
+	/*font-size: 0.6rem;*/
 }
-*/
+
 
 /* Calendar Grid and Tile Styling */
 .calendar-grid {

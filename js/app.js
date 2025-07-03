@@ -700,12 +700,16 @@ function renderLandingPage() {
     appContent.innerHTML = `
         <div class="text-center py-10">
             <h2 class="text-4xl font-extrabold mb-4 text-usps-blue">Welcome to mCORE</h2>
-            <p class="text-xl mb-8 homepage-description">
+            <p class="text-l mb-8 homepage-description">
                 <span class="acronym-highlight">m</span>ail <span class="acronym-highlight">C</span>arrier <span class="acronym-highlight">O</span>perational <span class="acronym-highlight">R</span>esource & <span class="acronym-highlight">E</span>ncyclopedia
             </p>
             <p class="mb-8 max-w-2xl mx-auto">
-                This application is not affiliated with the USPS or any union.
-                It respects your privacy with no ads, no cost, and no user data sold.
+                No Ads</br>
+				100% Free</br>
+				Open-source</br>
+				No Data Collection or Selling.</br>
+				Works great offline, with optional web links.</br>
+				
             </p>
             <div class="mt-8">
                 <a href="#disclaimer" id="disclaimer-link" class="text-usps-blue underline hover:no-underline font-semibold">Terms & Conditions</a>
