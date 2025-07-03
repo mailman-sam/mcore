@@ -131,7 +131,7 @@ For any inquiries, please contact: a.mailman.sam@gmail.com
 
 ## Versioning
 
-Current Version: 1.2.1
+Current Version: 1.2.2
 Next Version: 1.3.0 (or similar, depending on future changes)
 
 This project adheres to [Semantic Versioning](https://semver.org/).

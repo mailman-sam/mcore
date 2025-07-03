@@ -128,8 +128,8 @@ header nav button#install-app-button:hover { /* Apply hover styles to all */
         max-width: 960px; /* Example max-width, adjust to match your main content container */
         margin-left: auto;
         margin-right: auto;
-		padding-top: 0.5rem;
-        padding-bottom: 0.8rem; /* Remove mobile padding */
+		padding-top: 0.9rem;
+        padding-bottom: 1.9rem; /* Remove mobile padding */
     }
     
     /* Center the home-link (logo + text) within the header's top row for desktop */
