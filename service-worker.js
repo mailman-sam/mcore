@@ -1,5 +1,6 @@
 // Define a cache name for your application assets
-const CACHE_NAME = 'mcore-cache-v49'; 
+// This value is dynamically pulled from app-config.json
+let CACHE_NAME = 'mcore-cache-dynamic'; // Default, will be updated on fetch
 
 const urlsToCache = [
     '/mcore/', // Caches the base URL for the app
@@ -8,8 +9,9 @@ const urlsToCache = [
     '/mcore/js/app.js',
     '/mcore/data/holidays.json',
     '/mcore/data/acronyms.json',
-    '/mcore/data/nalc-resources.json', 
+    '/mcore/data/nalc-resources.json',
     '/mcore/manifest.json',
+    '/mcore/data/app-config.json', 
     'https://cdn.tailwindcss.com', // External CDN
     'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap', // External CDN
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css', // External CDN
@@ -26,7 +28,19 @@ const urlsToCache = [
 self.addEventListener('install', (event) => {
     console.log('Service Worker: Installing...');
     event.waitUntil(
-        caches.open(CACHE_NAME)
+        // Fetch app-config.json to get the dynamic cache version
+        fetch('/mcore/data/app-config.json')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(config => {
+                CACHE_NAME = `mcore-cache-v${config.cacheVersion}`;
+                console.log(`Service Worker: Using dynamic cache name: ${CACHE_NAME}`);
+                return caches.open(CACHE_NAME);
+            })
             .then((cache) => {
                 console.log('Service Worker: Caching App Shell');
                 const filteredUrlsToCache = urlsToCache.filter(url => 
@@ -35,7 +49,10 @@ self.addEventListener('install', (event) => {
                 return cache.addAll(filteredUrlsToCache);
             })
             .catch(error => {
-                console.error('Service Worker: Cache addAll failed', error);
+                console.error('Service Worker: Cache install failed:', error);
+                // Fallback to a default cache name if config fetch fails
+                CACHE_NAME = 'mcore-cache-fallback';
+                return caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache.filter(url => !url.includes('service-worker.js'))));
             })
     );
 });

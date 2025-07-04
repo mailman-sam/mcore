@@ -11,6 +11,7 @@ let deferredPrompt;
 let federalHolidaysData = [];
 let allAcronymsData = [];
 let nalcResourcesData = [];
+let appConfig = {}; // To store app configuration (version, cache name)
 
 const CARRIER_COLORS = {
     'black': { name: 'Black', class: 'carrier-black', textClass: 'text-calendar-heading-black', baseDayOffIndex: 0 },
@@ -54,6 +55,25 @@ function initPreferences() {
 }
 
 // --- Data Fetching ---
+async function fetchAppConfig() { // Function to fetch app configuration
+    if (Object.keys(appConfig).length > 0) {
+        return appConfig;
+    }
+    try {
+        const response = await fetch('/mcore/data/app-config.json');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        appConfig = data;
+        console.log('App Config loaded:', appConfig);
+        return data;
+    } catch (error) {
+        console.error('Could not fetch app config:', error);
+        return {};
+    }
+}
+
 async function fetchHolidays() {
     if (federalHolidaysData.length > 0) {
         return federalHolidaysData;
@@ -355,8 +375,7 @@ async function renderCalendarPage(year, selectedCarrier = null) {
             ${carrierButtonsHtml}
         </div>
         <div id="calendar-grid" class="calendar-grid">
-            <!-- Monthly calendar tiles will be rendered here by JS -->
-        </div>
+            </div>
     `;
 
     const calendarGrid = document.getElementById('calendar-grid');
@@ -372,6 +391,17 @@ async function renderCalendarPage(year, selectedCarrier = null) {
             calendarGrid.innerHTML += generateMonthTile(i, currentSelectedYear, currentSelectedCarrier);
         }
         attachHolidayLightboxListeners();
+
+        // Auto-scroll to current month/day only for the current year view
+        if (currentSelectedYear === new Date().getFullYear()) {
+            const todayCell = document.querySelector('.calendar-day.today');
+            if (todayCell) {
+                // Use setTimeout to ensure rendering is complete before scrolling
+                setTimeout(() => {
+                    todayCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100); // Small delay to allow layout to settle
+            }
+        }
     }
 
     renderAllMonthTiles();
@@ -537,9 +567,9 @@ function renderPayPeriodsPage(year) {
     appContent.innerHTML = `
         <h2 class="text-3xl font-bold mb-6 text-center text-usps-blue">Pay Periods</h2>
         <div class="flex items-center justify-center space-x-4 mb-6 text-lg font-semibold">
-            <button id="prev-pp-year-btn" class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">&laquo; Previous Year</button>
+            <button id="prev-pp-year-btn" class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">&laquo; Previous</button>
             <span id="current-pp-year-display" class="text-usps-blue">${year}</span>
-            <button id="next-pp-year-btn" class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Next Year &raquo;</button>
+            <button id="next-pp-year-btn" class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Next &raquo;</button>
             <button id="current-pp-btn" class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Current Year</button>
         </div>
         <div class="overflow-x-auto rounded-lg shadow-lg">
@@ -599,8 +629,7 @@ async function renderAcronymsPage() {
                     </tr>
                 </thead>
                 <tbody id="acronyms-table-body">
-                    <!-- Acronyms will be rendered here -->
-                </tbody>
+                    </tbody>
             </table>
         </div>
     `;
@@ -700,8 +729,8 @@ function renderLandingPage() {
     appContent.innerHTML = `
         <div class="text-center py-10">
             <h2 class="text-4xl font-extrabold mb-4 text-usps-blue">Welcome to mCORE</h2>
-            <p class="text-l mb-8 homepage-description">
-                <span class="acronym-highlight">m</span>ail <span class="acronym-highlight">C</span>arrier <span class="acronym-highlight">O</span>perational <span class="acronym-highlight">R</span>esource & <span class="acronym-highlight">E</span>ncyclopedia
+            <p class="text-xl mb-8 homepage-description">
+                <span class="acronym-highlight">M</span>ail <span class="acronym-highlight">C</span>arrier <span class="acronym-highlight">O</span>perational <span class="acronym-highlight">R</span>esource & <span class="acronym-highlight">E</span>ncyclopedia
             </p>
             <p class="mb-8 max-w-2xl mx-auto">
                 No Ads</br>
@@ -751,8 +780,7 @@ function renderNalcResourcesPage() {
         <div class="text-left max-w-3xl mx-auto space-y-4">
             <p class="mb-4">This section provides links to publicly available resources from the National Association of Letter Carriers (NALC) and other relevant sources. Please note that mCORE is an independent application and is not affiliated with NALC or any union. Always verify information with official sources.</p>
             <ul id="nalc-resources-list" class="list-disc pl-5 space-y-2">
-                <!-- Resources will be dynamically loaded here -->
-            </ul>
+                </ul>
             <div class="mt-8">
                 <a href="#landing" class="inline-block bg-usps-blue text-white py-2 px-4 rounded-lg text-md font-semibold shadow-md hover:opacity-90 transition-opacity duration-300">
                     Back to Home
@@ -779,11 +807,20 @@ function renderNalcResourcesPage() {
 
 
 // --- Event Listeners and Initialization ---
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Fetch app config first to get the version number
+    await fetchAppConfig();
+
     // Set the dynamic copyright year
     const currentYearSpan = document.getElementById('current-year');
     if (currentYearSpan) {
         currentYearSpan.textContent = new Date().getFullYear();
+    }
+
+    // Set the dynamic app version
+    const appVersionSpan = document.getElementById('app-version');
+    if (appVersionSpan && appConfig.version) {
+        appVersionSpan.textContent = appConfig.version;
     }
 
     // Email Obfuscation

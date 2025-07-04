@@ -23,11 +23,11 @@
         <!-- Header section with navigation and theme toggle -->
         <header class="header bg-usps-blue text-white p-4 shadow-md relative">
             <nav class="container mx-auto flex flex-col">
-                <!-- Top Row: Logo & Install Button -->
+                <!-- Top Row: Logo & Install Button (grouped and centered on desktop) -->
                 <div class="flex items-center justify-between w-full header-top-row-container">
                     <!-- Logo and mCORE text -->
                     <a href="#landing" id="home-link" class="text-2xl font-bold rounded-md hover:opacity-80 p-2 flex items-center">
-                        <!--<img id="mcore-logo" src="/mcore/icons/mcore-logo.png" alt="mCORE Logo" class="h-8 mr-2" onerror="this.onerror=null; this.src='https://placehold.co/32x32/0d6efd/ffffff?text=M';" />-->
+                        <!--<img id="mcore-logo" src="/mcore/icons/mcore-logo.png" alt="mCORE Logo" class="h-8 mr-2" onerror="this.onerror=null; this.src='https://placehold.co/32x32/0d6efd/ffffff?text=M';" /> -->
                         mCORE
                     </a>
                     <!-- Install App Button (single button, responsive display) -->
@@ -36,7 +36,7 @@
                     </button>
                 </div>
 
-                <!-- Bottom Row: Theme Toggle and Main Navigation Links -->
+                <!-- Bottom Row: Theme Toggle and Main Navigation Links (centered and confined) -->
                 <div class="flex items-center justify-center w-full mt-4 md:mt-0 header-bottom-row-container">
                     <div class="flex items-center space-x-2 md:space-x-4 overflow-x-auto custom-scrollbar nav-links-group">
                         <button id="theme-toggle" class="p-2 rounded-md hover:bg-white hover:text-usps-blue transition-colors duration-300" aria-label="Toggle dark/light theme">
@@ -63,7 +63,7 @@
             <div class="container mx-auto">
                 <p>&copy; <span id="current-year"></span> mCORE. All Rights Reserved.</p>
                 <p>Not affiliated with USPS or any union.</p>
-                <p>Version 1.2.4 | <a href="#" id="contact-email-link" class="underline hover:no-underline">Contact</a> | <a href="LICENSE.md" target="_blank" class="underline hover:no-underline">License (MIT)</a> | <a href="https://github.com/mailman-sam/mcore" target="_blank" class="underline hover:no-underline">git</a></p>
+                <p>Version <span id="app-version"></span> | <a href="#" id="contact-email-link" class="underline hover:no-underline">Contact</a> | <a href="LICENSE.md" target="_blank" class="underline hover:no-underline">License (MIT)</a> | <a href="https://github.com/mailman-sam/mcore" target="_blank" class="underline hover:no-underline">git</a></p>
                 <p>Built with <i class="fas fa-heart text-red-500"></i> by a mail carrier, for ALL mail carriers.</p>
             </div>
         </footer>
