@@ -728,8 +728,8 @@ async function router() {
 function renderLandingPage() {
     appContent.innerHTML = `
         <div class="text-center py-10">
-            <h2 class="text-4xl font-extrabold mb-4 text-usps-blue">Welcome to mCORE</h2>
-            <p class="text-xl mb-8 homepage-description">
+            <h2 class="text-3xl font-extrabold mb-4 text-usps-blue">Welcome to mCORE</h2>
+            <p class="text-l mb-8 homepage-description">
                 <span class="acronym-highlight">M</span>ail <span class="acronym-highlight">C</span>arrier <span class="acronym-highlight">O</span>perational <span class="acronym-highlight">R</span>esource & <span class="acronym-highlight">E</span>ncyclopedia
             </p>
             <p class="mb-8 max-w-2xl mx-auto">
