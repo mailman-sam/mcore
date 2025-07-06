@@ -6,7 +6,7 @@ let CACHE_NAME = 'mcore-cache-dynamic'; // Default, will be updated on fetch
 // Paths are now relative to the service worker's scope, which is the base of the app.
 const urlsToCache = [
     '/',
-	'/mcore/'
+	'/mcore/',
     '/index.html',
     '/css/style.css',
     '/js/app.js',
