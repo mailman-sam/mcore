@@ -34,8 +34,6 @@ This application is completely free, open-source, and committed to user privacy:
 
 * **CSS3:** Custom styling and responsive design.
 
-* **Tailwind CSS (CDN):** Utility-first CSS framework for rapid styling.
-
 * **JavaScript (ES6+):** For all dynamic content generation, routing, and interactive features.
 
 * **JSON:** For storing dynamic data (Federal Holidays, Acronyms, NALC Resources).
@@ -103,20 +101,17 @@ This project is configured for deployment to GitHub Pages when hosted from a rep
 
 4.  **Access your app:** Your app should be live at `https://yourusername.github.io/mcore/` within a few minutes.
 
-**Important Note on Tailwind CSS CDN Warning:**
-You might see a console warning: `cdn.tailwindcss.com should not be used in production.` This is an optimization suggestion. For a small, static project like this hosted on GitHub Pages, the performance impact is usually negligible, and the site will function correctly. To remove this warning and optimize CSS size, you would typically set up a local build process using Node.js and Tailwind CLI to purge unused CSS, then deploy the optimized CSS file. This is outside the scope of basic setup but is a recommended next step for larger projects.
-
 ## Usage
 
 Simply open the `index.html` file in your browser (or navigate to your deployed GitHub Pages URL).
 
 * **Navigation:** Use the links in the header to jump between Calendar, Resources, Acronyms, and Pay Periods.
 
-* **Theme Toggle:** Click the moon/sun icon in the header to switch between light and dark modes.
+* **Theme Toggle:** Click the circle/dot icon in the header to switch between light and dark modes.
 
-* **Calendar:** Use the "Previous", "Next", and "Current Year" buttons to navigate years. Select a carrier color button (or "All") to view specific schedules. Click on a highlighted Federal Holiday to see more information.
+* **Calendar:** Use the "Previous", "Next", "Current Year", and "Today" buttons to navigate years. Select a carrier color button (or "All") to view specific schedules. Click on a highlighted Federal Holiday to see more information.
 
-* **Pay Periods:** Use the "Previous Year", "Next Year", and "Current Year" buttons to browse pay periods by year. The current pay period row will be highlighted.
+* **Pay Periods:** Use the "Previous Year", "Next Year", "Current Year", and "Today" buttons to browse pay periods by year. The current pay period row will be highlighted.
 
 * **Acronyms:** Use the search bar to filter acronyms by term or meaning. Use the "Sort A-Z" and "Sort Z-A" buttons to reorder the list.
 
