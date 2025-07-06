@@ -1,17 +1,20 @@
+// Get references to key DOM elements
 const appContent = document.getElementById('app-content');
 const themeToggle = document.getElementById('theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
 const body = document.body;
 const installAppButton = document.getElementById('install-app-button');
 
-
+// Variable to store the deferred prompt for PWA installation
 let deferredPrompt;
 
+// Arrays to hold fetched data, initialized as empty
 let federalHolidaysData = [];
 let allAcronymsData = [];
 let nalcResourcesData = [];
-let appConfig = {};
+let appConfig = {}; // Object to hold application configuration
 
+// Configuration for carrier colors and their associated CSS classes
 const CARRIER_COLORS = {
     'black': { name: 'Black', class: 'carrier-black', textClass: 'text-calendar-heading-black', baseDayOffIndex: 0 },
     'yellow': { name: 'Yellow', class: 'carrier-yellow', textClass: 'text-calendar-heading-yellow', baseDayOffIndex: 1 },
@@ -22,24 +25,34 @@ const CARRIER_COLORS = {
     'all': { name: 'All', class: 'carrier-sunday', textClass: 'text-calendar-heading-all' }
 };
 
+// Reference date for calculating pay periods (December 14, 2024, is PP1 for 2025)
 const PP_REFERENCE_DATE = new Date('2024-12-14T00:00:00');
-const PP_REFERENCE_NUMBER = 1;
-const PP_REFERENCE_YEAR = 2025;
+const PP_REFERENCE_NUMBER = 1; // Pay Period 1
+const PP_REFERENCE_YEAR = 2025; // Year for the reference pay period
 
-
+/**
+ * Applies the specified theme to the document body.
+ * @param {string} theme - The theme to apply ('light' or 'dark').
+ */
 function applyTheme(theme) {
     body.classList.remove('theme-light', 'theme-dark');
     body.classList.add(`theme-${theme}`);
-    // Removed direct textContent manipulation, relying on CSS ::before for theme icon
+    // The theme icon is now handled purely by CSS ::before pseudo-elements
     localStorage.setItem('mcore-theme', theme);
 }
 
+/**
+ * Toggles the current theme between 'light' and 'dark'.
+ */
 function toggleTheme() {
     const currentTheme = body.classList.contains('theme-dark') ? 'dark' : 'light';
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     applyTheme(newTheme);
 }
 
+/**
+ * Initializes the theme based on user's saved preference or system preference.
+ */
 function initPreferences() {
     const savedTheme = localStorage.getItem('mcore-theme');
     if (savedTheme) {
@@ -51,12 +64,19 @@ function initPreferences() {
     }
 }
 
+/**
+ * Fetches the application configuration from app-config.json.
+ * Caches the data to avoid multiple fetches.
+ * @returns {Promise<Object>} A promise that resolves with the application configuration.
+ */
 async function fetchAppConfig() {
+    // Return cached data if available
     if (Object.keys(appConfig).length > 0) {
         return appConfig;
     }
     try {
-        const response = await fetch('/mcore/data/app-config.json');
+        // Use relative path as base href is set in index.html
+        const response = await fetch('data/app-config.json');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -66,16 +86,23 @@ async function fetchAppConfig() {
         return data;
     } catch (error) {
         console.error('Could not fetch app config:', error);
-        return {};
+        return {}; // Return empty object on error
     }
 }
 
+/**
+ * Fetches federal holidays data from holidays.json.
+ * Caches the data to avoid multiple fetches.
+ * @returns {Promise<Array>} A promise that resolves with the federal holidays data.
+ */
 async function fetchHolidays() {
+    // Return cached data if available
     if (federalHolidaysData.length > 0) {
         return federalHolidaysData;
     }
     try {
-        const response = await fetch('/mcore/data/holidays.json');
+        // Use relative path as base href is set in index.html
+        const response = await fetch('data/holidays.json');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -85,16 +112,23 @@ async function fetchHolidays() {
         return data;
     } catch (error) {
         console.error('Could not fetch federal holidays:', error);
-        return [];
+        return []; // Return empty array on error
     }
 }
 
+/**
+ * Fetches acronyms data from acronyms.json.
+ * Caches the data to avoid multiple fetches.
+ * @returns {Promise<Array>} A promise that resolves with the acronyms data.
+ */
 async function fetchAcronymsData() {
+    // Return cached data if available
     if (allAcronymsData.length > 0) {
         return allAcronymsData;
     }
     try {
-        const response = await fetch('/mcore/data/acronyms.json');
+        // Use relative path as base href is set in index.html
+        const response = await fetch('data/acronyms.json');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -104,16 +138,23 @@ async function fetchAcronymsData() {
         return data;
     } catch (error) {
         console.error('Could not fetch acronyms:', error);
-        return [];
+        return []; // Return empty array on error
     }
 }
 
+/**
+ * Fetches NALC resources data from nalc-resources.json.
+ * Caches the data to avoid multiple fetches.
+ * @returns {Promise<Array>} A promise that resolves with the NALC resources data.
+ */
 async function fetchNalcResourcesData() {
+    // Return cached data if available
     if (nalcResourcesData.length > 0) {
         return nalcResourcesData;
     }
     try {
-        const response = await fetch('/mcore/data/nalc-resources.json');
+        // Use relative path as base href is set in index.html
+        const response = await fetch('data/nalc-resources.json');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -123,41 +164,65 @@ async function fetchNalcResourcesData() {
         return data;
     } catch (error) {
         console.error('Could not fetch NALC resources:', error);
-        return [];
+        return []; // Return empty array on error
     }
 }
 
-
+/**
+ * Checks if a given year is a leap year.
+ * @param {number} year - The year to check.
+ * @returns {boolean} True if it's a leap year, false otherwise.
+ */
 function isLeapYear(year) {
     return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
 }
 
+/**
+ * Gets the number of days in a given month and year.
+ * @param {number} month - The month (0-indexed).
+ * @param {number} year - The year.
+ * @returns {number} The number of days in the month.
+ */
 function getDaysInMonth(month, year) {
     return new Date(year, month + 1, 0).getDate();
 }
 
+/**
+ * Calculates the observed holiday date (if it falls on a weekend).
+ * If Saturday, observed on Friday. If Sunday, observed on Monday.
+ * @param {Date} holidayDate - The actual date of the holiday.
+ * @returns {Date} The observed holiday date.
+ */
 function getObservedHolidayDate(holidayDate) {
     let observedDate = new Date(holidayDate);
-    if (observedDate.getDay() === 6) {
-        observedDate.setDate(observedDate.getDate() - 1);
-    } else if (observedDate.getDay() === 0) {
-        observedDate.setDate(observedDate.getDate() + 1);
+    if (observedDate.getDay() === 6) { // Saturday
+        observedDate.setDate(observedDate.getDate() - 1); // Observed on Friday
+    } else if (observedDate.getDay() === 0) { // Sunday
+        observedDate.setDate(observedDate.getDate() + 1); // Observed on Monday
     }
     return observedDate;
 }
 
+/**
+ * Checks if a given date is a federal holiday and returns its information.
+ * @param {Date} date - The date to check.
+ * @returns {Object|null} Holiday object if it's a holiday, otherwise null.
+ */
 function getFederalHoliday(date) {
     const year = date.getFullYear();
     for (const holiday of federalHolidaysData) {
         let actualHolidayDate;
+
+        // Handle holidays based on Nth day of the week (e.g., Martin Luther King, Jr. Day, Memorial Day)
         if (typeof holiday.day === 'string' && holiday.day.includes('monday')) {
-            let tempDate = new Date(year, holiday.month - 1, 1);
+            let tempDate = new Date(year, holiday.month - 1, 1); // Start of the month
             let count = 0;
-            const targetDay = 1;
+            const targetDay = 1; // Monday
             const nth = parseInt(holiday.day.split('-')[0].replace('first', '1').replace('second', '2').replace('third', '3').replace('fourth', '4').replace('last', '0'));
 
             if (holiday.day === 'last-monday') {
-                 tempDate = new Date(year, holiday.month, 0);
+                 // For last Monday, start from the end of the month
+                 tempDate = new Date(year, holiday.month, 0); // Last day of the previous month (which is the month of the holiday)
                  while (tempDate.getDay() !== targetDay) {
                      tempDate.setDate(tempDate.getDate() - 1);
                  }
@@ -175,9 +240,10 @@ function getFederalHoliday(date) {
                 }
             }
         } else if (typeof holiday.day === 'string' && holiday.day.includes('thursday')) {
+            // Handle holidays based on Nth Thursday (e.g., Thanksgiving)
             let tempDate = new Date(year, holiday.month - 1, 1);
             let count = 0;
-            const targetDay = 4;
+            const targetDay = 4; // Thursday
             const nth = parseInt(holiday.day.split('-')[0].replace('first', '1').replace('second', '2').replace('third', '3').replace('fourth', '4'));
 
             while (count < nth) {
@@ -192,12 +258,14 @@ function getFederalHoliday(date) {
             }
         }
         else {
+            // Handle fixed-date holidays
             actualHolidayDate = new Date(year, holiday.month - 1, holiday.day);
         }
 
         if (actualHolidayDate) {
             const observedHolidayDate = getObservedHolidayDate(actualHolidayDate);
 
+            // Check if the given date matches the observed holiday date
             if (observedHolidayDate.getDate() === date.getDate() &&
                 observedHolidayDate.getMonth() === date.getMonth() &&
                 observedHolidayDate.getFullYear() === date.getFullYear()) {
@@ -208,53 +276,88 @@ function getFederalHoliday(date) {
             }
         }
     }
-    return null;
+    return null; // Not a federal holiday
 }
 
+/**
+ * Calculates the Postal Work Week number for a given date.
+ * The cycle starts on January 4, 2025 (a Saturday).
+ * @param {Date} date - The date to calculate the week number for.
+ * @returns {number} The postal work week number.
+ */
 function getPostalWorkWeekNumber(date) {
-    const cycleStart = new Date('2025-01-04T00:00:00');
-    const targetDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const dayOfWeek = targetDate.getDay();
+    const cycleStart = new Date('2025-01-04T00:00:00'); // Reference start date (Saturday)
+    let targetDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    // Adjust targetDate to the preceding Saturday if it's not Saturday
+    const dayOfWeek = targetDate.getDay(); // 0 for Sunday, 6 for Saturday
     if (dayOfWeek !== 6) {
+        // If it's Sunday (0), (0+1)%7 = 1, subtract 1 day to get Saturday
+        // If it's Monday (1), (1+1)%7 = 2, subtract 2 days to get Saturday
         targetDate.setDate(targetDate.getDate() - (dayOfWeek + 1) % 7);
     }
+
+    // Calculate difference in milliseconds and then days
     const diffTime = Math.abs(targetDate.getTime() - cycleStart.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    // Calculate week number (add 1 because week numbers are 1-indexed)
     return Math.floor(diffDays / 7) + 1;
 }
 
+/**
+ * Determines if a given date is a day off for a specific carrier color.
+ * Includes Sundays as automatic days off.
+ * @param {Date} date - The date to check.
+ * @param {string} carrierColor - The color of the carrier (e.g., 'black', 'yellow').
+ * @returns {boolean} True if it's a day off, false otherwise.
+ */
 function getCarrierDayOff(date, carrierColor) {
+    // Sundays are always days off
     if (date.getDay() === 0) {
         return true;
     }
+    // If no specific carrier color is selected, no rotating day off applies
     if (!carrierColor) {
         return false;
     }
 
     const carrier = CARRIER_COLORS[carrierColor];
-    if (!carrier) return false;
+    if (!carrier) return false; // Invalid carrier color
 
     const weekNumber = getPostalWorkWeekNumber(date);
+    // Calculate the rotating day off index based on base day off and week number
+    // Modulo 6 because there are 6 rotating days (Mon-Sat)
     const rotatingDayOffIndex = (carrier.baseDayOffIndex + (weekNumber - 1)) % 6;
-    const actualDayOfWeek = date.getDay();
-    const expectedDayOffForDate = rotatingDayOffIndex + 1;
+    const actualDayOfWeek = date.getDay(); // 1 for Monday, 6 for Saturday
+    const expectedDayOffForDate = rotatingDayOffIndex + 1; // Convert 0-5 index to 1-6 day of week
 
     return actualDayOfWeek === expectedDayOffForDate;
 }
 
+/**
+ * Generates the HTML for a single month tile in the calendar.
+ * @param {number} month - The month (0-indexed).
+ * @param {number} year - The year.
+ * @param {string|null} selectedCarrier - The currently selected carrier color, or null for 'All'.
+ * @returns {string} HTML string for the month tile.
+ */
 function generateMonthTile(month, year, selectedCarrier) {
     const today = new Date();
     const firstDayOfMonth = new Date(year, month, 1);
     const daysInMonth = getDaysInMonth(month, year);
 
-    let startDay = firstDayOfMonth.getDay();
-    const firstDayOffset = (startDay + 6) % 7;
+    // Calculate the offset for the first day of the month (Monday is 0, Sunday is 6)
+    let startDay = firstDayOfMonth.getDay(); // 0 for Sunday, 1 for Monday, etc.
+    const firstDayOffset = (startDay + 6) % 7; // Adjust so Monday is the first column (0 offset)
 
     let daysHtml = '';
+    // Add empty divs for days before the 1st of the month
     for (let i = 0; i < firstDayOffset; i++) {
         daysHtml += '<div class="calendar-day other-month"></div>';
     }
 
+    // Generate HTML for each day of the month
     for (let day = 1; day <= daysInMonth; day++) {
         const currentDate = new Date(year, month, day);
         let dayClasses = ['calendar-day'];
@@ -262,6 +365,7 @@ function generateMonthTile(month, year, selectedCarrier) {
         let isOffDay = false;
         let highlightClasses = [];
 
+        // Add 'today' class if it's the current date
         if (currentDate.getDate() === today.getDate() &&
             currentDate.getMonth() === today.getMonth() &&
             currentDate.getFullYear() === today.getFullYear()) {
@@ -274,11 +378,13 @@ function generateMonthTile(month, year, selectedCarrier) {
             isOffDay = true;
             highlightClasses.push('carrier-sunday');
         } else if (selectedCarrier) {
+            // If a specific carrier is selected, check their day off
             if (getCarrierDayOff(currentDate, selectedCarrier)) {
                 isOffDay = true;
                 highlightClasses.push(CARRIER_COLORS[selectedCarrier].class);
             }
         } else {
+            // If 'All' carriers are selected, highlight if ANY carrier has it off
             for (const colorKey in CARRIER_COLORS) {
                 if (colorKey !== 'all' && getCarrierDayOff(currentDate, colorKey)) {
                     isOffDay = true;
@@ -292,11 +398,14 @@ function generateMonthTile(month, year, selectedCarrier) {
         }
         dayClasses.push(...highlightClasses);
 
+        // Check for federal holidays
         const holiday = getFederalHoliday(currentDate);
         if (holiday) {
+            // Add holiday symbol and data attributes for lightbox
             holidayHtml = `<span class="holiday-symbol" data-holiday-name="${holiday.name}" data-holiday-info="${holiday.info}">★</span>`;
         }
 
+        // Add cursor style based on whether the day has interactive info
         if (holiday || isOffDay) {
             dayClasses.push('cursor-pointer');
         } else {
@@ -331,21 +440,29 @@ function generateMonthTile(month, year, selectedCarrier) {
     `;
 }
 
+/**
+ * Scrolls the calendar view to the current day.
+ */
 function jumpToTodayOnCalendar() {
     const todayCell = document.querySelector('.calendar-day.today');
     if (todayCell) {
         setTimeout(() => {
             todayCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 200);
+        }, 200); // Small delay to allow rendering
     }
 }
 
-
+/**
+ * Renders the calendar page with month tiles and carrier selection buttons.
+ * @param {number} year - The year to display.
+ * @param {string|null} selectedCarrier - The carrier color to highlight days off for, or null for 'All'.
+ */
 async function renderCalendarPage(year, selectedCarrier = null) {
-    await fetchHolidays();
+    await fetchHolidays(); // Ensure holidays data is loaded
 
     const currentYear = new Date().getFullYear();
 
+    // Build carrier selection buttons HTML
     let carrierButtonsHtml = `<button class="carrier-color-button ${CARRIER_COLORS['all'].class} ${selectedCarrier === null ? 'selected' : ''}" data-carrier-color="">
                                 <span class="button-text">All</span>
                               </button>`;
@@ -364,6 +481,7 @@ async function renderCalendarPage(year, selectedCarrier = null) {
     const currentCarrierInfo = selectedCarrier ? CARRIER_COLORS[selectedCarrier] : CARRIER_COLORS['all'];
     const headingTextColorClass = currentCarrierInfo.textClass;
 
+    // Set the main app content for the calendar page
     appContent.innerHTML = `
         <h2 class="page-title ${headingTextColorClass}">Carrier Calendar</h2>
         <div class="carrier-buttons-grid">
@@ -382,28 +500,33 @@ async function renderCalendarPage(year, selectedCarrier = null) {
             </div>
     `;
 
+    // Get references to newly rendered elements
     const calendarGrid = document.getElementById('calendar-grid');
     const prevYearBtn = document.getElementById('prev-year-btn');
     const nextYearBtn = document.getElementById('next-year-btn');
     const currentYearBtn = document.getElementById('current-year-btn');
     const todayCalendarBtn = document.getElementById('today-calendar-btn');
 
+    /**
+     * Renders all 12 month tiles for the current year and selected carrier.
+     */
     function renderAllMonthTiles() {
-        calendarGrid.innerHTML = '';
+        calendarGrid.innerHTML = ''; // Clear existing tiles
         const currentSelectedCarrier = document.querySelector('.carrier-color-button.selected')?.dataset.carrierColor || null;
         const currentSelectedYear = parseInt(document.getElementById('current-year-display').textContent);
         for (let i = 0; i < 12; i++) {
             calendarGrid.innerHTML += generateMonthTile(i, currentSelectedYear, currentSelectedCarrier);
         }
-        attachHolidayLightboxListeners();
-
+        attachHolidayLightboxListeners(); // Re-attach listeners after rendering
     }
 
-    renderAllMonthTiles();
+    renderAllMonthTiles(); // Initial render of month tiles
 
+    // Event listeners for year navigation
     prevYearBtn.addEventListener('click', () => {
         const currentDisplayedYear = parseInt(document.getElementById('current-year-display').textContent);
         document.getElementById('current-year-display').textContent = currentDisplayedYear - 1;
+        // Update URL hash to reflect new year and trigger re-render via router
         window.location.hash = `#calendar?year=${currentDisplayedYear - 1}&carrier=${selectedCarrier || ''}`;
     });
     nextYearBtn.addEventListener('click', () => {
@@ -416,52 +539,74 @@ async function renderCalendarPage(year, selectedCarrier = null) {
         window.location.hash = `#calendar?year=${currentYear}&carrier=${selectedCarrier || ''}`;
     });
 
+    // Event listener for "Today" button
     todayCalendarBtn.addEventListener('click', () => {
         const currentDisplayedYear = parseInt(document.getElementById('current-year-display').textContent);
         const actualCurrentYear = new Date().getFullYear();
 
         if (currentDisplayedYear !== actualCurrentYear) {
+            // If currently displayed year is not the current year, navigate there
             window.location.hash = `#calendar?year=${actualCurrentYear}`;
-            setTimeout(jumpToTodayOnCalendar, 200);
+            setTimeout(jumpToTodayOnCalendar, 200); // Jump to today after navigation completes
         } else {
-            jumpToTodayOnCalendar();
+            jumpToTodayOnCalendar(); // Just jump if already in the current year
         }
     });
 
+    // Event listeners for carrier color selection buttons
     document.querySelectorAll('.carrier-color-button').forEach(button => {
         button.addEventListener('click', (event) => {
+            // Remove 'selected' class from all buttons
             document.querySelectorAll('.carrier-color-button').forEach(btn => btn.classList.remove('selected'));
+            // Add 'selected' class to the clicked button
             event.currentTarget.classList.add('selected');
-            const newCarrier = event.currentTarget.dataset.carrierColor || '';
+            const newCarrier = event.currentTarget.dataset.carrierColor || ''; // Get new carrier color
             const currentSelectedYear = parseInt(document.getElementById('current-year-display').textContent);
+            // Update URL hash to trigger re-render with new carrier
             window.location.hash = `#calendar?year=${currentSelectedYear}&carrier=${newCarrier}`;
         });
     });
 
+    // Get references to holiday lightbox elements
     const holidayLightbox = document.getElementById('holiday-lightbox');
     const lightboxCloseBtn = document.getElementById('lightbox-close-btn');
     const lightboxHolidayName = document.getElementById('lightbox-holiday-name');
     const lightboxHolidayInfo = document.getElementById('lightbox-holiday-info');
 
+    /**
+     * Opens the holiday lightbox with the given holiday name and information.
+     * @param {string} name - The name of the holiday.
+     * @param {string} info - Information about the holiday.
+     */
     function openHolidayLightbox(name, info) {
         lightboxHolidayName.textContent = name;
         lightboxHolidayInfo.textContent = info;
         holidayLightbox.classList.add('active');
     }
 
+    /**
+     * Closes the holiday lightbox.
+     */
     function closeHolidayLightbox() {
         lightboxHolidayName.textContent = '';
         lightboxHolidayInfo.textContent = '';
         holidayLightbox.classList.remove('active');
     }
 
+    /**
+     * Attaches click listeners to holiday symbols within calendar days to open the lightbox.
+     * This needs to be called after month tiles are re-rendered.
+     */
     function attachHolidayLightboxListeners() {
+        // Re-clone nodes to ensure event listeners are properly attached/detached
+        // This prevents multiple listeners on the same element after re-rendering
         document.querySelectorAll('.calendar-day[data-is-holiday="true"]').forEach(dayCell => {
             const oldDayCell = dayCell;
-            const newDayCell = oldDayCell.cloneNode(true);
-            oldDayCell.parentNode.replaceChild(newDayCell, oldDayCell);
+            const newDayCell = oldDayCell.cloneNode(true); // Clone the node
+            oldDayCell.parentNode.replaceChild(newDayCell, oldDayCell); // Replace old with new
         });
 
+        // Attach new listeners to the cloned nodes
         document.querySelectorAll('.calendar-day[data-is-holiday="true"]').forEach(dayCell => {
             dayCell.addEventListener('click', (event) => {
                 const symbol = dayCell.querySelector('.holiday-symbol');
@@ -474,36 +619,46 @@ async function renderCalendarPage(year, selectedCarrier = null) {
         });
     }
 
-    if (!lightboxCloseBtn.__listenerAttached) {
+    // Attach global listeners for lightbox close button and overlay click once
+    if (!lightboxCloseBtn.__listenerAttached) { // Prevent attaching multiple times
         lightboxCloseBtn.addEventListener('click', closeHolidayLightbox);
         holidayLightbox.addEventListener('click', (event) => {
-            if (event.target === holidayLightbox) {
+            if (event.target === holidayLightbox) { // Close only if clicking on the overlay itself
                 closeHolidayLightbox();
             }
         });
         lightboxCloseBtn.__listenerAttached = true;
     }
-    renderAllMonthTiles();
+    renderAllMonthTiles(); // Initial render of month tiles
 }
 
+/**
+ * Scrolls the pay period table to the current pay period row.
+ */
 function jumpToCurrentPayPeriod() {
     const currentPayPeriodRow = document.querySelector('.pay-period-table .current-pay-period-row');
     if (currentPayPeriodRow) {
         setTimeout(() => {
             currentPayPeriodRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 200);
+        }, 200); // Small delay to allow rendering
     }
 }
 
+/**
+ * Calculates and returns information for the pay period containing the given date.
+ * @param {Date} date - The date to find the pay period for.
+ * @returns {Object} An object containing pay period year, number, start date, end date, and pay date.
+ */
 function getPayPeriodInfo(date) {
-    const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate()); // Normalize date to midnight
     const diffTime = checkDate.getTime() - PP_REFERENCE_DATE.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    const payPeriodsPassed = Math.floor(diffDays / 14);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)); // Difference in days
+    const payPeriodsPassed = Math.floor(diffDays / 14); // Number of 2-week pay periods passed
 
     let currentPayPeriodNumber = PP_REFERENCE_NUMBER + payPeriodsPassed;
     let currentPayPeriodYear = PP_REFERENCE_YEAR;
 
+    // Adjust pay period number and year if it goes beyond a 26-period cycle
     while (currentPayPeriodNumber > 26) {
         currentPayPeriodNumber -= 26;
         currentPayPeriodYear++;
@@ -513,61 +668,77 @@ function getPayPeriodInfo(date) {
         currentPayPeriodYear--;
     }
 
+    // Calculate start, end, and pay dates for the determined pay period
     const ppStartDate = new Date(PP_REFERENCE_DATE);
     ppStartDate.setDate(PP_REFERENCE_DATE.getDate() + (payPeriodsPassed * 14));
     const ppEndDate = new Date(ppStartDate);
-    ppEndDate.setDate(ppStartDate.getDate() + 13);
+    ppEndDate.setDate(ppStartDate.getDate() + 13); // 13 days after start date for a 14-day period
     const payDate = new Date(ppEndDate);
-    payDate.setDate(ppEndDate.getDate() + 7);
+    payDate.setDate(ppEndDate.getDate() + 7); // Pay date is 7 days after end date
 
     return {
         payPeriodYear: currentPayPeriodYear,
-        payPeriodNumber: String(currentPayPeriodNumber).padStart(2, '0'),
+        payPeriodNumber: String(currentPayPeriodNumber).padStart(2, '0'), // Format as two digits
         startDate: ppStartDate,
         endDate: ppEndDate,
         payDate: payDate
     };
 }
 
+/**
+ * Formats a Date object into a readable string.
+ * @param {Date} date - The date to format.
+ * @returns {string} Formatted date string (e.g., "Mon, Jan 1, 2024").
+ */
 function formatDate(date) {
     return date.toLocaleDateString('en-US', {
         weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
     });
 }
 
+/**
+ * Renders the pay periods page with a table of pay periods for a given year.
+ * @param {number} year - The year to display pay periods for.
+ */
 function renderPayPeriodsPage(year) {
     let tableRowsHtml = '';
     const today = new Date();
 
-    let startPPDate = new Date(year, 0, 1);
-    let currentPPInfo = getPayPeriodInfo(startPPDate);
-
-    let foundFirstPPOfYear = false;
-    let initialDateForYear = new Date(year, 0, 1);
+    // Determine the first pay period that starts in or before the target year
+    let initialDateForYear = new Date(year, 0, 1); // Start checking from Jan 1 of the target year
     let ppInfoIter = getPayPeriodInfo(initialDateForYear);
 
+    // Adjust ppInfoIter backward until its start date is within or before the target year's start
+    // This ensures we capture any pay periods that overlap the year boundary
     while (ppInfoIter.payPeriodYear < year || (ppInfoIter.payPeriodYear === year && ppInfoIter.startDate.getFullYear() < year && !foundFirstPPOfYear)) {
-        ppInfoIter.startDate.setDate(ppInfoIter.startDate.getDate() + 14);
+        ppInfoIter.startDate.setDate(ppInfoIter.startDate.getDate() - 14); // Go back one pay period
         ppInfoIter = getPayPeriodInfo(ppInfoIter.startDate);
-        if (ppInfoIter.payPeriodYear === year) {
-            foundFirstPPOfYear = true;
-        }
     }
-    let currentDate = ppInfoIter.startDate;
+    // Ensure we start from the correct pay period for the given year
+    while (ppInfoIter.payPeriodYear < year) {
+         ppInfoIter.startDate.setDate(ppInfoIter.startDate.getDate() + 14);
+         ppInfoIter = getPayPeriodInfo(ppInfoIter.startDate);
+    }
+
+    let currentDate = new Date(ppInfoIter.startDate); // Start iterating from this adjusted date
 
     let count = 0;
-    const maxPayPeriodsPerYear = 26;
-    while (count < maxPayPeriodsPerYear + 2) {
+    const maxPayPeriodsPerYear = 26; // A typical year has 26 pay periods
+
+    // Loop to generate pay periods, including those that might overlap year boundaries
+    while (count < maxPayPeriodsPerYear + 2) { // Generate a few extra to catch overlaps
         const ppInfo = getPayPeriodInfo(currentDate);
 
-        if (ppInfo.payPeriodYear > year && ppInfo.payPeriodNumber > 5) {
+        // Break if we've gone too far into the next year
+        if (ppInfo.payPeriodYear > year && ppInfo.payPeriodNumber > 5) { // Arbitrary cutoff to prevent infinite loop
             break;
         }
 
+        // Only include pay periods relevant to the current year
         if (ppInfo.payPeriodYear === year ||
-            (ppInfo.payPeriodYear === year - 1 && ppInfo.endDate.getFullYear() === year) ||
-            (ppInfo.payPeriodYear === year + 1 && ppInfo.startDate.getFullYear() === year)) {
-
+            (ppInfo.payPeriodYear === year - 1 && ppInfo.endDate.getFullYear() === year) || // PP started last year, ends this year
+            (ppInfo.payPeriodYear === year + 1 && ppInfo.startDate.getFullYear() === year)) { // PP starts this year, ends next year
+            
             const isCurrentPayPeriod = today >= ppInfo.startDate && today <= ppInfo.endDate;
             const rowClasses = isCurrentPayPeriod ? 'current-pay-period-row' : '';
 
@@ -581,7 +752,7 @@ function renderPayPeriodsPage(year) {
             `;
             count++;
         }
-        currentDate.setDate(currentDate.getDate() + 14);
+        currentDate.setDate(currentDate.getDate() + 14); // Move to the start of the next pay period
     }
 
 
@@ -613,11 +784,13 @@ function renderPayPeriodsPage(year) {
         </div>
     `;
 
+    // Get references to newly rendered elements
     const prevPPYearBtn = document.getElementById('prev-pp-year-btn');
     const nextPPYearBtn = document.getElementById('next-pp-year-btn');
     const currentPPBtn = document.getElementById('current-pp-btn');
     const todayPayPeriodBtn = document.getElementById('today-pay-period-btn');
 
+    // Event listeners for pay period year navigation
     prevPPYearBtn.addEventListener('click', () => {
         const currentDisplayedYear = parseInt(document.getElementById('current-pp-year-display').textContent);
         window.location.hash = `#pay-periods?year=${currentDisplayedYear - 1}`;
@@ -631,6 +804,7 @@ function renderPayPeriodsPage(year) {
         window.location.hash = `#pay-periods?year=${currentYear}`;
     });
 
+    // Event listener for "Today" button in pay periods
     todayPayPeriodBtn.addEventListener('click', () => {
         const currentDisplayedYear = parseInt(document.getElementById('current-pp-year-display').textContent);
         const actualCurrentYear = new Date().getFullYear();
@@ -644,8 +818,11 @@ function renderPayPeriodsPage(year) {
     });
 }
 
+/**
+ * Renders the acronyms page with a searchable and sortable table.
+ */
 async function renderAcronymsPage() {
-    await fetchAcronymsData();
+    await fetchAcronymsData(); // Ensure acronyms data is loaded
 
     appContent.innerHTML = `
         <div class="page-content-wrapper align-left">
@@ -672,13 +849,20 @@ async function renderAcronymsPage() {
         </div>
     `;
 
+    // Get references to newly rendered elements
     const acronymsTableBody = document.getElementById('acronyms-table-body');
     const acronymsSearchInput = document.getElementById('acronym-search');
     const sortAcronymAscBtn = document.getElementById('sort-acronym-asc');
     const sortAcronymDescBtn = document.getElementById('sort-acronym-desc');
 
-    let currentSortOrder = 'asc';
+    let currentSortOrder = 'asc'; // Default sort order
 
+    /**
+     * Sorts the acronyms data.
+     * @param {Array} data - The array of acronyms to sort.
+     * @param {string} order - The sort order ('asc' or 'desc').
+     * @returns {Array} The sorted array.
+     */
     function sortAcronyms(data, order) {
         return data.sort((a, b) => {
             if (order === 'asc') {
@@ -689,10 +873,15 @@ async function renderAcronymsPage() {
         });
     }
 
+    /**
+     * Renders the acronyms table based on current search term and sort order.
+     */
     function renderAcronymsTable() {
-        let filteredAcronyms = [...allAcronymsData];
+        let filteredAcronyms = [...allAcronymsData]; // Create a copy to filter/sort
+
         const searchTerm = acronymsSearchInput.value.toLowerCase();
 
+        // Apply search filter
         if (searchTerm) {
             filteredAcronyms = filteredAcronyms.filter(item =>
                 item.acronym.toLowerCase().includes(searchTerm) ||
@@ -702,6 +891,7 @@ async function renderAcronymsPage() {
 
         const sortedAcronyms = sortAcronyms(filteredAcronyms, currentSortOrder);
 
+        // Populate table body
         acronymsTableBody.innerHTML = sortedAcronyms.map(item => `
             <tr>
                 <td class="font-semibold">${item.acronym}</td>
@@ -710,8 +900,9 @@ async function renderAcronymsPage() {
         `).join('');
     }
 
-    renderAcronymsTable();
+    renderAcronymsTable(); // Initial render of the table
 
+    // Event listeners for search and sort
     acronymsSearchInput.addEventListener('keyup', renderAcronymsTable);
 
     sortAcronymAscBtn.addEventListener('click', () => {
@@ -725,14 +916,17 @@ async function renderAcronymsPage() {
     });
 }
 
-
+/**
+ * Handles routing based on the URL hash.
+ */
 async function router() {
     const hash = window.location.hash;
-    const urlParams = new URLSearchParams(hash.split('?')[1]);
+    const urlParams = new URLSearchParams(hash.split('?')[1]); // Parse URL parameters
     const currentYear = new Date().getFullYear();
 
-    await fetchHolidays();
+    await fetchHolidays(); // Ensure holidays are loaded for calendar calculations
 
+    // Check for direct carrier color hash (e.g., #calendar-black)
     const carrierMatch = hash.match(/^#calendar-([a-z]+)$/);
     if (carrierMatch) {
         const carrierColor = carrierMatch[1];
@@ -742,6 +936,7 @@ async function router() {
         }
     }
 
+    // Route based on hash
     if (hash.startsWith('#calendar')) {
         const year = parseInt(urlParams.get('year')) || currentYear;
         const carrier = urlParams.get('carrier') || null;
@@ -756,10 +951,13 @@ async function router() {
     } else if (hash === '#disclaimer') {
         renderDisclaimerPage();
     } else {
-        renderLandingPage();
+        renderLandingPage(); // Default to landing page
     }
 }
 
+/**
+ * Renders the landing page content.
+ */
 function renderLandingPage() {
     appContent.innerHTML = `
         <div class="page-content-wrapper align-center">
@@ -779,12 +977,16 @@ function renderLandingPage() {
                 <a href="#disclaimer" id="disclaimer-link" class="button primary-button">Terms & Conditions</a>
             </div>
             <div class="logo-display-area">
-                <img src="/mcore/icons/mcore-logo.png" alt="mCORE Logo" class="mcore-logo-large" onerror="this.onerror=null; this.src='https://placehold.co/64x64/0d6efd/ffffff?text=M';" />
+                <!-- Image path is now relative to the base href -->
+                <img src="icons/mcore-logo.png" alt="mCORE Logo" class="mcore-logo-large" onerror="this.onerror=null; this.src='https://placehold.co/64x64/0d6efd/ffffff?text=M';" />
             </div>
         </div>
     `;
 }
 
+/**
+ * Renders the disclaimer/terms and conditions page.
+ */
 function renderDisclaimerPage() {
     appContent.innerHTML = `
         <div class="page-content-wrapper align-left">
@@ -800,13 +1002,17 @@ function renderDisclaimerPage() {
                     <a href="#landing" class="button primary-button">Back to Home</a>
                 </div>
                 <div class="logo-display-area">
-                    <img src="/mcore/icons/mcore-logo.png" alt="mCORE Logo" class="mcore-logo-large" onerror="this.onerror=null; this.src='https://placehold.co/64x64/0d6efd/ffffff?text=M';" />
+                    <!-- Image path is now relative to the base href -->
+                    <img src="icons/mcore-logo.png" alt="mCORE Logo" class="mcore-logo-large" onerror="this.onerror=null; this.src='https://placehold.co/64x64/0d6efd/ffffff?text=M';" />
                 </div>
             </div>
         </div>
     `;
 }
 
+/**
+ * Renders the NALC resources page.
+ */
 function renderNalcResourcesPage() {
     appContent.innerHTML = `
         <div class="page-content-wrapper align-left">
@@ -837,19 +1043,23 @@ function renderNalcResourcesPage() {
 }
 
 
+// Event listener for when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', async () => {
-    await fetchAppConfig();
+    await fetchAppConfig(); // Load app configuration first
 
+    // Set current year in footer
     const currentYearSpan = document.getElementById('current-year');
     if (currentYearSpan) {
         currentYearSpan.textContent = new Date().getFullYear();
     }
 
+    // Set app version in footer from config
     const appVersionSpan = document.getElementById('app-version');
     if (appVersionSpan && appConfig.version) {
         appVersionSpan.textContent = appConfig.version;
     }
 
+    // Dynamically set contact email link
     const contactEmailLink = document.getElementById('contact-email-link');
     if (contactEmailLink) {
         const user = 'a.mailman.sam';
@@ -859,20 +1069,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         contactEmailLink.textContent = 'Contact';
     }
 
+    initPreferences(); // Initialize theme preferences
+    router(); // Initial routing based on URL hash
 
-    initPreferences();
-    router();
-
+    // Navigation link event listeners
     document.getElementById('home-link').addEventListener('click', () => { window.location.hash = '#landing'; });
     document.getElementById('calendar-nav-link').addEventListener('click', () => { window.location.hash = '#calendar'; });
     document.getElementById('resources-nav-link').addEventListener('click', () => { window.location.hash = '#resources'; });
     document.getElementById('acronyms-nav-link').addEventListener('click', () => { window.location.hash = '#acronyms'; });
     document.getElementById('pay-periods-nav-link').addEventListener('click', () => { window.location.hash = '#pay-periods'; });
 
-
+    // Listen for hash changes to trigger routing
     window.addEventListener('hashchange', router);
+    // Listen for theme toggle button clicks
     themeToggle.addEventListener('click', toggleTheme);
 
+    // Event listener for the disclaimer link on the landing page (to prevent default hash behavior)
     appContent.addEventListener('click', (event) => {
         if (event.target.id === 'disclaimer-link') {
             event.preventDefault();
@@ -880,32 +1092,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    // PWA installation prompt handling
     window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        installAppButton.style.display = 'flex';
+        e.preventDefault(); // Prevent the default prompt
+        deferredPrompt = e; // Store the event for later use
+        installAppButton.style.display = 'flex'; // Show the install button
         console.log('beforeinstallprompt fired');
     });
 
     installAppButton.addEventListener('click', async () => {
-        installAppButton.style.display = 'none';
+        installAppButton.style.display = 'none'; // Hide the button immediately
         if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
+            deferredPrompt.prompt(); // Show the installation prompt
+            const { outcome } = await deferredPrompt.userChoice; // Wait for user's choice
             console.log(`User response to the install prompt: ${outcome}`);
-            deferredPrompt = null;
+            deferredPrompt = null; // Clear the prompt
         }
     });
 
     window.addEventListener('appinstalled', () => {
-        installAppButton.style.display = 'none';
+        installAppButton.style.display = 'none'; // Hide button if app is installed
         deferredPrompt = null;
         console.log('PWA was installed');
     });
 
+    // Service Worker registration
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/mcore/service-worker.js')
+            // Register the service worker relative to the base href
+            navigator.serviceWorker.register('service-worker.js')
                 .then(registration => {
                     console.log('ServiceWorker registration successful with scope: ', registration.scope);
                 })
