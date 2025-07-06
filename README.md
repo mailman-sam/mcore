@@ -52,6 +52,7 @@ mcore/
 │   └── app.js                # Core JavaScript logic for dynamic content and interactions
 ├── data/
 │   ├── acronyms.json         # JSON data for USPS acronyms (sorted alphabetically)
+│   ├── app-config.json         # JSON data for App Version
 │   ├── holidays.json         # JSON data for US Federal Holidays
 │   └── nalc-resources.json   # JSON data for NALC external resource links
 ├── icons/
