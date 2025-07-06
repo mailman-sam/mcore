@@ -5,24 +5,23 @@ let CACHE_NAME = 'mcore-cache-dynamic'; // Default, will be updated on fetch
 // List of URLs to cache (app shell).
 // Paths are now relative to the service worker's scope, which is the base of the app.
 const urlsToCache = [
-    '/',
-	'/mcore/',
-    '/index.html',
-    '/css/style.css',
-    '/js/app.js',
-    '/data/holidays.json',
-    '/data/acronyms.json',
-    '/data/nalc-resources.json',
-    '/manifest.json',
-    '/data/app-config.json',
-    '/fontawesome/css/all.min.css',
-    '/icons/mcore-logo.png',
-    '/icons/android-chrome-192x192.png',
-    '/icons/android-chrome-512x512.png',
-    '/icons/apple-touch-icon.png',
-    '/icons/favicon-32x32.png',
-    '/icons/favicon-16x16.png',
-    '/favicon.ico'
+    '/mcore/', // Represents the base path of your application
+	'/mcore/index.html',
+    '/mcore/css/style.css',
+    '/mcore/js/app.js',
+    '/mcore/data/holidays.json',
+    '/mcore/data/acronyms.json',
+    '/mcore/data/nalc-resources.json',
+    '/mcore/manifest.json',
+    '/mcore/data/app-config.json',
+    '/mcore/fontawesome/css/all.min.css',
+    '/mcore/icons/mcore-logo.png',
+    '/mcore/icons/android-chrome-192x192.png',
+    '/mcore/icons/android-chrome-512x512.png',
+    '/mcore/icons/apple-touch-icon.png',
+    '/mcore/icons/favicon-32x32.png',
+    '/mcore/icons/favicon-16x16.png',
+    '/mcore/favicon.ico'
 ];
 
 // --- Install Event ---
