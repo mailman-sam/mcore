@@ -846,8 +846,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const appVersionSpan = document.getElementById('app-version');
-    if (appVersionSpan && appConfig.version) {
-        appVersionSpan.textContent = appConfig.version;
+    if (appVersionSpan && appConfig.version && appConfig.cacheVersion !== undefined) {
+        // Concatenate the version and cacheVersion for display
+        appVersionSpan.textContent = `${appConfig.version}.${appConfig.cacheVersion}`;
     }
 
     const contactEmailLink = document.getElementById('contact-email-link');
