@@ -1,36 +1,39 @@
-/* Universal Box Sizing for better layout control */
+/* style.css */
 * {
     box-sizing: border-box;
 }
 
-/* Define CSS Variables for Theming */
 :root {
-    --primary-blue: #0d6efd; /* USPS Blue */
-    --light-bg: #f3f4f6; /* Light gray for wrapper */
-    --dark-bg: #1a202c; /* Dark gray for wrapper */
+    --primary-blue: #0d6efd;
+    --light-bg: #f3f4f6;
+    --dark-bg: #1a202c;
     --light-text: #333;
-    --dark-text: #f8f8f8; /* Brighter white for dark mode text */
-    --light-card-bg: #ffffff; /* Background for main content/cards in light mode */
-    --dark-card-bg: #212833; /* Slightly darker for main content/cards in dark mode */
-    --highlight-outline-light: #fff; /* Outline color for carrier highlights in light mode */
-    --highlight-outline-dark: #000; /* Outline color for carrier highlights in dark mode */
-    --border-light: #e5e7eb; /* Border color for tables/elements in light mode */
-    --border-dark: #4a5568; /* Border color for tables/elements in dark mode */
-    --table-strip-light: #f9fafb; /* Stripe color for tables in light mode */
-    --table-strip-dark: #2c313a; /* Stripe color for tables in dark mode */
-    --accent-red: #ef4444; /* Tailwind red-500 for accent lines */
-    --sunday-highlight-bg: #C0C0C0; 
+    --dark-text: #f8f8f8;
+    --light-card-bg: #ffffff;
+    --dark-card-bg: #212833;
+    --highlight-outline-light: #fff;
+    --highlight-outline-dark: #000;
+    --border-light: #e5e7eb;
+    --border-dark: #4a5568;
+    --table-strip-light: #f9fafb;
+    --table-strip-dark: #2c313a;
+    --accent-red: #ef4444;
+    --sunday-highlight-bg: #C0C0C0;
     --sunday-highlight-text: #333;
-    --acronym-highlight-color: var(--accent-red); /* Variable for acronym highlights */
+    --main-content-max-width: 960px;
 }
 
-/* Base Body Styles */
 body {
-    font-family: 'Inter', sans-serif;
-    transition: background-color 0.3s ease, color 0.3s ease; /* Smooth theme transition */
+    font-family: sans-serif; /* Changed to generic sans-serif */
+    transition: background-color 0.3s ease, color 0.3s ease;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
 }
 
-/* Theme application classes controlled by JavaScript */
 .theme-light {
     background-color: var(--light-bg);
     color: var(--light-text);
@@ -40,15 +43,15 @@ body {
     color: var(--dark-text);
 }
 
-/* Specific element background/text colors based on theme */
 .card-bg {
-    background-color: var(--light-card-bg); /* Default to light mode */
+    background-color: var(--light-card-bg);
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 .theme-dark .card-bg {
     background-color: var(--dark-card-bg);
 }
 
-/* USPS Blue specific classes */
 .bg-usps-blue {
     background-color: var(--primary-blue);
 }
@@ -56,219 +59,368 @@ body {
     color: var(--primary-blue);
 }
 
-/* Main Navigation Hover Color */
-header nav a,
-header nav button#theme-toggle,
-header nav button#install-app-button { /* Apply to all links and buttons in nav */
-    transition: background-color 0.3s ease, color 0.3s ease; /* Ensure smooth transition */
-}
-
-header nav a:hover,
-header nav button#theme-toggle:hover,
-header nav button#install-app-button:hover { /* Apply hover styles to all */
-    background-color: rgba(0, 0, 0, 0.45); /* Darker transparent black for light theme hover */
-    color: black; /* Ensure text is black on hover in light theme */
-}
-
-.theme-dark header nav a:hover,
-.theme-dark header nav button#theme-toggle:hover,
-.theme-dark header nav button#install-app-button:hover { /* Apply hover styles for dark theme */
-    background-color: rgba(255, 255, 255, 0.25); /* Slightly brighter transparent white for dark theme hover for better match */
-    color: white; /* Ensure text remains white on hover */
-}
-
-/* mCORE Logo Sizing */
-#mcore-logo {
-    height: 1.5rem; /* Adjust height to fit navigation bar */
-    vertical-align: middle; /* Align with text */
-    margin-right: 0.5rem; /* Space between logo and text */
-}
-
-/* Header Row Layouts */
-/* Mobile: Top row has logo left, install button right. Bottom row has nav links left, scrollable. */
-/* Desktop: Top row has logo centered, install button right. Bottom row has nav links centered. */
-
-.header-nav-container {
+.wrapper {
+    min-height: 100vh;
     display: flex;
-    flex-direction: column; /* Stacks rows vertically by default (mobile) */
-    align-items: center; /* Centers content horizontally on mobile */
+    flex-direction: column;
+    min-width: 320px;
+    overflow-x: hidden;
 }
 
-.header-top-row-container {
-    width: 100%; /* Take full width on mobile */
-    justify-content: space-between; /* Logo left, Install button right on mobile */
-    align-items: center; /* Vertically align items in the row */
-    padding-bottom: 1.1rem; /* Space below top row on mobile */
+.container {
+    max-width: var(--main-content-max-width);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    width: 100%;
 }
 
-.header-bottom-row-container {
-    width: 100%; /* Take full width on mobile */
-    justify-content: flex-start; /* Align nav links to start on mobile */
-    gap: 0.5rem; /* Small gap between items on mobile */
-    flex-wrap: nowrap; /* Ensure links don't wrap on mobile */
-    overflow-x: auto; /* Allow horizontal scrolling on mobile if needed */
+.main-content {
+    flex-grow: 1;
+    padding: 1.5rem 0;
+    width: 100%;
+    max-width: var(--main-content-max-width);
+    margin: 0 auto;
 }
 
-/* Install App Button text visibility */
-#install-app-button .install-app-text {
-    display: none; /* Hidden by default (mobile) */
+.page-content-wrapper {
+    padding: 1rem;
 }
 
-/* Desktop Styles (md breakpoint and up) */
-@media (min-width: 768px) {
-    .header-nav-container {
-        align-items: center;
-    }
+.page-content-wrapper.align-center {
+    text-align: center;
+}
 
-    .header-top-row-container {
-        /* Desktop: Logo centered, Install button right */
-        justify-content: space-between; /* Use space-between to push items to ends */
-        position: relative; /* For absolute positioning of install button */
-        /* Use max-width for confinement, matching the main content container */
-        max-width: 960px; /* Example max-width, adjust to match your main content container */
-        margin-left: auto;
-        margin-right: auto;
-		padding-top: 0.9rem;
-        padding-bottom: 1.9rem; /* Remove mobile padding */
-    }
-    
-    /* Center the home-link (logo + text) within the header's top row for desktop */
-    #home-link {
-        position: absolute; /* Position absolutely to center it */
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 10; /* Ensure it's above other elements if they overlap */
-    }
+.page-content-wrapper.align-left {
+    text-align: left;
+}
 
-    /* Install button on desktop: fixed to the right within the header-top-row-container */
-    #install-app-button {
-        display: block !important; /* Ensure it's visible on desktop */
-        position: absolute; /* Position absolutely relative to its parent */
-        right: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        margin-left: 0; /* Override any mobile margin-left */
-    }
-    /* Show "Install App" text on desktop */
-    #install-app-button .install-app-text {
-        display: inline;
-        margin-left: 0.5rem; /* Space between icon and text */
-    }
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
 
-    .header-bottom-row-container {
-        justify-content: center; /* Center the nav links group on desktop */
-        gap: 1rem; /* Larger gap for desktop */
-        overflow-x: visible; /* Disable horizontal scroll on desktop */
-        max-width: 960px; /* Example max-width, adjust to match your main content container */
-        margin-left: auto;
-        margin-right: auto;
-    }
+.info-text {
+    padding: 0.5rem 0;
+    line-height: 1.6;
+}
+
+.resource-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 1.5rem;
+}
+
+.resource-list li {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background-color: var(--light-card-bg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: background-color 0.3s ease;
+}
+
+.theme-dark .resource-list li {
+    background-color: var(--dark-card-bg);
+}
+
+.resource-link {
+    font-weight: 600;
+    color: var(--primary-blue);
+    text-decoration: none;
+    font-size: 1.1rem;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.resource-link:hover {
+    text-decoration: underline;
+}
+
+.resource-description {
+    font-size: 0.9rem;
+    color: var(--light-text);
+    line-height: 1.4;
+}
+
+.theme-dark .resource-description {
+    color: var(--dark-text);
+}
+
+.footer {
+    background-color: var(--primary-blue);
+    color: white;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    font-size: 0.9rem;
+    margin-top: auto;
+    position: relative;
+}
+
+.footer p {
+    margin: 0.5rem 0;
+}
+
+.footer-link {
+    color: white;
+    text-decoration: none;
+    margin: 0 0.5rem;
+}
+
+.footer-link:hover {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: underline;
+}
+
+.red-heart {
+    color: var(--accent-red);
+}
+
+.header {
+    background-color: var(--primary-blue);
+    color: white;
+    padding: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.nav-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 1rem;
+}
+
+.theme-toggle-button {
+    order: 1;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    text-decoration: none;
+    color: inherit;
+    white-space: nowrap;
+    font-size: 1rem;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    flex-grow: 0;
+    width: auto;
+    margin-right: auto;
+}
+
+/* Theme icon styling */
+#theme-icon {
+    font-size: 1.2rem; /* Adjust size for circle/dot */
+    line-height: 1;
+    display: inline-block;
+}
+
+.theme-light #theme-icon::before {
+    content: '⚫'; /* Black dot for light theme */
+    color: black;
+}
+
+.theme-dark #theme-icon::before {
+    content: '⚪'; /* White circle for dark theme */
+    color: white;
 }
 
 
-/* Navigation Link Sizing and No-Wrap */
-header nav a,
-header nav button#theme-toggle,
-header nav button#install-app-button {
-    white-space: nowrap; /* Prevent text from wrapping */
-    font-size: clamp(0.8rem, 2.5vw, 1rem); /* Fluid font size: min 0.8rem, preferred 2.5vw, max 1rem */
+.home-link {
+    order: 2;
+    font-size: 1.5rem;
+    font-weight: 700;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.3s ease;
+    border: none;
+    flex-shrink: 0;
+    flex-grow: 0;
+    width: auto;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-/* Custom scrollbar for navigation if it overflows horizontally */
-.custom-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-}
-.custom-scrollbar::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
+.install-app-button {
+    order: 3;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    flex-grow: 0;
+    width: auto;
+    margin-left: auto;
 }
 
+/* Install App button text/icon styling */
+.install-app-button .install-app-text {
+    display: none; /* Hidden by default on mobile */
+}
 
-/* Accent Red Line */
+.install-app-button::before {
+    content: '⬇'; /* Down arrow for mobile/small button */
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.nav-links-group {
+    order: 4;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-grow: 1;
+    justify-content: center;
+    flex-shrink: 1;
+    min-width: 0;
+    width: 100%;
+    margin-top: 1rem;
+}
+.nav-links-group::-webkit-scrollbar {
+    display: none;
+}
+
+.nav-link {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    text-decoration: none;
+    color: inherit;
+    white-space: nowrap;
+    font-size: clamp(0.6rem, 2.1vw, 0.8rem);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    color: white;
+}
+.nav-link:active {
+    background-color: rgba(255, 255, 255, 0.35);
+    transform: translateY(1px);
+}
+
 .header-accent-line {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 3px; /* Thin line */
+    height: 3px;
     background-color: var(--accent-red);
 }
 .calendar-header-accent-line {
     width: 100%;
-    height: 2px; /* Slightly thinner for calendar headers */
+    height: 2px;
     background-color: var(--accent-red);
+    position: absolute; bottom: 0; left: 0;
 }
 
-
-/* Carrier Color Highlights & Outlines */
-/* These styles are applied dynamically to day cells */
 .day-off-highlight {
-    border-width: 2px; /* For the outline */
-    box-shadow: 0 0 0 2px var(--highlight-outline-light); /* Default light theme outline */
-    padding: 0.25rem; /* Add padding to make space for outline */
-    margin: 2px; /* Add margin to avoid outlines overlapping */
+    border-width: 1px;
+    box-shadow: 0 0 0 1px var(--highlight-outline-light);
+    padding: 0.25rem;
+    margin: 2px;
 }
 .theme-dark .day-off-highlight {
-    box-shadow: 0 0 0 2px var(--highlight-outline-dark); /* Dark theme outline */
+    box-shadow: 0 0 0 2px var(--highlight-outline-dark);
 }
 
-/* Specific Carrier Colors */
-.carrier-black { background-color: #28282B; color: white; }
+.carrier-black { background-color: #000000; color: white; }
 .carrier-yellow { background-color: #FFEA00; color: black; }
 .carrier-blue { background-color: #1F51FF; color: white; }
-.carrier-green { background-color: #008000; color: black; }
+.carrier-green { background-color: #008000; color: white; }
 .carrier-brown { background-color: 	#7B3F00; color: white; }
 .carrier-red { background-color: #FF0000; color: white; }
 
-/* Sunday Specific Highlight for 'All Colors' view */
 .carrier-sunday {
     background-color: var(--sunday-highlight-bg);
     color: var(--sunday-highlight-text);
 }
 
-/* Classes for Calendar Heading Text Colors */
-.text-calendar-heading-black { color: #808080; }
+.text-calendar-heading-black { color: #000000; }
 .text-calendar-heading-yellow { color: #FFEA00; }
 .text-calendar-heading-blue { color: #1F51FF; }
 .text-calendar-heading-green { color: #008000; }
-.text-calendar-heading-brown { color: #7B3F00; }
+.text-calendar-heading-brown { color: 	#7B3F00; }
 .text-calendar-heading-red { color: #FF0000; }
 .text-calendar-heading-all { color: var(--sunday-highlight-bg); }
 
-/* Acronym Highlight Color Size*/
-.acronym-highlight {
-    /*color: var(--acronym-highlight-color);*/
-	font-weight: bold;
-	/*font-size: 0.6rem;*/
+.theme-dark .text-calendar-heading-black {
+    text-shadow:
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff;
 }
 
+.acronym-highlight {
+	font-weight: bold;
+}
 
-/* Calendar Grid and Tile Styling */
 .calendar-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Responsive grid for months */
-    gap: 1.5rem; /* Gap between month tiles */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
 }
+
 .calendar-month-tile {
     display: flex;
     flex-direction: column;
-    border-radius: 0.75rem; /* Rounded corners */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-    overflow: hidden; /* Ensures rounded corners clip content */
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    background-color: var(--light-card-bg);
 }
+.theme-dark .calendar-month-tile {
+    background-color: var(--dark-card-bg);
+}
+
 .calendar-header {
     font-weight: 700;
     font-size: 1.125rem;
     text-align: center;
+    padding: 0.75rem 0;
+    height: auto;
+    position: relative;
+    color: white;
 }
 .calendar-day-names {
     display: grid;
-    grid-template-columns: repeat(7, 1fr); /* 7 columns for days of week */
+    grid-template-columns: repeat(7, 1fr);
     text-align: center;
     font-weight: 500;
     font-size: 0.875rem;
     padding: 0.5rem 0;
-    border-bottom: 1px solid var(--border-light); /* Border below day names */
+    border-bottom: 1px solid var(--border-light);
 }
 .theme-dark .calendar-day-names {
     border-bottom-color: var(--border-dark);
@@ -276,7 +428,8 @@ header nav button#install-app-button {
 .calendar-days {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    flex-grow: 1; /* Allows days to fill available space */
+    flex-grow: 1;
+    padding: 0.5rem;
 }
 .calendar-day {
     display: flex;
@@ -284,69 +437,89 @@ header nav button#install-app-button {
     align-items: center;
     justify-content: center;
     padding: 0.5rem;
-    min-height: 50px; /* Fixed height for consistent cell size */
+    min-height: 50px;
     position: relative;
     cursor: pointer;
-    border-radius: 0.5rem; /* Rounded corners for individual day cells */
-    transition: background-color 0.15s ease, color 0.15s ease; /* Smooth hover effect */
-    flex-shrink: 0; /* Prevent shrinking on smaller screens */
-    flex-grow: 1; /* Allow growing */
+    border-radius: 0.5rem;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    flex-shrink: 0;
+    flex-grow: 1;
 }
-.calendar-day:hover:not(.day-off-highlight) { /* Hover for non-highlighted days */
-    background-color: rgba(0, 0, 0, 0.05); /* Light theme hover */
+.calendar-day:hover:not(.day-off-highlight) {
+    background-color: rgba(0, 0, 0, 0.05);
 }
 .theme-dark .calendar-day:hover:not(.day-off-highlight) {
-    background-color: rgba(255, 255, 255, 0.05); /* Dark theme hover */
+    background-color: rgba(255, 255, 255, 0.05);
 }
 .calendar-day.other-month {
-    color: #9ca3af; /* Gray out days from adjacent months */
+    color: #9ca3af;
 }
 .calendar-day.today {
     font-weight: bold;
-    border: 2px solid var(--primary-blue); /* Highlight today's date */
+    border: 2px solid var(--primary-blue);
 }
 .holiday-symbol {
     font-size: 0.75rem;
     margin-top: 2px;
-    color: var(--primary-blue); /* Color for holiday symbol */
+    color: var(--primary-blue);
 }
-
-/* Date coloring preference - REMOVED SPECIFIC color-date-number rules, keeping only default behavior */
 .calendar-day.day-off-highlight .day-number {
-    /* When a day is highlighted, the number color is inherited from the carrier background or default */
-    font-weight: bold; /* Keep the number bold */
+    font-weight: bold;
 }
 
-
-/* Carrier Color Buttons */
-.carrier-color-button {
-    min-width: 3.5rem; /* Adjusted minimum width to allow more buttons per row */
-    height: 4rem; /* Bigger height */
-    border-radius: 0.5rem; /* Rounded corners */
+.carrier-buttons-grid {
     display: flex;
-    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    background-color: var(--light-card-bg);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.carrier-buttons-grid::-webkit-scrollbar {
+    display: none;
+}
+.theme-dark .carrier-buttons-grid {
+    background-color: var(--dark-card-bg);
+}
+
+.carrier-color-button {
+    flex: 1 1 auto;
+    min-width: clamp(2.6rem, 8vw, 3rem);
+    height: 3rem;
+    border-radius: 0.5rem;
+    display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8rem;
     font-weight: 600;
     cursor: pointer;
-    border: 2px solid transparent; /* Default border */
+    border: 2px solid transparent;
     transition: all 0.2s ease;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    text-align: center; /* Center text */
+    text-align: center;
+    white-space: nowrap;
+    font-size: clamp(0.7rem, 2.5vw, 0.9rem);
 }
 .carrier-color-button .button-text {
-    font-size: 0.9rem; /* Larger text for button */
-    display: inline-block; /* Ensure text wraps if needed */
+    font-size: 0.9rem;
 }
 
 .carrier-color-button.selected {
-    border-color: var(--primary-blue); /* Highlight selected button */
+    border-color: var(--primary-blue);
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     transform: translateY(-2px);
 }
 .theme-dark .carrier-color-button.selected {
-    border-color: var(--dark-text); /* Highlight selected button in dark theme */
+    border-color: var(--dark-text);
+}
+.carrier-color-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
 }
 
 .carrier-color-button.carrier-sunday-button {
@@ -354,13 +527,24 @@ header nav button#install-app-button {
     color: var(--sunday-highlight-text);
 }
 
-/* Pay Period Table Styling */
+.theme-dark .carrier-color-button.carrier-black {
+    border: 1px solid white;
+}
+
 .pay-period-table {
     width: 100%;
-    border-collapse: collapse; /* Collapse borders for clean look */
+    border-collapse: collapse;
     margin-top: 1.5rem;
     font-size: 0.95rem;
+    background-color: var(--light-card-bg);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+.theme-dark .pay-period-table {
+    background-color: var(--dark-card-bg);
+}
+
 .pay-period-table th, .pay-period-table td {
     border: 1px solid var(--border-light);
     padding: 0.75rem;
@@ -370,11 +554,11 @@ header nav button#install-app-button {
     border-color: var(--border-dark);
 }
 .pay-period-table th {
-    background-color: var(--border-light);
+    background-color: var(--light-card-bg);
     font-weight: 600;
 }
 .theme-dark .pay-period-table th {
-    background-color: var(--dark-card-bg); /* Darker header for dark theme */
+    background-color: var(--dark-card-bg);
 }
 .pay-period-table tr:nth-child(even) {
     background-color: var(--table-strip-light);
@@ -384,33 +568,171 @@ header nav button#install-app-button {
 }
 .pay-period-table .pay-date {
     font-weight: 700;
-    color: var(--primary-blue); /* Highlight pay dates */
+    color: var(--primary-blue);
 }
 
-/* Acronyms Table Specific Hover (to override .pay-period-table tr:nth-child(even) in dark mode) */
+.acronyms-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1.5rem;
+    font-size: 0.95rem;
+    background-color: var(--light-card-bg);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.theme-dark .acronyms-table {
+    background-color: var(--dark-card-bg);
+}
+
+.acronyms-table th, .acronyms-table td {
+    border: 1px solid var(--border-light);
+    padding: 0.75rem;
+    text-align: left;
+}
+.theme-dark .acronyms-table th, .theme-dark .acronyms-table td {
+    border-color: var(--border-dark);
+}
+.acronyms-table th {
+    background-color: var(--light-card-bg);
+    font-weight: 600;
+}
+.theme-dark .acronyms-table th {
+    background-color: var(--dark-card-bg);
+}
+.acronyms-table tr:nth-child(even) {
+    background-color: var(--table-strip-light);
+}
+.theme-dark .acronyms-table tr:nth-child(even) {
+    background-color: var(--table-strip-dark);
+}
+
 .acronyms-table tbody tr:hover {
-    background-color: rgba(0, 0, 0, 0.1); /* Light transparent background for hover in light mode */
+    background-color: rgba(0, 0, 0, 0.1);
 }
 .theme-dark .acronyms-table tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.1); /* Dark transparent background for hover in dark mode */
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
+.homepage-description {
+    font-size: clamp(1rem, 3vw, 1.25rem);
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    margin-bottom: 1.5rem;
+}
+.homepage-info-text {
+    font-size: 1rem;
+    line-height: 1.8;
+    margin-bottom: 2rem;
+}
 
-/* Lightbox Styling (for holiday info) */
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.button {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.primary-button {
+    background-color: var(--primary-blue);
+    color: white;
+    border: 1px solid var(--primary-blue);
+}
+.primary-button:hover {
+    background-color: rgba(13, 110, 253, 0.8);
+    transform: translateY(-2px);
+}
+.primary-button:active {
+    background-color: rgba(13, 110, 253, 0.9);
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+
+.nav-button {
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    background-color: var(--light-bg);
+    color: var(--light-text);
+    border: 1px solid var(--border-light);
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    text-decoration: none;
+}
+.nav-button:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+.nav-button:active {
+    background-color: rgba(0, 0, 0, 0.1);
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+.theme-dark .nav-button {
+    background-color: var(--dark-card-bg);
+    color: var(--dark-text);
+    border-color: var(--border-dark);
+}
+.theme-dark .nav-button:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+.theme-dark .nav-button:active {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+
+input[type="text"] {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-light);
+    border-radius: 0.375rem;
+    background-color: var(--light-card-bg);
+    color: var(--light-text);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
+}
+input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+}
+.theme-dark input[type="text"] {
+    background-color: var(--dark-card-bg);
+    border-color: var(--border-dark);
+    color: var(--dark-text);
+}
+.theme-dark input[type="text"]:focus {
+    border-color: var(--dark-text);
+    box-shadow: 0 0 0 3px rgba(248, 248, 248, 0.25);
+}
+
 .lightbox-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+    background-color: rgba(0, 0, 0, 0.7);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    visibility: hidden; /* Hidden by default */
-    opacity: 0; /* Fully transparent by default */
-    transition: visibility 0s, opacity 0.3s; /* Smooth fade-in/out */
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.3s;
 }
 .lightbox-overlay.active {
     visibility: visible;
@@ -423,8 +745,17 @@ header nav button#install-app-button {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
     max-width: 90%;
     max-height: 90%;
-    overflow-y: auto; /* Scroll for long content */
+    overflow-y: auto;
+    scrollbar-width: none;
     position: relative;
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+}
+.lightbox-content::-webkit-scrollbar {
+    display: none;
+}
+.lightbox-overlay.active .lightbox-content {
+    transform: scale(1);
 }
 .theme-dark .lightbox-content {
     background-color: var(--dark-card-bg);
@@ -438,7 +769,304 @@ header nav button#install-app-button {
     font-size: 1.5rem;
     cursor: pointer;
     color: var(--light-text);
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+.lightbox-close:hover {
+    background-color: rgba(0, 0, 0, 0.1);
 }
 .theme-dark .lightbox-close {
     color: var(--dark-text);
+}
+.theme-dark .lightbox-close:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.lightbox-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--primary-blue);
+}
+.lightbox-info {
+    line-height: 1.6;
+}
+
+.logo-display-area {
+    margin-top: 3rem;
+    text-align: center;
+}
+.mcore-logo-large {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+    border-radius: 0.75rem;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.calendar-controls-group,
+.pay-period-controls-group,
+.acronyms-controls-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: var(--light-card-bg);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    justify-content: center;
+}
+.calendar-controls-group::-webkit-scrollbar,
+.pay-period-controls-group::-webkit-scrollbar,
+.acronyms-controls-group::-webkit-scrollbar {
+    display: none;
+}
+
+.theme-dark .calendar-controls-group,
+.theme-dark .pay-period-controls-group,
+.theme-dark .acronyms-controls-group {
+    background-color: var(--dark-card-bg);
+}
+.calendar-controls-group {
+    justify-content: center;
+}
+
+.calendar-year-controls {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.calendar-year-controls::-webkit-scrollbar {
+    display: none;
+}
+
+.calendar-year-controls .nav-button,
+.calendar-year-controls .current-year-display {
+    flex-shrink: 1;
+    flex-grow: 0;
+    min-width: 0;
+    flex-basis: auto;
+    white-space: nowrap;
+    padding: 0.5rem 0.5rem;
+    font-size: clamp(0.6rem, 2.0vw, 0.8rem);
+}
+
+.pay-period-controls-group {
+    justify-content: center;
+}
+
+.pay-period-controls-group .nav-button,
+.pay-period-controls-group .current-year-display {
+    flex-shrink: 1;
+    flex-grow: 0;
+    min-width: 0;
+    flex-basis: auto;
+    white-space: nowrap;
+    padding: 0.5rem 0.5rem;
+    font-size: clamp(0.6rem, 2.0vw, 0.8rem);
+}
+
+.acronyms-controls-group {
+	text-align: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.acronyms-controls-group .acronym-search-wrapper {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.75rem;
+    flex-grow: 1;
+    min-width: 0;
+    justify-content: center;
+}
+
+.acronyms-controls-group input[type="text"] {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 100px;
+    max-width: 400px;
+    width: auto;
+}
+
+.acronyms-controls-group .sort-buttons-group {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    flex-grow: 0;
+}
+
+.acronyms-controls-group .sort-buttons-group .nav-button {
+    flex-shrink: 1;
+    flex-grow: 0;
+    min-width: 0;
+    white-space: nowrap;
+    padding: 0.5rem 0.5rem;
+    font-size: clamp(0.6rem, 2.0vw, 0.8rem);
+}
+
+.current-year-display {
+    border: 1px solid var(--border-light);
+    border-radius: 0.375rem;
+    background-color: var(--light-bg);
+    color: var(--light-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.theme-dark .current-year-display {
+    background-color: var(--dark-card-bg);
+    color: var(--dark-text);
+    border-color: var(--border-dark);
+}
+.current-year-display:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+.current-year-display:active {
+    background-color: rgba(0, 0, 0, 0.1);
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+.theme-dark .current-year-display:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+.theme-dark .current-year-display:active {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+
+@media (min-width: 768px) {
+    .nav-container {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .theme-toggle-button {
+        order: 1;
+        margin-right: 0;
+    }
+
+    .home-link {
+        order: 2;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .install-app-button {
+        order: 3;
+        margin-left: auto;
+        margin-right: 0;
+    }
+
+    /* Show text for install button on larger screens */
+    .install-app-button .install-app-text {
+        display: inline;
+    }
+    .install-app-button::before {
+        content: ''; /* Hide arrow on larger screens */
+    }
+
+    .nav-links-group {
+        order: 4;
+        width: auto;
+        justify-content: flex-end;
+        margin-top: 0;
+        margin-left: 1rem;
+        flex-grow: 0;
+    }
+
+    .install-app-button.hidden + .nav-links-group {
+        margin-left: auto;
+    }
+
+    .page-content-wrapper {
+        padding: 1.5rem 2rem;
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+    }
+
+    .homepage-description {
+        font-size: 1.5rem;
+    }
+
+    .mcore-logo-large {
+        max-width: 300px;
+    }
+
+    .carrier-buttons-grid {
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        padding: 1rem 2rem;
+    }
+    .carrier-color-button {
+        max-width: calc((100% / 7) - 0.75rem);
+    }
+
+    .calendar-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+
+    .acronyms-controls-group {
+        flex-wrap: nowrap;
+        justify-content: center;
+    }
+
+    .acronyms-controls-group .acronym-search-wrapper {
+        justify-content: center;
+    }
+
+    input[type="text"] {
+        max-width: 400px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .header nav {
+        padding: 0 2rem;
+    }
+
+    .main-content {
+        padding: 2rem 0;
+    }
+
+    .page-title {
+        font-size: 3rem;
+    }
+
+    .homepage-description {
+        font-size: 1.75rem;
+    }
+
+    .carrier-buttons-grid {
+        padding: 1.5rem 3rem;
+    }
+}
+.footer-accent-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: var(--accent-red);
 }

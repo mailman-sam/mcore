@@ -3,7 +3,7 @@
 let CACHE_NAME = 'mcore-cache-dynamic'; // Default, will be updated on fetch
 
 const urlsToCache = [
-    '/mcore/', // Caches the base URL for the app
+    '/mcore/',
     '/mcore/index.html',
     '/mcore/css/style.css',
     '/mcore/js/app.js',
@@ -11,10 +11,8 @@ const urlsToCache = [
     '/mcore/data/acronyms.json',
     '/mcore/data/nalc-resources.json',
     '/mcore/manifest.json',
-    '/mcore/data/app-config.json', 
-    'https://cdn.tailwindcss.com', // External CDN
-    'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap', // External CDN
-    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css', // External CDN
+    '/mcore/data/app-config.json',
+    '/mcore/fontawesome/css/all.min.css',
     '/mcore/icons/mcore-logo.png',
     '/mcore/icons/android-chrome-192x192.png',
     '/mcore/icons/android-chrome-512x512.png',

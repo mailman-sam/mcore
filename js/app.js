@@ -1,4 +1,3 @@
-// --- Global Constants and Configuration ---
 const appContent = document.getElementById('app-content');
 const themeToggle = document.getElementById('theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
@@ -11,7 +10,7 @@ let deferredPrompt;
 let federalHolidaysData = [];
 let allAcronymsData = [];
 let nalcResourcesData = [];
-let appConfig = {}; // To store app configuration (version, cache name)
+let appConfig = {};
 
 const CARRIER_COLORS = {
     'black': { name: 'Black', class: 'carrier-black', textClass: 'text-calendar-heading-black', baseDayOffIndex: 0 },
@@ -23,17 +22,15 @@ const CARRIER_COLORS = {
     'all': { name: 'All', class: 'carrier-sunday', textClass: 'text-calendar-heading-all' }
 };
 
-const PP_REFERENCE_DATE = new Date('2024-12-14T00:00:00'); // Start of PP 25-01 (Saturday)
+const PP_REFERENCE_DATE = new Date('2024-12-14T00:00:00');
 const PP_REFERENCE_NUMBER = 1;
 const PP_REFERENCE_YEAR = 2025;
 
 
-// --- Theme Management ---
 function applyTheme(theme) {
     body.classList.remove('theme-light', 'theme-dark');
     body.classList.add(`theme-${theme}`);
-    themeIcon.classList.remove('fa-sun', 'fa-moon');
-    themeIcon.classList.add(theme === 'light' ? 'fa-moon' : 'fa-sun');
+    // Removed direct textContent manipulation, relying on CSS ::before for theme icon
     localStorage.setItem('mcore-theme', theme);
 }
 
@@ -54,8 +51,7 @@ function initPreferences() {
     }
 }
 
-// --- Data Fetching ---
-async function fetchAppConfig() { // Function to fetch app configuration
+async function fetchAppConfig() {
     if (Object.keys(appConfig).length > 0) {
         return appConfig;
     }
@@ -132,7 +128,6 @@ async function fetchNalcResourcesData() {
 }
 
 
-// --- Date and Holiday Utilities ---
 function isLeapYear(year) {
     return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
 }
@@ -216,7 +211,6 @@ function getFederalHoliday(date) {
     return null;
 }
 
-// --- Carrier Schedule Logic ---
 function getPostalWorkWeekNumber(date) {
     const cycleStart = new Date('2025-01-04T00:00:00');
     const targetDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -248,7 +242,6 @@ function getCarrierDayOff(date, carrierColor) {
     return actualDayOfWeek === expectedDayOffForDate;
 }
 
-// --- Calendar Rendering ---
 function generateMonthTile(month, year, selectedCarrier) {
     const today = new Date();
     const firstDayOfMonth = new Date(year, month, 1);
@@ -324,19 +317,29 @@ function generateMonthTile(month, year, selectedCarrier) {
 
     return `
         <div class="calendar-month-tile card-bg">
-            <div class="calendar-header bg-usps-blue text-white rounded-t-lg">
+            <div class="calendar-header bg-usps-blue">
                 ${monthNames[month]} ${year}
                 <div class="calendar-header-accent-line"></div>
             </div>
             <div class="calendar-day-names">
                 ${dayNames.map(name => `<span>${name}</span>`).join('')}
             </div>
-            <div class="calendar-days flex-grow p-2">
+            <div class="calendar-days">
                 ${daysHtml}
             </div>
         </div>
     `;
 }
+
+function jumpToTodayOnCalendar() {
+    const todayCell = document.querySelector('.calendar-day.today');
+    if (todayCell) {
+        setTimeout(() => {
+            todayCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 200);
+    }
+}
+
 
 async function renderCalendarPage(year, selectedCarrier = null) {
     await fetchHolidays();
@@ -362,17 +365,18 @@ async function renderCalendarPage(year, selectedCarrier = null) {
     const headingTextColorClass = currentCarrierInfo.textClass;
 
     appContent.innerHTML = `
-        <h2 class="text-3xl font-bold mb-6 text-center ${headingTextColorClass}">Carrier Calendar</h2>
-        <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 mb-6">
-            <div class="flex items-center space-x-4 text-lg font-semibold">
-                <button id="prev-year-btn" class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">&laquo; Previous</button>
-                <span id="current-year-display" class="text-usps-blue">${year}</span>
-                <button id="next-year-btn" class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Next &raquo;</button>
-                <button id="current-year-btn" class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Current Year</button>
-            </div>
-        </div>
-        <div class="grid grid-cols-7 gap-2 mb-6">
+        <h2 class="page-title ${headingTextColorClass}">Carrier Calendar</h2>
+        <div class="carrier-buttons-grid">
             ${carrierButtonsHtml}
+        </div>
+        <div class="calendar-controls-group">
+            <div class="calendar-year-controls">
+                <button id="prev-year-btn" class="nav-button">&laquo; Previous</button>
+                <span id="current-year-display" class="current-year-display text-usps-blue">${year}</span>
+                <button id="next-year-btn" class="nav-button">Next &raquo;</button>
+                <button id="current-year-btn" class="nav-button">Current Year</button>
+                <button id="today-calendar-btn" class="nav-button">Today</button>
+            </div>
         </div>
         <div id="calendar-grid" class="calendar-grid">
             </div>
@@ -382,6 +386,7 @@ async function renderCalendarPage(year, selectedCarrier = null) {
     const prevYearBtn = document.getElementById('prev-year-btn');
     const nextYearBtn = document.getElementById('next-year-btn');
     const currentYearBtn = document.getElementById('current-year-btn');
+    const todayCalendarBtn = document.getElementById('today-calendar-btn');
 
     function renderAllMonthTiles() {
         calendarGrid.innerHTML = '';
@@ -392,16 +397,6 @@ async function renderCalendarPage(year, selectedCarrier = null) {
         }
         attachHolidayLightboxListeners();
 
-        // Auto-scroll to current month/day only for the current year view
-        if (currentSelectedYear === new Date().getFullYear()) {
-            const todayCell = document.querySelector('.calendar-day.today');
-            if (todayCell) {
-                // Use setTimeout to ensure rendering is complete before scrolling
-                setTimeout(() => {
-                    todayCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 100); // Small delay to allow layout to settle
-            }
-        }
     }
 
     renderAllMonthTiles();
@@ -419,6 +414,18 @@ async function renderCalendarPage(year, selectedCarrier = null) {
     currentYearBtn.addEventListener('click', () => {
         document.getElementById('current-year-display').textContent = currentYear;
         window.location.hash = `#calendar?year=${currentYear}&carrier=${selectedCarrier || ''}`;
+    });
+
+    todayCalendarBtn.addEventListener('click', () => {
+        const currentDisplayedYear = parseInt(document.getElementById('current-year-display').textContent);
+        const actualCurrentYear = new Date().getFullYear();
+
+        if (currentDisplayedYear !== actualCurrentYear) {
+            window.location.hash = `#calendar?year=${actualCurrentYear}`;
+            setTimeout(jumpToTodayOnCalendar, 200);
+        } else {
+            jumpToTodayOnCalendar();
+        }
     });
 
     document.querySelectorAll('.carrier-color-button').forEach(button => {
@@ -450,14 +457,16 @@ async function renderCalendarPage(year, selectedCarrier = null) {
 
     function attachHolidayLightboxListeners() {
         document.querySelectorAll('.calendar-day[data-is-holiday="true"]').forEach(dayCell => {
-            dayCell.replaceWith(dayCell.cloneNode(true));
+            const oldDayCell = dayCell;
+            const newDayCell = oldDayCell.cloneNode(true);
+            oldDayCell.parentNode.replaceChild(newDayCell, oldDayCell);
         });
 
         document.querySelectorAll('.calendar-day[data-is-holiday="true"]').forEach(dayCell => {
             dayCell.addEventListener('click', (event) => {
                 const symbol = dayCell.querySelector('.holiday-symbol');
-                const name = symbol ? symbol.dataset.holidayName : dayCell.dataset.holidayName;
-                const info = symbol ? symbol.dataset.holidayInfo : dayCell.dataset.holidayInfo;
+                const name = symbol ? symbol.dataset.holidayName : null;
+                const info = symbol ? symbol.dataset.holidayInfo : null;
                 if (name && info) {
                     openHolidayLightbox(name, info);
                 }
@@ -477,7 +486,15 @@ async function renderCalendarPage(year, selectedCarrier = null) {
     renderAllMonthTiles();
 }
 
-// --- Pay Period Page Rendering ---
+function jumpToCurrentPayPeriod() {
+    const currentPayPeriodRow = document.querySelector('.pay-period-table .current-pay-period-row');
+    if (currentPayPeriodRow) {
+        setTimeout(() => {
+            currentPayPeriodRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 200);
+    }
+}
+
 function getPayPeriodInfo(date) {
     const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const diffTime = checkDate.getTime() - PP_REFERENCE_DATE.getTime();
@@ -547,9 +564,12 @@ function renderPayPeriodsPage(year) {
             break;
         }
 
-        if (ppInfo.payPeriodYear === year || (ppInfo.payPeriodYear === year - 1 && ppInfo.endDate.getFullYear() === year) || (ppInfo.payPeriodYear === year + 1 && ppInfo.startDate.getFullYear() === year)) {
+        if (ppInfo.payPeriodYear === year ||
+            (ppInfo.payPeriodYear === year - 1 && ppInfo.endDate.getFullYear() === year) ||
+            (ppInfo.payPeriodYear === year + 1 && ppInfo.startDate.getFullYear() === year)) {
+
             const isCurrentPayPeriod = today >= ppInfo.startDate && today <= ppInfo.endDate;
-            const rowClasses = isCurrentPayPeriod ? 'bg-blue-100 dark:bg-blue-900' : '';
+            const rowClasses = isCurrentPayPeriod ? 'current-pay-period-row' : '';
 
             tableRowsHtml += `
                 <tr class="${rowClasses}">
@@ -564,34 +584,39 @@ function renderPayPeriodsPage(year) {
         currentDate.setDate(currentDate.getDate() + 14);
     }
 
+
     appContent.innerHTML = `
-        <h2 class="text-3xl font-bold mb-6 text-center text-usps-blue">Pay Periods</h2>
-        <div class="flex items-center justify-center space-x-4 mb-6 text-lg font-semibold">
-            <button id="prev-pp-year-btn" class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">&laquo; Previous</button>
-            <span id="current-pp-year-display" class="text-usps-blue">${year}</span>
-            <button id="next-pp-year-btn" class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Next &raquo;</button>
-            <button id="current-pp-btn" class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Current Year</button>
-        </div>
-        <div class="overflow-x-auto rounded-lg shadow-lg">
-            <table class="pay-period-table">
-                <thead>
-                    <tr>
-                        <th>Pay Period (YR-PP)</th>
-                        <th>Pay Period Start</th>
-                        <th>Pay Period End</th>
-                        <th>Pay Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${tableRowsHtml}
-                </tbody>
-            </table>
+        <div class="page-content-wrapper align-center">
+            <h2 class="page-title">Pay Periods</h2>
+            <div class="pay-period-controls-group">
+                <button id="prev-pp-year-btn" class="nav-button">&laquo; Previous Year</button>
+                <span id="current-pp-year-display" class="current-year-display text-usps-blue">${year}</span>
+                <button id="next-pp-year-btn" class="nav-button">Next Year &raquo;</button>
+                <button id="current-pp-btn" class="nav-button">Current Year</button>
+                <button id="today-pay-period-btn" class="nav-button">Today</button>
+            </div>
+            <div class="table-container">
+                <table class="pay-period-table">
+                    <thead>
+                        <tr>
+                            <th>Pay Period (YR-PP)</th>
+                            <th>Pay Period Start</th>
+                            <th>Pay Period End</th>
+                            <th>Pay Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRowsHtml}
+                    </tbody>
+                </table>
+            </div>
         </div>
     `;
 
     const prevPPYearBtn = document.getElementById('prev-pp-year-btn');
     const nextPPYearBtn = document.getElementById('next-pp-year-btn');
     const currentPPBtn = document.getElementById('current-pp-btn');
+    const todayPayPeriodBtn = document.getElementById('today-pay-period-btn');
 
     prevPPYearBtn.addEventListener('click', () => {
         const currentDisplayedYear = parseInt(document.getElementById('current-pp-year-display').textContent);
@@ -605,32 +630,45 @@ function renderPayPeriodsPage(year) {
         const currentYear = new Date().getFullYear();
         window.location.hash = `#pay-periods?year=${currentYear}`;
     });
+
+    todayPayPeriodBtn.addEventListener('click', () => {
+        const currentDisplayedYear = parseInt(document.getElementById('current-pp-year-display').textContent);
+        const actualCurrentYear = new Date().getFullYear();
+
+        if (currentDisplayedYear !== actualCurrentYear) {
+            window.location.hash = `#pay-periods?year=${actualCurrentYear}`;
+            setTimeout(jumpToCurrentPayPeriod, 200);
+        } else {
+            jumpToCurrentPayPeriod();
+        }
+    });
 }
 
-// --- Acronyms Page Rendering and Functionality ---
 async function renderAcronymsPage() {
     await fetchAcronymsData();
 
     appContent.innerHTML = `
-        <h2 class="text-3xl font-bold mb-6 text-center text-usps-blue">Useful Acronyms</h2>
-        <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-6">
-            <input type="text" id="acronym-search" placeholder="Search acronyms..." class="p-2 border border-gray-300 rounded-md card-bg text-current w-full sm:w-1/2 md:w-1/3">
-            <div class="flex space-x-2">
-                <button id="sort-acronym-asc" class="p-2 rounded-md bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">Sort A-Z</button>
-                <button id="sort-acronym-desc" class="p-2 rounded-md bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">Sort Z-A</button>
+        <div class="page-content-wrapper align-left">
+            <h2 class="page-title">Useful Acronyms</h2>
+            <div class="acronym-controls-group">
+                <input type="text" id="acronym-search" placeholder="Search acronyms..." class="text-input search-input">
+                <div class="sort-buttons-group">
+                    <button id="sort-acronym-asc" class="nav-button">Sort A-Z</button>
+                    <button id="sort-acronym-desc" class="nav-button">Sort Z-A</button>
+                </div>
             </div>
-        </div>
-        <div class="overflow-x-auto rounded-lg shadow-lg">
-            <table class="pay-period-table acronyms-table">
-                <thead>
-                    <tr>
-                        <th>Acronym</th>
-                        <th>Meaning</th>
-                    </tr>
-                </thead>
-                <tbody id="acronyms-table-body">
-                    </tbody>
-            </table>
+            <div class="table-container">
+                <table class="acronyms-table">
+                    <thead>
+                        <tr>
+                            <th>Acronym</th>
+                            <th>Meaning</th>
+                        </tr>
+                    </thead>
+                    <tbody id="acronyms-table-body">
+                        </tbody>
+                </table>
+            </div>
         </div>
     `;
 
@@ -688,7 +726,6 @@ async function renderAcronymsPage() {
 }
 
 
-// --- Routing / Page Management ---
 async function router() {
     const hash = window.location.hash;
     const urlParams = new URLSearchParams(hash.split('?')[1]);
@@ -696,7 +733,6 @@ async function router() {
 
     await fetchHolidays();
 
-    // Prioritize more specific routes first
     const carrierMatch = hash.match(/^#calendar-([a-z]+)$/);
     if (carrierMatch) {
         const carrierColor = carrierMatch[1];
@@ -724,27 +760,26 @@ async function router() {
     }
 }
 
-// --- Page Rendering Functions (Landing, Disclaimer, Resources) ---
 function renderLandingPage() {
     appContent.innerHTML = `
-        <div class="text-center py-10">
-            <h2 class="text-3xl font-extrabold mb-4 text-usps-blue">Welcome to mCORE</h2>
-            <p class="text-l mb-8 homepage-description">
+        <div class="page-content-wrapper align-center">
+            <h2 class="page-title">Welcome to mCORE</h2>
+            <p class="homepage-description">
                 <span class="acronym-highlight">M</span>ail <span class="acronym-highlight">C</span>arrier <span class="acronym-highlight">O</span>perational <span class="acronym-highlight">R</span>esource & <span class="acronym-highlight">E</span>ncyclopedia
             </p>
-            <p class="mb-8 max-w-2xl mx-auto">
-                No Ads</br>
-				100% Free</br>
-				Open-source</br>
-				No Data Collection or Selling.</br>
-				Works great offline, with optional web links.</br>
-				
+            <p class="homepage-info-text">
+                No Ads<br>
+				100% Free<br>
+				Open-source<br>
+				No Data Collection or Selling.<br>
+				Works great offline, with optional web links.<br>
+
             </p>
-            <div class="mt-8">
-                <a href="#disclaimer" id="disclaimer-link" class="text-usps-blue underline hover:no-underline font-semibold">Terms & Conditions</a>
+            <div class="button-group">
+                <a href="#disclaimer" id="disclaimer-link" class="button primary-button">Terms & Conditions</a>
             </div>
-            <div class="flex justify-center mt-8">
-                <img src="/mcore/icons/mcore-logo.png" alt="mCORE Logo" class="h-44" onerror="this.onerror=null; this.src='https://placehold.co/64x64/0d6efd/ffffff?text=M';" />
+            <div class="logo-display-area">
+                <img src="/mcore/icons/mcore-logo.png" alt="mCORE Logo" class="mcore-logo-large" onerror="this.onerror=null; this.src='https://placehold.co/64x64/0d6efd/ffffff?text=M';" />
             </div>
         </div>
     `;
@@ -752,22 +787,20 @@ function renderLandingPage() {
 
 function renderDisclaimerPage() {
     appContent.innerHTML = `
-        <div class="text-center py-10">
-            <h2 class="text-3xl font-bold mb-6 text-usps-blue">Terms & Conditions / Disclaimer of Responsibility</h2>
-            <div class="text-left max-w-3xl mx-auto space-y-4">
-                <p><strong>Important Disclaimer:</strong> This mCORE application is provided for informational and reference purposes only. It is developed independently by a mail carrier, for ALL mail carriers, and is not affiliated with, endorsed by, or sponsored by the United States Postal Service (USPS), any labor union, or any other official entity.</p>
-                <p>While every effort has been made to ensure the accuracy of the information provided (including, but not limited to, calendar schedules, NALC Resources and federal holidays), this application does not constitute official guidance or legal advice. Postal regulations, labor laws, union contracts, and operational procedures are complex and subject to change.</p>
-                <p><strong>Users are solely responsible for verifying all information presented in this application with official USPS sources, union representatives, and/or relevant legal counsel.</strong></p>
-                <p>The developer(s) of this application disclaim all liability for any errors or omissions in the content provided, or for any actions taken or not taken in reliance on the information contained herein. By using this application, you agree to these terms and understand that you use it at your own risk. The developer(s) shall not be liable for any direct, indirect, incidental, consequential, or punitive damages arising out of your access to, use of, or inability to use this application.</p>
-                <p>This application is provided "as is" without warranty of any kind, either express or implied, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement.</p>
-                <p class="mt-6">Thank you for your understanding and continued dedication as a mail carrier.</p>
-                <div class="mt-8">
-                    <a href="#landing" class="inline-block bg-usps-blue text-white py-2 px-4 rounded-lg text-md font-semibold shadow-md hover:opacity-90 transition-opacity duration-300">
-                        Back to Home
-                    </a>
+        <div class="page-content-wrapper align-left">
+            <h2 class="page-title">Terms & Conditions / Disclaimer of Responsibility</h2>
+            <div class="disclaimer-content-area">
+                <p class="info-text"><strong>Important Disclaimer:</strong> This mCORE application is provided for informational and reference purposes only. It is developed independently by a mail carrier, for ALL mail carriers, and is not affiliated with, endorsed by, or sponsored by the United States Postal Service (USPS), any labor union, or any other official entity.</p>
+                <p class="info-text">While every effort has been made to ensure the accuracy of the information provided (including, but not limited to, calendar schedules, NALC Resource and federal holidays), this application does not constitute official guidance or legal advice. Postal regulations, labor laws, union contracts, and operational procedures are complex and subject to change.</p>
+                <p class="info-text"><strong>Users are solely responsible for verifying all information presented in this application with official USPS sources, union representatives, and/or relevant legal counsel.</strong></p>
+                <p class="info-text">The developer(s) of this application disclaim all liability for any errors or omissions in the content provided, or for any actions taken or not taken in reliance on the information contained herein. By using this application, you agree to these terms and understand that you use it at your own risk. The developer(s) shall not be liable for any direct, indirect, incidental, consequential, or punitive damages arising out of your access to, use of, or inability to use this application.</p>
+                <p class="info-text">This application is provided "as is" without warranty of any kind, either express or implied, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement.</p>
+                <p class="info-text">Thank you for your understanding and continued dedication as a mail carrier.</p>
+                <div class="button-group">
+                    <a href="#landing" class="button primary-button">Back to Home</a>
                 </div>
-                <div class="flex justify-center mt-8">
-                    <img src="/mcore/icons/mcore-logo.png" alt="mCORE Logo" class="h-16" onerror="this.onerror=null; this.src='https://placehold.co/64x64/0d6efd/ffffff?text=M';" />
+                <div class="logo-display-area">
+                    <img src="/mcore/icons/mcore-logo.png" alt="mCORE Logo" class="mcore-logo-large" onerror="this.onerror=null; this.src='https://placehold.co/64x64/0d6efd/ffffff?text=M';" />
                 </div>
             </div>
         </div>
@@ -776,15 +809,13 @@ function renderDisclaimerPage() {
 
 function renderNalcResourcesPage() {
     appContent.innerHTML = `
-        <h2 class="text-3xl font-bold mb-6 text-center text-usps-blue">Useful Resources</h2>
-        <div class="text-left max-w-3xl mx-auto space-y-4">
-            <p class="mb-4">This section provides links to publicly available resources from the National Association of Letter Carriers (NALC) and other relevant sources. Please note that mCORE is an independent application and is not affiliated with NALC or any union. Always verify information with official sources.</p>
-            <ul id="nalc-resources-list" class="list-disc pl-5 space-y-2">
+        <div class="page-content-wrapper align-left">
+            <h2 class="page-title">Useful Resources</h2>
+            <p class="info-text">This section provides links to publicly available resources from the National Association of Letter Carriers (NALC) and other relevant sources. Please note that mCORE is an independent application and is not affiliated with NALC or any union. Always verify information with official sources.</p>
+            <ul id="nalc-resources-list" class="resource-list">
                 </ul>
-            <div class="mt-8">
-                <a href="#landing" class="inline-block bg-usps-blue text-white py-2 px-4 rounded-lg text-md font-semibold shadow-md hover:opacity-90 transition-opacity duration-300">
-                    Back to Home
-                </a>
+            <div class="button-group">
+                <a href="#landing" class="button primary-button">Back to Home</a>
             </div>
         </div>
     `;
@@ -793,10 +824,10 @@ function renderNalcResourcesPage() {
         if (data && data.length > 0) {
             resourcesList.innerHTML = data.map(item => `
                 <li>
-                    <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="text-usps-blue underline hover:no-underline font-semibold">
+                    <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="resource-link">
                         ${item.title}
                     </a>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">${item.description}</p>
+                    <p class="resource-description">${item.description}</p>
                 </li>
             `).join('');
         } else {
@@ -806,24 +837,19 @@ function renderNalcResourcesPage() {
 }
 
 
-// --- Event Listeners and Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
-    // Fetch app config first to get the version number
     await fetchAppConfig();
 
-    // Set the dynamic copyright year
     const currentYearSpan = document.getElementById('current-year');
     if (currentYearSpan) {
         currentYearSpan.textContent = new Date().getFullYear();
     }
 
-    // Set the dynamic app version
     const appVersionSpan = document.getElementById('app-version');
     if (appVersionSpan && appConfig.version) {
         appVersionSpan.textContent = appConfig.version;
     }
 
-    // Email Obfuscation
     const contactEmailLink = document.getElementById('contact-email-link');
     if (contactEmailLink) {
         const user = 'a.mailman.sam';
@@ -837,7 +863,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     initPreferences();
     router();
 
-    // Navigation event listeners
     document.getElementById('home-link').addEventListener('click', () => { window.location.hash = '#landing'; });
     document.getElementById('calendar-nav-link').addEventListener('click', () => { window.location.hash = '#calendar'; });
     document.getElementById('resources-nav-link').addEventListener('click', () => { window.location.hash = '#resources'; });
@@ -855,12 +880,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // PWA Install Event Listeners
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        // Show the install button
-        installAppButton.style.display = 'block';
+        installAppButton.style.display = 'flex';
         console.log('beforeinstallprompt fired');
     });
 
@@ -880,7 +903,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log('PWA was installed');
     });
 
-    // Service Worker Registration
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/mcore/service-worker.js')
