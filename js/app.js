@@ -3,6 +3,7 @@ const themeToggle = document.getElementById('theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
 const body = document.body;
 const installAppButton = document.getElementById('install-app-button');
+const scrollToTopBtn = document.getElementById('scrollToTopBtn');
 
 
 let deferredPrompt;
@@ -382,6 +383,9 @@ async function renderCalendarPage(year, selectedCarrier = null) {
             </div>
     `;
 
+    // Show the scroll to top button when on calendar page
+    scrollToTopBtn.classList.remove('hidden');
+
     const calendarGrid = document.getElementById('calendar-grid');
     const prevYearBtn = document.getElementById('prev-year-btn');
     const nextYearBtn = document.getElementById('next-year-btn');
@@ -613,6 +617,9 @@ function renderPayPeriodsPage(year) {
         </div>
     `;
 
+    // Hide the scroll to top button when not on calendar page
+    scrollToTopBtn.classList.add('hidden');
+
     const prevPPYearBtn = document.getElementById('prev-pp-year-btn');
     const nextPPYearBtn = document.getElementById('next-pp-year-btn');
     const currentPPBtn = document.getElementById('current-pp-btn');
@@ -671,6 +678,9 @@ async function renderAcronymsPage() {
             </div>
         </div>
     `;
+
+    // Hide the scroll to top button when not on calendar page
+    scrollToTopBtn.classList.add('hidden');
 
     const acronymsTableBody = document.getElementById('acronyms-table-body');
     const acronymsSearchInput = document.getElementById('acronym-search');
@@ -733,6 +743,9 @@ async function router() {
 
     await fetchHolidays();
 
+    // Hide the scroll to top button by default for all routes
+    scrollToTopBtn.classList.add('hidden');
+
     const carrierMatch = hash.match(/^#calendar-([a-z]+)$/);
     if (carrierMatch) {
         const carrierColor = carrierMatch[1];
@@ -783,6 +796,8 @@ function renderLandingPage() {
             </div>
         </div>
     `;
+    // Hide the scroll to top button when not on calendar page
+    scrollToTopBtn.classList.add('hidden');
 }
 
 function renderDisclaimerPage() {
@@ -805,6 +820,8 @@ function renderDisclaimerPage() {
             </div>
         </div>
     `;
+    // Hide the scroll to top button when not on calendar page
+    scrollToTopBtn.classList.add('hidden');
 }
 
 function renderNalcResourcesPage() {
@@ -819,6 +836,8 @@ function renderNalcResourcesPage() {
             </div>
         </div>
     `;
+    // Hide the scroll to top button when not on calendar page
+    scrollToTopBtn.classList.add('hidden');
     const resourcesList = document.getElementById('nalc-resources-list');
     fetchNalcResourcesData().then(data => {
         if (data && data.length > 0) {
@@ -915,4 +934,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
         });
     }
+
+    // Scroll to Top button logic
+    window.addEventListener('scroll', () => {
+        // Only show button if on calendar page and scrolled down
+        if (window.location.hash.startsWith('#calendar')) {
+            if (window.scrollY > 200) { // Show button after scrolling 200px
+                scrollToTopBtn.classList.remove('hidden');
+            } else {
+                scrollToTopBtn.classList.add('hidden');
+            }
+        } else {
+            scrollToTopBtn.classList.add('hidden'); // Hide button on other pages
+        }
+    });
+
+    scrollToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
 });
