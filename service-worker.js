@@ -44,17 +44,65 @@ self.addEventListener('install', (event) => {
             })
             .then((cache) => {
                 console.log('Service Worker: Caching App Shell');
-                // Filter out the service worker itself from being cached by itself
-                const filteredUrlsToCache = urlsToCache.filter(url => 
+                const filteredUrlsToCache = urlsToCache.filter(url =>
                     !url.includes('service-worker.js')
                 );
-                return cache.addAll(filteredUrlsToCache);
+
+                // Use Promise.allSettled to cache items individually and log outcomes
+                return Promise.allSettled(
+                    filteredUrlsToCache.map(url => {
+                        return fetch(url).then(response => {
+                            if (!response.ok) {
+                                console.warn(`Service Worker: Failed to fetch ${url} (Status: ${response.status})`);
+                                return Promise.reject(new Error(`Failed to fetch ${url}`));
+                            }
+                            // Clone the response because it's a stream and can only be consumed once
+                            const responseToCache = response.clone();
+                            return cache.put(url, responseToCache);
+                        }).then(() => {
+                            console.log(`Service Worker: Successfully cached ${url}`);
+                        }).catch(error => {
+                            console.error(`Service Worker: Failed to cache ${url}:`, error);
+                            // Still reject to indicate overall failure for this specific item
+                            return Promise.reject(error);
+                        });
+                    })
+                ).then(results => {
+                    // Log overall results of caching
+                    results.forEach(result => {
+                        if (result.status === 'rejected') {
+                            console.error('Service Worker: Caching item rejected:', result.reason);
+                        }
+                    });
+                    // If any failed, the outer promise should still resolve, but we've logged errors.
+                    // If all failed, the initial .catch below will still be triggered.
+                });
             })
             .catch(error => {
-                console.error('Service Worker: Cache install failed:', error);
+                console.error('Service Worker: Overall Cache install failed:', error);
                 // Fallback to a default cache name if config fetch fails or network issues
                 CACHE_NAME = 'mcore-cache-fallback';
-                return caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache.filter(url => !url.includes('service-worker.js'))));
+                console.warn('Service Worker: Attempting fallback cache due to previous failure.');
+                // Attempt to cache with fallback, still using individual puts for robustness
+                return caches.open(CACHE_NAME).then(cache => {
+                    return Promise.allSettled(
+                        urlsToCache.filter(url => !url.includes('service-worker.js')).map(url => {
+                            return fetch(url).then(response => {
+                                if (!response.ok) {
+                                    console.warn(`Service Worker: Fallback cache failed to fetch ${url} (Status: ${response.status})`);
+                                    return Promise.reject(new Error(`Fallback: Failed to fetch ${url}`));
+                                }
+                                const responseToCache = response.clone();
+                                return cache.put(url, responseToCache);
+                            }).then(() => {
+                                console.log(`Service Worker: Fallback: Successfully cached ${url}`);
+                            }).catch(error => {
+                                console.error(`Service Worker: Fallback: Failed to cache ${url}:`, error);
+                                return Promise.reject(error);
+                            });
+                        })
+                    );
+                });
             })
     );
 });

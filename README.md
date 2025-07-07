@@ -102,3 +102,5 @@ This project is open-source under the MIT License. Contributions are welcome\! I
 For any inquiries, please contact: a.mailman.sam@gmail.com
 
 This project adheres to [Semantic Versioning](https://semver.org/).
+
+mistakes were made
