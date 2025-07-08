@@ -21,7 +21,8 @@ const urlsToCache = [
     '/mcore/icons/apple-touch-icon.png',
     '/mcore/icons/favicon-32x32.png',
     '/mcore/icons/favicon-16x16.png',
-    '/mcore/favicon.ico'
+    '/mcore/favicon.ico',
+    '/mcore/icons/us.png' 
 ];
 
 // --- Install Event ---

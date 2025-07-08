@@ -3,7 +3,6 @@ const themeToggle = document.getElementById('theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
 const body = document.body;
 const installAppButton = document.getElementById('install-app-button');
-const scrollToTopBtn = document.getElementById('scrollToTopBtn');
 
 
 let deferredPrompt;
@@ -243,10 +242,50 @@ function getCarrierDayOff(date, carrierColor) {
     return actualDayOfWeek === expectedDayOffForDate;
 }
 
+/**
+ * Calculates all paydays for a given year.
+ * Paydays occur every two weeks based on the PP_REFERENCE_DATE.
+ * @param {number} year The year for which to calculate paydays.
+ * @returns {Set<string>} A Set of payday dates in 'YYYY-MM-DD' format.
+ */
+function getPayDays(year) {
+    const payDays = new Set();
+    // Start from the reference date
+    let currentPayDate = new Date(PP_REFERENCE_DATE);
+
+    // Get the pay date for the PP_REFERENCE_DATE
+    let ppInfoForRef = getPayPeriodInfo(PP_REFERENCE_DATE);
+    currentPayDate = ppInfoForRef.payDate;
+
+    // Go backwards from the reference pay date to find the first payday of the year
+    while (currentPayDate.getFullYear() >= year - 1) { // Check a bit before the year to catch early pay periods
+        const ppInfo = getPayPeriodInfo(currentPayDate);
+        if (ppInfo.payDate.getFullYear() === year) {
+            payDays.add(ppInfo.payDate.toISOString().split('T')[0]);
+        }
+        // Move to the previous payday (14 days earlier)
+        currentPayDate.setDate(currentPayDate.getDate() - 14);
+    }
+
+    // Reset to the reference pay date and go forwards to find all paydays for the year
+    currentPayDate = ppInfoForRef.payDate;
+    while (currentPayDate.getFullYear() <= year + 1) { // Check a bit after the year to catch late pay periods
+        const ppInfo = getPayPeriodInfo(currentPayDate);
+        if (ppInfo.payDate.getFullYear() === year) {
+            payDays.add(ppInfo.payDate.toISOString().split('T')[0]);
+        }
+        // Move to the next payday (14 days later)
+        currentPayDate.setDate(currentPayDate.getDate() + 14);
+    }
+    return payDays;
+}
+
+
 function generateMonthTile(month, year, selectedCarrier) {
     const today = new Date();
     const firstDayOfMonth = new Date(year, month, 1);
     const daysInMonth = getDaysInMonth(month, year);
+    const payDaysForYear = getPayDays(year); // Get paydays for the current year
 
     let startDay = firstDayOfMonth.getDay();
     const firstDayOffset = (startDay + 6) % 7;
@@ -258,10 +297,13 @@ function generateMonthTile(month, year, selectedCarrier) {
 
     for (let day = 1; day <= daysInMonth; day++) {
         const currentDate = new Date(year, month, day);
+        const formattedDate = currentDate.toISOString().split('T')[0]; // Format for comparison
         let dayClasses = ['calendar-day'];
         let holidayHtml = '';
+        let paydayHtml = ''; // New variable for payday image
         let isOffDay = false;
         let highlightClasses = [];
+        let dataAttributes = ''; // To store data attributes for the div
 
         if (currentDate.getDate() === today.getDate() &&
             currentDate.getMonth() === today.getMonth() &&
@@ -295,19 +337,28 @@ function generateMonthTile(month, year, selectedCarrier) {
 
         const holiday = getFederalHoliday(currentDate);
         if (holiday) {
-            holidayHtml = `<span class="holiday-symbol" data-holiday-name="${holiday.name}" data-holiday-info="${holiday.info}">★</span>`;
+            holidayHtml = `<span class="holiday-symbol">★</span>`;
+            dataAttributes += `data-is-holiday="true" data-holiday-name="${holiday.name}" data-holiday-info="${holiday.info}"`;
         }
 
-        if (holiday || isOffDay) {
+        // Check if current date is a payday and add the image
+        if (payDaysForYear.has(formattedDate)) {
+            paydayHtml = `<img src="/mcore/icons/us.png" alt="Pay Day" class="payday-symbol">`;
+            dataAttributes += ` data-is-payday="true"`; // Add data attribute for payday
+        }
+
+
+        if (holiday || isOffDay || payDaysForYear.has(formattedDate)) {
             dayClasses.push('cursor-pointer');
         } else {
             dayClasses.push('cursor-default');
         }
 
         daysHtml += `
-            <div class="${dayClasses.join(' ')}" data-date="${currentDate.toISOString().split('T')[0]}" ${holiday ? 'data-is-holiday="true"' : ''}>
+            <div class="${dayClasses.join(' ')}" data-date="${formattedDate}" ${dataAttributes}>
                 <span class="day-number">${day}</span>
                 ${holidayHtml}
+                ${paydayHtml}
             </div>
         `;
     }
@@ -383,9 +434,6 @@ async function renderCalendarPage(year, selectedCarrier = null) {
             </div>
     `;
 
-    // Show the scroll to top button when on calendar page
-    scrollToTopBtn.classList.remove('hidden');
-
     const calendarGrid = document.getElementById('calendar-grid');
     const prevYearBtn = document.getElementById('prev-year-btn');
     const nextYearBtn = document.getElementById('next-year-btn');
@@ -399,8 +447,7 @@ async function renderCalendarPage(year, selectedCarrier = null) {
         for (let i = 0; i < 12; i++) {
             calendarGrid.innerHTML += generateMonthTile(i, currentSelectedYear, currentSelectedCarrier);
         }
-        attachHolidayLightboxListeners();
-
+        attachHolidayLightboxListeners(); // This function will now handle both holiday and payday clicks
     }
 
     renderAllMonthTiles();
@@ -449,28 +496,47 @@ async function renderCalendarPage(year, selectedCarrier = null) {
 
     function openHolidayLightbox(name, info) {
         lightboxHolidayName.textContent = name;
-        lightboxHolidayInfo.textContent = info;
+        lightboxHolidayInfo.innerHTML = info; // Use innerHTML to allow for line breaks
         holidayLightbox.classList.add('active');
     }
 
     function closeHolidayLightbox() {
         lightboxHolidayName.textContent = '';
-        lightboxHolidayInfo.textContent = '';
+        lightboxHolidayInfo.innerHTML = '';
         holidayLightbox.classList.remove('active');
     }
 
+    // This function now handles both holiday and payday clicks
     function attachHolidayLightboxListeners() {
-        document.querySelectorAll('.calendar-day[data-is-holiday="true"]').forEach(dayCell => {
+        // Remove existing listeners to prevent duplicates
+        document.querySelectorAll('.calendar-day[data-is-holiday="true"], .calendar-day[data-is-payday="true"]').forEach(dayCell => {
             const oldDayCell = dayCell;
             const newDayCell = oldDayCell.cloneNode(true);
             oldDayCell.parentNode.replaceChild(newDayCell, oldDayCell);
         });
 
-        document.querySelectorAll('.calendar-day[data-is-holiday="true"]').forEach(dayCell => {
+        // Add listeners for holidays and paydays
+        document.querySelectorAll('.calendar-day[data-is-holiday="true"], .calendar-day[data-is-payday="true"]').forEach(dayCell => {
             dayCell.addEventListener('click', (event) => {
-                const symbol = dayCell.querySelector('.holiday-symbol');
-                const name = symbol ? symbol.dataset.holidayName : null;
-                const info = symbol ? symbol.dataset.holidayInfo : null;
+                const isHoliday = dayCell.dataset.isHoliday === 'true';
+                const isPayday = dayCell.dataset.isPayday === 'true';
+
+                let name = '';
+                let info = '';
+
+                if (isHoliday && isPayday) {
+                    const holidayName = dayCell.dataset.holidayName;
+                    const holidayInfo = dayCell.dataset.holidayInfo;
+                    name = `${holidayName} & Pay Day`;
+                    info = `${holidayInfo}<br><br>This date is also a pay day. Your pay should be deposited on or around this date.`;
+                } else if (isHoliday) {
+                    name = dayCell.dataset.holidayName;
+                    info = dayCell.dataset.holidayInfo;
+                } else if (isPayday) {
+                    name = "Pay Day";
+                    info = "This marks a pay day. Your pay should be deposited on or around this date.";
+                }
+
                 if (name && info) {
                     openHolidayLightbox(name, info);
                 }
@@ -617,9 +683,6 @@ function renderPayPeriodsPage(year) {
         </div>
     `;
 
-    // Hide the scroll to top button when not on calendar page
-    scrollToTopBtn.classList.add('hidden');
-
     const prevPPYearBtn = document.getElementById('prev-pp-year-btn');
     const nextPPYearBtn = document.getElementById('next-pp-year-btn');
     const currentPPBtn = document.getElementById('current-pp-btn');
@@ -678,9 +741,6 @@ async function renderAcronymsPage() {
             </div>
         </div>
     `;
-
-    // Hide the scroll to top button when not on calendar page
-    scrollToTopBtn.classList.add('hidden');
 
     const acronymsTableBody = document.getElementById('acronyms-table-body');
     const acronymsSearchInput = document.getElementById('acronym-search');
@@ -743,9 +803,6 @@ async function router() {
 
     await fetchHolidays();
 
-    // Hide the scroll to top button by default for all routes
-    scrollToTopBtn.classList.add('hidden');
-
     const carrierMatch = hash.match(/^#calendar-([a-z]+)$/);
     if (carrierMatch) {
         const carrierColor = carrierMatch[1];
@@ -796,8 +853,6 @@ function renderLandingPage() {
             </div>
         </div>
     `;
-    // Hide the scroll to top button when not on calendar page
-    scrollToTopBtn.classList.add('hidden');
 }
 
 function renderDisclaimerPage() {
@@ -820,8 +875,6 @@ function renderDisclaimerPage() {
             </div>
         </div>
     `;
-    // Hide the scroll to top button when not on calendar page
-    scrollToTopBtn.classList.add('hidden');
 }
 
 function renderNalcResourcesPage() {
@@ -836,8 +889,6 @@ function renderNalcResourcesPage() {
             </div>
         </div>
     `;
-    // Hide the scroll to top button when not on calendar page
-    scrollToTopBtn.classList.add('hidden');
     const resourcesList = document.getElementById('nalc-resources-list');
     fetchNalcResourcesData().then(data => {
         if (data && data.length > 0) {
@@ -934,25 +985,4 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
         });
     }
-
-    // Scroll to Top button logic
-    window.addEventListener('scroll', () => {
-        // Only show button if on calendar page and scrolled down
-        if (window.location.hash.startsWith('#calendar')) {
-            if (window.scrollY > 200) { // Show button after scrolling 200px
-                scrollToTopBtn.classList.remove('hidden');
-            } else {
-                scrollToTopBtn.classList.add('hidden');
-            }
-        } else {
-            scrollToTopBtn.classList.add('hidden'); // Hide button on other pages
-        }
-    });
-
-    scrollToTopBtn.addEventListener('click', () => {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
-    });
 });
