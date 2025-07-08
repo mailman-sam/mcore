@@ -9,7 +9,7 @@ let deferredPrompt;
 
 let federalHolidaysData = [];
 let allAcronymsData = [];
-let nalcResourcesData = [];
+let allResourcesData = []; // Renamed from nalcResourcesData
 let appConfig = {};
 
 const CARRIER_COLORS = {
@@ -108,21 +108,21 @@ async function fetchAcronymsData() {
     }
 }
 
-async function fetchNalcResourcesData() {
-    if (nalcResourcesData.length > 0) {
-        return nalcResourcesData;
+async function fetchAllResourcesData() { // Renamed from fetchNalcResourcesData
+    if (allResourcesData.length > 0) {
+        return allResourcesData;
     }
     try {
-        const response = await fetch('/mcore/data/nalc-resources.json');
+        const response = await fetch('/mcore/data/resources.json'); // Changed file name
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        nalcResourcesData = data;
-        console.log('NALC Resources loaded:', nalcResourcesData);
+        allResourcesData = data;
+        console.log('All Resources loaded:', allResourcesData);
         return data;
     } catch (error) {
-        console.error('Could not fetch NALC resources:', error);
+        console.error('Could not fetch all resources:', error);
         return [];
     }
 }
@@ -817,7 +817,7 @@ async function router() {
         const carrier = urlParams.get('carrier') || null;
         renderCalendarPage(year, carrier);
     } else if (hash.startsWith('#resources')) {
-        renderNalcResourcesPage();
+        renderResourcesPage(); // Changed function name
     } else if (hash.startsWith('#acronyms')) {
         renderAcronymsPage();
     } else if (hash.startsWith('#pay-periods')) {
@@ -877,20 +877,20 @@ function renderDisclaimerPage() {
     `;
 }
 
-function renderNalcResourcesPage() {
+function renderResourcesPage() { // Renamed from renderNalcResourcesPage
     appContent.innerHTML = `
         <div class="page-content-wrapper align-left">
             <h2 class="page-title">Useful Resources</h2>
-            <p class="info-text">This section provides links to publicly available resources from the National Association of Letter Carriers (NALC) and other relevant sources. Please note that mCORE is an independent application and is not affiliated with NALC or any union. Always verify information with official sources.</p>
-            <ul id="nalc-resources-list" class="resource-list">
+            <p class="info-text">This section provides links to publicly available resources for mail carriers. Please note that mCORE is an independent application and is not affiliated with USPS, NALC, NRLCA, or any other union. Always verify information with official sources.</p>
+            <ul id="resources-list" class="resource-list">
                 </ul>
             <div class="button-group">
                 <a href="#landing" class="button primary-button">Back to Home</a>
             </div>
         </div>
     `;
-    const resourcesList = document.getElementById('nalc-resources-list');
-    fetchNalcResourcesData().then(data => {
+    const resourcesList = document.getElementById('resources-list'); // Changed ID
+    fetchAllResourcesData().then(data => { // Changed function call
         if (data && data.length > 0) {
             resourcesList.innerHTML = data.map(item => `
                 <li>

@@ -11,7 +11,7 @@ const urlsToCache = [
     '/mcore/js/app.js',
     '/mcore/data/holidays.json',
     '/mcore/data/acronyms.json',
-    '/mcore/data/nalc-resources.json',
+    '/mcore/data/resources.json',
     '/mcore/manifest.json',
     '/mcore/data/app-config.json',
     '/mcore/fontawesome/css/all.min.css',
