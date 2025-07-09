@@ -44,7 +44,7 @@ mcore/
 │   ├── acronyms.json     # JSON data for USPS acronyms (sorted alphabetically)
 │   ├── app-config.json     # JSON data for App Version
 │   ├── holidays.json     # JSON data for US Federal Holidays
-│   └── resources.json   # JSON data for NALC external resource links
+│   └── nalc-resources.json   # JSON data for NALC external resource links
 ├── icons/
 │   ├── android-chrome-192x192.png  # PWA icon (192x192)
 │   ├── android-chrome-512x512.png  # PWA icon (512x512)

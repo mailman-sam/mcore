@@ -1,3 +1,5 @@
+// app.js
+
 const appContent = document.getElementById('app-content');
 const themeToggle = document.getElementById('theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
@@ -287,8 +289,11 @@ function generateMonthTile(month, year, selectedCarrier) {
     const daysInMonth = getDaysInMonth(month, year);
     const payDaysForYear = getPayDays(year); // Get paydays for the current year
 
-    let startDay = firstDayOfMonth.getDay();
-    const firstDayOffset = (startDay + 6) % 7;
+    let startDay = firstDayOfMonth.getDay(); // 0 for Sunday, 1 for Monday, etc.
+    // No change needed here, getDay() already returns 0 for Sunday.
+    // The previous code had (startDay + 6) % 7 to shift Monday to position 0,
+    // which is now removed to make Sunday the first day.
+    let firstDayOffset = startDay; // Sunday is 0, so no offset needed for grid alignment.
 
     let daysHtml = '';
     for (let i = 0; i < firstDayOffset; i++) {
@@ -365,7 +370,7 @@ function generateMonthTile(month, year, selectedCarrier) {
 
     const monthNames = ["January", "February", "March", "April", "May", "June",
                         "July", "August", "September", "October", "November", "December"];
-    const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]; // Changed to start with Sunday
 
     return `
         <div class="calendar-month-tile card-bg">
