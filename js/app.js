@@ -2,7 +2,7 @@
 
 const appContent = document.getElementById('app-content');
 const themeToggle = document.getElementById('theme-toggle');
-const themeIcon = document.getElementById('theme-icon');
+const themeIcon = document.getElementById('theme-icon'); // Now refers to the <img> element
 const body = document.body;
 const installAppButton = document.getElementById('install-app-button');
 
@@ -32,7 +32,13 @@ const PP_REFERENCE_YEAR = 2025;
 function applyTheme(theme) {
     body.classList.remove('theme-light', 'theme-dark');
     body.classList.add(`theme-${theme}`);
-    // Removed direct textContent manipulation, relying on CSS ::before for theme icon
+    if (theme === 'dark') {
+        themeIcon.src = 'icons/light-mode.png';
+        themeIcon.alt = 'Light Mode Icon';
+    } else {
+        themeIcon.src = 'icons/dark-mode.png';
+        themeIcon.alt = 'Dark Mode Icon';
+    }
     localStorage.setItem('mcore-theme', theme);
 }
 
