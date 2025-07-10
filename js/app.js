@@ -664,9 +664,9 @@ function renderPayPeriodsPage(year) {
         <div class="page-content-wrapper align-center">
             <h2 class="page-title">Pay Periods</h2>
             <div class="pay-period-controls-group">
-                <button id="prev-pp-year-btn" class="nav-button">&laquo; Previous Year</button>
+                <button id="prev-pp-year-btn" class="nav-button">&laquo; Previous</button>
                 <span id="current-pp-year-display" class="current-year-display text-usps-blue">${year}</span>
-                <button id="next-pp-year-btn" class="nav-button">Next Year &raquo;</button>
+                <button id="next-pp-year-btn" class="nav-button">Next &raquo;</button>
                 <button id="current-pp-btn" class="nav-button">Current Year</button>
                 <button id="today-pay-period-btn" class="nav-button">Today</button>
             </div>
