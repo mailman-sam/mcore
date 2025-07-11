@@ -11,7 +11,7 @@ let deferredPrompt;
 
 let federalHolidaysData = [];
 let allAcronymsData = [];
-let allResourcesData = []; 
+let allResourcesData = [];
 let appConfig = {};
 
 const CARRIER_COLORS = {
@@ -348,13 +348,15 @@ function generateMonthTile(month, year, selectedCarrier) {
 
         const holiday = getFederalHoliday(currentDate);
         if (holiday) {
-            holidayHtml = `<span class="holiday-symbol">★</span>`;
+            // Federal holiday symbol now uses us.png
+            holidayHtml = `<img src="/mcore/icons/us.png" alt="Federal Holiday" class="holiday-symbol">`;
             dataAttributes += `data-is-holiday="true" data-holiday-name="${holiday.name}" data-holiday-info="${holiday.info}"`;
         }
 
         // Check if current date is a payday and add the image
         if (payDaysForYear.has(formattedDate)) {
-            paydayHtml = `<img src="/mcore/icons/us.png" alt="Pay Day" class="payday-symbol">`;
+            // Payday symbol now uses money-stack250.png
+            paydayHtml = `<img src="/mcore/icons/money-stack250.png" alt="Pay Day" class="payday-symbol">`;
             dataAttributes += ` data-is-payday="true"`; // Add data attribute for payday
         }
 
