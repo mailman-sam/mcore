@@ -399,6 +399,13 @@ function jumpToTodayOnCalendar() {
     if (todayCell) {
         setTimeout(() => {
             todayCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Add the flash-highlight-calendar class to trigger the animation
+            todayCell.classList.add('flash-highlight-calendar');
+
+            // Remove the flash-highlight-calendar class after the animation duration
+            setTimeout(() => {
+                todayCell.classList.remove('flash-highlight-calendar');
+            }, 1600); // Remove class after 1.6 seconds, slightly after animation completes
         }, 200);
     }
 }
@@ -570,9 +577,18 @@ async function renderCalendarPage(year, selectedCarrier = null) {
 function jumpToCurrentPayPeriod() {
     const currentPayPeriodRow = document.querySelector('.pay-period-table .current-pay-period-row');
     if (currentPayPeriodRow) {
+        // Scroll to the row
         setTimeout(() => {
             currentPayPeriodRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 200);
+
+            // Add the flash-highlight class to trigger the animation
+            currentPayPeriodRow.classList.add('flash-highlight');
+
+            // Remove the flash-highlight class after the animation duration (1.5 seconds + a small buffer)
+            setTimeout(() => {
+                currentPayPeriodRow.classList.remove('flash-highlight');
+            }, 1600); // Remove class after 1.6 seconds, slightly after animation completes
+        }, 200); // Delay scrolling slightly to ensure element is rendered
     }
 }
 
@@ -732,7 +748,8 @@ async function renderAcronymsPage() {
         <div class="page-content-wrapper align-left">
             <h2 class="page-title">Useful Acronyms</h2>
             <div class="acronym-controls-group">
-                <input type="text" id="acronym-search" placeholder="Search acronyms..." class="text-input search-input">
+                <div class="acronym-search-input-wrapper"> <input type="text" id="acronym-search" placeholder="Search acronyms..." class="text-input search-input">
+                </div>
                 <div class="sort-buttons-group">
                     <button id="sort-acronym-asc" class="nav-button">Sort A-Z</button>
                     <button id="sort-acronym-desc" class="nav-button">Sort Z-A</button>
@@ -888,7 +905,7 @@ function renderDisclaimerPage() {
     `;
 }
 
-function renderResourcesPage() { // Renamed from renderNalcResourcesPage
+function renderResourcesPage() { // Renamed from renderNalcResourcesData
     appContent.innerHTML = `
         <div class="page-content-wrapper align-left">
             <h2 class="page-title">Useful Resources</h2>
