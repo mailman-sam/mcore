@@ -11,7 +11,7 @@ let deferredPrompt;
 
 let federalHolidaysData = [];
 let allAcronymsData = [];
-let allResourcesData = []; // Renamed from nalcResourcesData
+let allResourcesData = []; 
 let appConfig = {};
 
 const CARRIER_COLORS = {
@@ -32,7 +32,7 @@ const PP_REFERENCE_YEAR = 2025;
 function applyTheme(theme) {
     body.classList.remove('theme-light', 'theme-dark');
     body.classList.add(`theme-${theme}`);
-    if (theme === 'dark') {
+    if (theme === 'light') {
         themeIcon.src = 'icons/light-mode.png';
         themeIcon.alt = 'Light Mode Icon';
     } else {
