@@ -23,7 +23,8 @@ const urlsToCache = [
     '/mcore/icons/favicon-16x16.png',
     '/mcore/favicon.ico',
     '/mcore/icons/us.png',
-    '/mcore/icons/money-stack250.png', 
+    '/mcore/icons/money-stack250.png',
+	'/mcore/icons/download-sm.png',
     '/mcore/icons/light-mode.png',
     '/mcore/icons/dark-mode.png'
 ];
