@@ -20,7 +20,7 @@ This application is completely free, open-source, and committed to user privacy:
   * **NALC Resources:** Provides direct, safe links to official NALC website pages for contract information, CCA resources, retirement, and more.
   * **PWA (Progressive Web App):** Installable on mobile and desktop devices for an app-like experience and robust offline access.
   * **Offline Functionality:** The application is designed to work seamlessly offline, allowing access to cached content and functionality even without an internet connection.
-  * **Lightweight:** The entire application is designed to be small in size, approximately 400KB, ensuring quick loading times and minimal storage usage.
+  * **Lightweight:** The entire application is designed to be small in size, less than 1MB, ensuring quick loading times and minimal storage usage.
   * **Disclaimer:** Clear terms and conditions outlining the app's independent nature and disclaimer of liability.
 
 ## Technologies Used
