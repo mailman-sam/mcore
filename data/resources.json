@@ -1,5 +1,20 @@
 [
-    {
+	{
+        "title": "ULINE Mail Preferences",
+        "url": "https://www.uline.com/CustomerService/CustomizeMailing",
+        "description": "Have your customers use this link for ULINE Catalogs."
+    },
+	{
+        "title": "DMAchoice",
+        "url": "https://dmachoice.org/",
+        "description": "Do-Not-Mail services."
+    },
+	{
+        "title": "DirectMail",
+        "url": "https://www.directmail.com/",
+        "description": "Direct Mail Marketing, Do-Not-Mail lists."
+    },
+	{
         "title": "NALC Official Website",
         "url": "https://www.nalc.org/",
         "description": "The official website for the National Association of Letter Carriers."
