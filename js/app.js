@@ -28,7 +28,7 @@ const PP_REFERENCE_DATE = new Date('2024-12-14T00:00:00');
 const PP_REFERENCE_NUMBER = 1;
 const PP_REFERENCE_YEAR = 2025;
 
-
+// Moved theme functions to the top for better scope availability
 function applyTheme(theme) {
     body.classList.remove('theme-light', 'theme-dark');
     body.classList.add(`theme-${theme}`);
@@ -47,6 +47,7 @@ function toggleTheme() {
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     applyTheme(newTheme);
 }
+
 
 function initPreferences() {
     const savedTheme = localStorage.getItem('mcore-theme');
@@ -70,7 +71,6 @@ async function fetchAppConfig() {
         }
         const data = await response.json();
         appConfig = data;
-        console.log('App Config loaded:', appConfig);
         return data;
     } catch (error) {
         console.error('Could not fetch app config:', error);
@@ -89,7 +89,6 @@ async function fetchHolidays() {
         }
         const data = await response.json();
         federalHolidaysData = data;
-        console.log('Federal Holidays loaded:', federalHolidaysData);
         return data;
     } catch (error) {
         console.error('Could not fetch federal holidays:', error);
@@ -108,7 +107,6 @@ async function fetchAcronymsData() {
         }
         const data = await response.json();
         allAcronymsData = data;
-        console.log('Acronyms loaded:', allAcronymsData);
         return data;
     } catch (error) {
         console.error('Could not fetch acronyms:', error);
@@ -127,7 +125,6 @@ async function fetchAllResourcesData() { // Renamed from fetchNalcResourcesData
         }
         const data = await response.json();
         allResourcesData = data;
-        console.log('All Resources loaded:', allResourcesData);
         return data;
     } catch (error) {
         console.error('Could not fetch all resources:', error);
@@ -409,6 +406,8 @@ function jumpToTodayOnCalendar() {
                 todayCell.classList.remove('flash-highlight-calendar');
             }, 1600); // Remove class after 1.6 seconds, slightly after animation completes
         }, 200);
+    } else {
+        // console.warn('Could not find today\'s calendar day to jump to.'); // Removed debugging log
     }
 }
 
@@ -578,6 +577,7 @@ async function renderCalendarPage(year, selectedCarrier = null) {
 
 function jumpToCurrentPayPeriod() {
     const currentPayPeriodRow = document.querySelector('.pay-period-table .current-pay-period-row');
+    // console.log('Attempting to jump to current pay period row:', currentPayPeriodRow); // Removed debugging log
     if (currentPayPeriodRow) {
         // Scroll to the row
         setTimeout(() => {
@@ -591,12 +591,17 @@ function jumpToCurrentPayPeriod() {
                 currentPayPeriodRow.classList.remove('flash-highlight');
             }, 1600); // Remove class after 1.6 seconds, slightly after animation completes
         }, 200); // Delay scrolling slightly to ensure element is rendered
+    } else {
+        // console.warn('Could not find current pay period row to jump to.'); // Removed debugging log
     }
 }
 
 function getPayPeriodInfo(date) {
+    // Ensure all dates are normalized to start of day for accurate comparison
     const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const diffTime = checkDate.getTime() - PP_REFERENCE_DATE.getTime();
+    const referenceDateNormalized = new Date(PP_REFERENCE_DATE.getFullYear(), PP_REFERENCE_DATE.getMonth(), PP_REFERENCE_DATE.getDate());
+
+    const diffTime = checkDate.getTime() - referenceDateNormalized.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     const payPeriodsPassed = Math.floor(diffDays / 14);
 
@@ -612,8 +617,8 @@ function getPayPeriodInfo(date) {
         currentPayPeriodYear--;
     }
 
-    const ppStartDate = new Date(PP_REFERENCE_DATE);
-    ppStartDate.setDate(PP_REFERENCE_DATE.getDate() + (payPeriodsPassed * 14));
+    const ppStartDate = new Date(referenceDateNormalized); // Start from normalized reference
+    ppStartDate.setDate(referenceDateNormalized.getDate() + (payPeriodsPassed * 14));
     const ppEndDate = new Date(ppStartDate);
     ppEndDate.setDate(ppStartDate.getDate() + 13);
     const payDate = new Date(ppEndDate);
@@ -636,7 +641,9 @@ function formatDate(date) {
 
 function renderPayPeriodsPage(year) {
     let tableRowsHtml = '';
-    const today = new Date();
+    // Normalize today's date to the beginning of the day for accurate comparison
+    const normalizedToday = new Date();
+    normalizedToday.setHours(0, 0, 0, 0);
 
     let startPPDate = new Date(year, 0, 1);
     let currentPPInfo = getPayPeriodInfo(startPPDate);
@@ -667,8 +674,17 @@ function renderPayPeriodsPage(year) {
             (ppInfo.payPeriodYear === year - 1 && ppInfo.endDate.getFullYear() === year) ||
             (ppInfo.payPeriodYear === year + 1 && ppInfo.startDate.getFullYear() === year)) {
 
-            const isCurrentPayPeriod = today >= ppInfo.startDate && today <= ppInfo.endDate;
+            // Compare normalizedToday with the start and end dates of the pay period
+            const isCurrentPayPeriod = normalizedToday >= ppInfo.startDate && normalizedToday <= ppInfo.endDate;
             const rowClasses = isCurrentPayPeriod ? 'current-pay-period-row' : '';
+
+            // Debugging log: Check if a row is marked as current (removed)
+            // if (isCurrentPayPeriod) {
+            //     console.log('Marking current pay period row:', ppInfo);
+            //     console.log('Normalized Today:', normalizedToday);
+            //     console.log('Pay Period Start:', ppInfo.startDate);
+            //     console.log('Pay Period End:', ppInfo.endDate);
+            // }
 
             tableRowsHtml += `
                 <tr class="${rowClasses}">
@@ -736,11 +752,18 @@ function renderPayPeriodsPage(year) {
 
         if (currentDisplayedYear !== actualCurrentYear) {
             window.location.hash = `#pay-periods?year=${actualCurrentYear}`;
-            setTimeout(jumpToCurrentPayPeriod, 200);
+            // Set a flag in sessionStorage to indicate that we need to jump after render
+            sessionStorage.setItem('mcore-jump-to-pay-today', 'true');
         } else {
             jumpToCurrentPayPeriod();
         }
     });
+
+    // Call jumpToCurrentPayPeriod after the content is rendered, if the flag is set
+    if (sessionStorage.getItem('mcore-jump-to-pay-today') === 'true') {
+        sessionStorage.removeItem('mcore-jump-to-pay-today'); // Clear the flag
+        setTimeout(jumpToCurrentPayPeriod, 500); // Increased delay to ensure DOM is ready
+    }
 }
 
 async function renderAcronymsPage() {
@@ -853,6 +876,7 @@ async function router() {
     } else if (hash.startsWith('#pay-periods')) {
         const year = parseInt(urlParams.get('year')) || currentYear;
         renderPayPeriodsPage(year);
+        // The jumpToCurrentPayPeriod call is now handled inside renderPayPeriodsPage
     } else if (hash === '#disclaimer') {
         renderDisclaimerPage();
     } else {
@@ -985,7 +1009,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault();
         deferredPrompt = e;
         installAppButton.style.display = 'flex';
-        console.log('beforeinstallprompt fired');
+        // console.log('beforeinstallprompt fired'); // Removed debugging log
     });
 
     installAppButton.addEventListener('click', async () => {
@@ -993,7 +1017,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (deferredPrompt) {
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
-            console.log(`User response to the install prompt: ${outcome}`);
+            // console.log(`User response to the install prompt: ${outcome}`); // Removed debugging log
             deferredPrompt = null;
         }
     });
@@ -1001,17 +1025,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.addEventListener('appinstalled', () => {
         installAppButton.style.display = 'none';
         deferredPrompt = null;
-        console.log('PWA was installed');
+        // console.log('PWA was installed'); // Removed debugging log
     });
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/mcore/service-worker.js')
                 .then(registration => {
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    // console.log('ServiceWorker registration successful with scope: ', registration.scope); // Removed debugging log
                 })
                 .catch(err => {
-                    console.log('ServiceWorker registration failed: ', err);
+                    console.error('ServiceWorker registration failed: ', err); // Kept error log
                 });
         });
     }
