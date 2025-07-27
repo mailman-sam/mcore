@@ -2,7 +2,7 @@
 
 const appContent = document.getElementById('app-content');
 const themeToggle = document.getElementById('theme-toggle');
-const themeIcon = document.getElementById('theme-icon'); // Now refers to the <img> element
+const themeIcon = document.getElementById('theme-icon');
 const body = document.body;
 const installAppButton = document.getElementById('install-app-button');
 
@@ -13,6 +13,8 @@ let federalHolidaysData = [];
 let allAcronymsData = [];
 let allResourcesData = [];
 let appConfig = {};
+
+const MCORE_LOGO_FALLBACK_PATH = '/mcore/icons/mcore-logo-fallback.png';
 
 const CARRIER_COLORS = {
     'black': { name: 'Black', class: 'carrier-black', textClass: 'text-calendar-heading-black', baseDayOffIndex: 0 },
@@ -28,7 +30,6 @@ const PP_REFERENCE_DATE = new Date('2024-12-14T00:00:00');
 const PP_REFERENCE_NUMBER = 1;
 const PP_REFERENCE_YEAR = 2025;
 
-// Moved theme functions to the top for better scope availability
 function applyTheme(theme) {
     body.classList.remove('theme-light', 'theme-dark');
     body.classList.add(`theme-${theme}`);
@@ -114,12 +115,12 @@ async function fetchAcronymsData() {
     }
 }
 
-async function fetchAllResourcesData() { // Renamed from fetchNalcResourcesData
+async function fetchAllResourcesData() {
     if (allResourcesData.length > 0) {
         return allResourcesData;
     }
     try {
-        const response = await fetch('/mcore/data/resources.json'); // Changed file name
+        const response = await fetch('/mcore/data/resources.json');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -247,39 +248,27 @@ function getCarrierDayOff(date, carrierColor) {
     return actualDayOfWeek === expectedDayOffForDate;
 }
 
-/**
- * Calculates all paydays for a given year.
- * Paydays occur every two weeks based on the PP_REFERENCE_DATE.
- * @param {number} year The year for which to calculate paydays.
- * @returns {Set<string>} A Set of payday dates in 'YYYY-MM-DD' format.
- */
 function getPayDays(year) {
     const payDays = new Set();
-    // Start from the reference date
     let currentPayDate = new Date(PP_REFERENCE_DATE);
 
-    // Get the pay date for the PP_REFERENCE_DATE
     let ppInfoForRef = getPayPeriodInfo(PP_REFERENCE_DATE);
     currentPayDate = ppInfoForRef.payDate;
 
-    // Go backwards from the reference pay date to find the first payday of the year
-    while (currentPayDate.getFullYear() >= year - 1) { // Check a bit before the year to catch early pay periods
+    while (currentPayDate.getFullYear() >= year - 1) {
         const ppInfo = getPayPeriodInfo(currentPayDate);
         if (ppInfo.payDate.getFullYear() === year) {
             payDays.add(ppInfo.payDate.toISOString().split('T')[0]);
         }
-        // Move to the previous payday (14 days earlier)
         currentPayDate.setDate(currentPayDate.getDate() - 14);
     }
 
-    // Reset to the reference pay date and go forwards to find all paydays for the year
     currentPayDate = ppInfoForRef.payDate;
-    while (currentPayDate.getFullYear() <= year + 1) { // Check a bit after the year to catch late pay periods
+    while (currentPayDate.getFullYear() <= year + 1) {
         const ppInfo = getPayPeriodInfo(currentPayDate);
         if (ppInfo.payDate.getFullYear() === year) {
             payDays.add(ppInfo.payDate.toISOString().split('T')[0]);
         }
-        // Move to the next payday (14 days later)
         currentPayDate.setDate(currentPayDate.getDate() + 14);
     }
     return payDays;
@@ -290,13 +279,10 @@ function generateMonthTile(month, year, selectedCarrier) {
     const today = new Date();
     const firstDayOfMonth = new Date(year, month, 1);
     const daysInMonth = getDaysInMonth(month, year);
-    const payDaysForYear = getPayDays(year); // Get paydays for the current year
+    const payDaysForYear = getPayDays(year);
 
-    let startDay = firstDayOfMonth.getDay(); // 0 for Sunday, 1 for Monday, etc.
-    // No change needed here, getDay() already returns 0 for Sunday.
-    // The previous code had (startDay + 6) % 7 to shift Monday to position 0,
-    // which is now removed to make Sunday the first day.
-    let firstDayOffset = startDay; // Sunday is 0, so no offset needed for grid alignment.
+    let startDay = firstDayOfMonth.getDay();
+    let firstDayOffset = startDay;
 
     let daysHtml = '';
     for (let i = 0; i < firstDayOffset; i++) {
@@ -305,13 +291,13 @@ function generateMonthTile(month, year, selectedCarrier) {
 
     for (let day = 1; day <= daysInMonth; day++) {
         const currentDate = new Date(year, month, day);
-        const formattedDate = currentDate.toISOString().split('T')[0]; // Format for comparison
+        const formattedDate = currentDate.toISOString().split('T')[0];
         let dayClasses = ['calendar-day'];
         let holidayHtml = '';
-        let paydayHtml = ''; // New variable for payday image
+        let paydayHtml = '';
         let isOffDay = false;
         let highlightClasses = [];
-        let dataAttributes = ''; // To store data attributes for the div
+        let dataAttributes = '';
 
         if (currentDate.getDate() === today.getDate() &&
             currentDate.getMonth() === today.getMonth() &&
@@ -345,16 +331,13 @@ function generateMonthTile(month, year, selectedCarrier) {
 
         const holiday = getFederalHoliday(currentDate);
         if (holiday) {
-            // Federal holiday symbol now uses us.png
             holidayHtml = `<img src="/mcore/icons/us.png" alt="Federal Holiday" class="holiday-symbol">`;
             dataAttributes += `data-is-holiday="true" data-holiday-name="${holiday.name}" data-holiday-info="${holiday.info}"`;
         }
 
-        // Check if current date is a payday and add the image
         if (payDaysForYear.has(formattedDate)) {
-            // Payday symbol now uses money-stack250.png
             paydayHtml = `<img src="/mcore/icons/money-stack250.png" alt="Pay Day" class="payday-symbol">`;
-            dataAttributes += ` data-is-payday="true"`; // Add data attribute for payday
+            dataAttributes += ` data-is-payday="true"`;
         }
 
 
@@ -375,7 +358,7 @@ function generateMonthTile(month, year, selectedCarrier) {
 
     const monthNames = ["January", "February", "March", "April", "May", "June",
                         "July", "August", "September", "October", "November", "December"];
-    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]; // Changed to start with Sunday
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
     return `
         <div class="calendar-month-tile card-bg">
@@ -398,16 +381,12 @@ function jumpToTodayOnCalendar() {
     if (todayCell) {
         setTimeout(() => {
             todayCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            // Add the flash-highlight-calendar class to trigger the animation
             todayCell.classList.add('flash-highlight-calendar');
 
-            // Remove the flash-highlight-calendar class after the animation duration
             setTimeout(() => {
                 todayCell.classList.remove('flash-highlight-calendar');
-            }, 1600); // Remove class after 1.6 seconds, slightly after animation completes
+            }, 1600);
         }, 200);
-    } else {
-        // console.warn('Could not find today\'s calendar day to jump to.'); // Removed debugging log
     }
 }
 
@@ -466,7 +445,7 @@ async function renderCalendarPage(year, selectedCarrier = null) {
         for (let i = 0; i < 12; i++) {
             calendarGrid.innerHTML += generateMonthTile(i, currentSelectedYear, currentSelectedCarrier);
         }
-        attachHolidayLightboxListeners(); // This function will now handle both holiday and payday clicks
+        attachHolidayLightboxListeners();
     }
 
     renderAllMonthTiles();
@@ -515,7 +494,7 @@ async function renderCalendarPage(year, selectedCarrier = null) {
 
     function openHolidayLightbox(name, info) {
         lightboxHolidayName.textContent = name;
-        lightboxHolidayInfo.innerHTML = info; // Use innerHTML to allow for line breaks
+        lightboxHolidayInfo.innerHTML = info;
         holidayLightbox.classList.add('active');
     }
 
@@ -525,16 +504,13 @@ async function renderCalendarPage(year, selectedCarrier = null) {
         holidayLightbox.classList.remove('active');
     }
 
-    // This function now handles both holiday and payday clicks
     function attachHolidayLightboxListeners() {
-        // Remove existing listeners to prevent duplicates
         document.querySelectorAll('.calendar-day[data-is-holiday="true"], .calendar-day[data-is-payday="true"]').forEach(dayCell => {
             const oldDayCell = dayCell;
             const newDayCell = oldDayCell.cloneNode(true);
             oldDayCell.parentNode.replaceChild(newDayCell, oldDayCell);
         });
 
-        // Add listeners for holidays and paydays
         document.querySelectorAll('.calendar-day[data-is-holiday="true"], .calendar-day[data-is-payday="true"]').forEach(dayCell => {
             dayCell.addEventListener('click', (event) => {
                 const isHoliday = dayCell.dataset.isHoliday === 'true';
@@ -577,27 +553,20 @@ async function renderCalendarPage(year, selectedCarrier = null) {
 
 function jumpToCurrentPayPeriod() {
     const currentPayPeriodRow = document.querySelector('.pay-period-table .current-pay-period-row');
-    // console.log('Attempting to jump to current pay period row:', currentPayPeriodRow); // Removed debugging log
     if (currentPayPeriodRow) {
-        // Scroll to the row
         setTimeout(() => {
             currentPayPeriodRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-            // Add the flash-highlight class to trigger the animation
             currentPayPeriodRow.classList.add('flash-highlight');
 
-            // Remove the flash-highlight class after the animation duration (1.5 seconds + a small buffer)
             setTimeout(() => {
                 currentPayPeriodRow.classList.remove('flash-highlight');
-            }, 1600); // Remove class after 1.6 seconds, slightly after animation completes
-        }, 200); // Delay scrolling slightly to ensure element is rendered
-    } else {
-        // console.warn('Could not find current pay period row to jump to.'); // Removed debugging log
+            }, 1600);
+        }, 200);
     }
 }
 
 function getPayPeriodInfo(date) {
-    // Ensure all dates are normalized to start of day for accurate comparison
     const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const referenceDateNormalized = new Date(PP_REFERENCE_DATE.getFullYear(), PP_REFERENCE_DATE.getMonth(), PP_REFERENCE_DATE.getDate());
 
@@ -617,7 +586,7 @@ function getPayPeriodInfo(date) {
         currentPayPeriodYear--;
     }
 
-    const ppStartDate = new Date(referenceDateNormalized); // Start from normalized reference
+    const ppStartDate = new Date(referenceDateNormalized);
     ppStartDate.setDate(referenceDateNormalized.getDate() + (payPeriodsPassed * 14));
     const ppEndDate = new Date(ppStartDate);
     ppEndDate.setDate(ppStartDate.getDate() + 13);
@@ -641,7 +610,6 @@ function formatDate(date) {
 
 function renderPayPeriodsPage(year) {
     let tableRowsHtml = '';
-    // Normalize today's date to the beginning of the day for accurate comparison
     const normalizedToday = new Date();
     normalizedToday.setHours(0, 0, 0, 0);
 
@@ -674,17 +642,8 @@ function renderPayPeriodsPage(year) {
             (ppInfo.payPeriodYear === year - 1 && ppInfo.endDate.getFullYear() === year) ||
             (ppInfo.payPeriodYear === year + 1 && ppInfo.startDate.getFullYear() === year)) {
 
-            // Compare normalizedToday with the start and end dates of the pay period
             const isCurrentPayPeriod = normalizedToday >= ppInfo.startDate && normalizedToday <= ppInfo.endDate;
             const rowClasses = isCurrentPayPeriod ? 'current-pay-period-row' : '';
-
-            // Debugging log: Check if a row is marked as current (removed)
-            // if (isCurrentPayPeriod) {
-            //     console.log('Marking current pay period row:', ppInfo);
-            //     console.log('Normalized Today:', normalizedToday);
-            //     console.log('Pay Period Start:', ppInfo.startDate);
-            //     console.log('Pay Period End:', ppInfo.endDate);
-            // }
 
             tableRowsHtml += `
                 <tr class="${rowClasses}">
@@ -752,17 +711,15 @@ function renderPayPeriodsPage(year) {
 
         if (currentDisplayedYear !== actualCurrentYear) {
             window.location.hash = `#pay-periods?year=${actualCurrentYear}`;
-            // Set a flag in sessionStorage to indicate that we need to jump after render
             sessionStorage.setItem('mcore-jump-to-pay-today', 'true');
         } else {
             jumpToCurrentPayPeriod();
         }
     });
 
-    // Call jumpToCurrentPayPeriod after the content is rendered, if the flag is set
     if (sessionStorage.getItem('mcore-jump-to-pay-today') === 'true') {
-        sessionStorage.removeItem('mcore-jump-to-pay-today'); // Clear the flag
-        setTimeout(jumpToCurrentPayPeriod, 500); // Increased delay to ensure DOM is ready
+        sessionStorage.removeItem('mcore-jump-to-pay-today');
+        setTimeout(jumpToCurrentPayPeriod, 500);
     }
 }
 
@@ -870,13 +827,12 @@ async function router() {
         const carrier = urlParams.get('carrier') || null;
         renderCalendarPage(year, carrier);
     } else if (hash.startsWith('#resources')) {
-        renderResourcesPage(); // Changed function name
+        renderResourcesPage();
     } else if (hash.startsWith('#acronyms')) {
         renderAcronymsPage();
     } else if (hash.startsWith('#pay-periods')) {
         const year = parseInt(urlParams.get('year')) || currentYear;
         renderPayPeriodsPage(year);
-        // The jumpToCurrentPayPeriod call is now handled inside renderPayPeriodsPage
     } else if (hash === '#disclaimer') {
         renderDisclaimerPage();
     } else {
@@ -903,7 +859,7 @@ function renderLandingPage() {
                 <a href="#disclaimer" id="disclaimer-link" class="button primary-button">Terms & Conditions</a>
             </div>
             <div class="logo-display-area">
-                <img src="/mcore/icons/mcore-logo.png" alt="mCORE Logo" class="mcore-logo-large" onerror="this.onerror=null; this.src='https://placehold.co/64x64/0d6efd/ffffff?text=M';" />
+                <img src="/mcore/icons/mcore-logo.png" alt="mCORE Logo" class="mcore-logo-large" onerror="this.onerror=null; this.src='${MCORE_LOGO_FALLBACK_PATH}';" />
             </div>
         </div>
     `;
@@ -917,21 +873,21 @@ function renderDisclaimerPage() {
                 <p class="info-text"><strong>Important Disclaimer:</strong> This mCORE application is provided for informational and reference purposes only. It is developed independently by a mail carrier, for ALL mail carriers, and is not affiliated with, endorsed by, or sponsored by the United States Postal Service (USPS), any labor union, or any other official entity.</p>
                 <p class="info-text">While every effort has been made to ensure the accuracy of the information provided (including, but not limited to, calendar schedules, NALC Resource and federal holidays), this application does not constitute official guidance or legal advice. Postal regulations, labor laws, union contracts, and operational procedures are complex and subject to change.</p>
                 <p class="info-text"><strong>Users are solely responsible for verifying all information presented in this application with official USPS sources, union representatives, and/or relevant legal counsel.</strong></p>
-                <p class="info-text">The developer(s) of this application disclaim all liability for any errors or omissions in the content provided, or for any actions taken or not taken in reliance on the information contained herein. By using this application, you agree to these terms and understand that you use it at your own risk. The developer(s) shall not be liable for any direct, indirect, incidental, consequential, or punitive damages arising out of your access to, use of, or inability to use this application.</p>
+                <p class="info-text">The developer(s) of this application disclaim all liability for any errors or omissions in the content provided, or for any actions taken or not taken in reliance on the information contained herein. By using this application, you agree to these terms and understand that you use it at your own risk. The developer(s) shall not be liable for any direct, indirect, incidental, consequential, or punitive damages arising out of your access to, or use of, or inability to use this application.</p>
                 <p class="info-text">This application is provided "as is" without warranty of any kind, either express or implied, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement.</p>
                 <p class="info-text">Thank you for your understanding and continued dedication as a mail carrier.</p>
                 <div class="button-group">
                     <a href="#landing" class="button primary-button">Back to Home</a>
                 </div>
                 <div class="logo-display-area">
-                    <img src="/mcore/icons/mcore-logo.png" alt="mCORE Logo" class="mcore-logo-large" onerror="this.onerror=null; this.src='https://placehold.co/64x64/0d6efd/ffffff?text=M';" />
+                    <img src="/mcore/icons/mcore-logo.png" alt="mCORE Logo" class="mcore-logo-large" onerror="this.onerror=null; this.src='${MCORE_LOGO_FALLBACK_PATH}';" />
                 </div>
             </div>
         </div>
     `;
 }
 
-function renderResourcesPage() { // Renamed from renderNalcResourcesData
+function renderResourcesPage() {
     appContent.innerHTML = `
         <div class="page-content-wrapper align-left">
             <h2 class="page-title">Useful Resources</h2>
@@ -943,8 +899,8 @@ function renderResourcesPage() { // Renamed from renderNalcResourcesData
             </div>
         </div>
     `;
-    const resourcesList = document.getElementById('resources-list'); // Changed ID
-    fetchAllResourcesData().then(data => { // Changed function call
+    const resourcesList = document.getElementById('resources-list');
+    fetchAllResourcesData().then(data => {
         if (data && data.length > 0) {
             resourcesList.innerHTML = data.map(item => `
                 <li>
@@ -971,7 +927,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const appVersionSpan = document.getElementById('app-version');
     if (appVersionSpan && appConfig.version && appConfig.cacheVersion !== undefined) {
-        // Concatenate the version and cacheVersion for display
         appVersionSpan.textContent = `${appConfig.version}.${appConfig.cacheVersion}`;
     }
 
@@ -1009,7 +964,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault();
         deferredPrompt = e;
         installAppButton.style.display = 'flex';
-        // console.log('beforeinstallprompt fired'); // Removed debugging log
     });
 
     installAppButton.addEventListener('click', async () => {
@@ -1017,7 +971,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (deferredPrompt) {
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
-            // console.log(`User response to the install prompt: ${outcome}`); // Removed debugging log
             deferredPrompt = null;
         }
     });
@@ -1025,18 +978,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.addEventListener('appinstalled', () => {
         installAppButton.style.display = 'none';
         deferredPrompt = null;
-        // console.log('PWA was installed'); // Removed debugging log
     });
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/mcore/service-worker.js')
+            const swUrl = `/mcore/service-worker.js?v=${appConfig.cacheVersion || '1'}`;
+            navigator.serviceWorker.register(swUrl)
                 .then(registration => {
-                    // console.log('ServiceWorker registration successful with scope: ', registration.scope); // Removed debugging log
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+
+                    registration.addEventListener('updatefound', () => {
+                        const installingWorker = registration.installing;
+                        if (installingWorker) {
+                            installingWorker.addEventListener('statechange', () => {
+                                if (installingWorker.state === 'installed') {
+                                    if (navigator.serviceWorker.controller) {
+                                        console.log('New content available! Please refresh to get the latest version.');
+                                    } else {
+                                        console.log('Content is now available offline!');
+                                    }
+                                }
+                            });
+                        }
+                    });
                 })
                 .catch(err => {
-                    console.error('ServiceWorker registration failed: ', err); // Kept error log
+                    console.error('ServiceWorker registration failed: ', err);
                 });
+        });
+
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            console.log('New service worker controlling this page. Reloading for fresh content.');
+            window.location.reload();
         });
     }
 });
