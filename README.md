@@ -34,7 +34,7 @@ This application is completely free, open-source, and committed to user privacy:
 * **Service Worker:** Enables offline capabilities and faster loading.
 
 ## Project Structure
-,,,
+...
 mcore/
 ├── index.html              # Main application entry point
 ├── css/
@@ -51,7 +51,7 @@ mcore/
 ├── favicon.ico             # Standard favicon
 ├── manifest.json           # Web App Manifest for PWA features
 └── service-worker.js       # Service Worker for offline caching
-,,,
+...
 ## Installation and Setup
 
 ### Local Development Server (Apache2)
