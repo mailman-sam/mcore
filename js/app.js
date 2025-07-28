@@ -1,10 +1,16 @@
 // app.js
 
+// Constants for flash animation
+const FLASH_ANIMATION_COUNT = 3;
+const FLASH_ANIMATION_SINGLE_DURATION_MS = 500; // Duration of one flash cycle in ms
+const FLASH_ANIMATION_TOTAL_DURATION_MS = FLASH_ANIMATION_COUNT * FLASH_ANIMATION_SINGLE_DURATION_MS;
+
 const appContent = document.getElementById('app-content');
 const themeToggle = document.getElementById('theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
 const body = document.body;
 const installAppButton = document.getElementById('install-app-button');
+const scrollToTopBtn = document.getElementById('scrollToTopBtn');
 
 
 let deferredPrompt;
@@ -385,7 +391,7 @@ function jumpToTodayOnCalendar() {
 
             setTimeout(() => {
                 todayCell.classList.remove('flash-highlight-calendar');
-            }, 1600);
+            }, FLASH_ANIMATION_TOTAL_DURATION_MS);
         }, 200);
     }
 }
@@ -561,7 +567,7 @@ function jumpToCurrentPayPeriod() {
 
             setTimeout(() => {
                 currentPayPeriodRow.classList.remove('flash-highlight');
-            }, 1600);
+            }, FLASH_ANIMATION_TOTAL_DURATION_MS);
         }, 200);
     }
 }
@@ -849,10 +855,10 @@ function renderLandingPage() {
             </p>
             <p class="homepage-info-text">
                 No Ads<br>
-				100% Free<br>
-				Open-source<br>
-				No Data Collection or Selling.<br>
-				Works great offline, with optional web links.<br>
+				Always Free<br>
+				Open-source & Safe<br>
+				No Data Collection or Selling Your Info<br>
+				Works great Offline, with Optional Web Links<br>
 
             </p>
             <div class="button-group">
@@ -891,7 +897,7 @@ function renderResourcesPage() {
     appContent.innerHTML = `
         <div class="page-content-wrapper align-left">
             <h2 class="page-title">Useful Resources</h2>
-            <p class="info-text">This section provides links to publicly available resources for mail carriers. Please note that mCORE is an independent application and is not affiliated with USPS, NALC, NRLCA, or any other union. Always verify information with official sources.</p>
+            <p class="info-text">This section provides links to publicly available resources for mail carriers. Please note that mCORE is an independent application and is not affiliated with USPS, or any other official entity, NALC, NRLCA, or any other union. Always verify information with official sources.</p>
             <ul id="resources-list" class="resource-list">
                 </ul>
             <div class="button-group">
@@ -942,6 +948,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     initPreferences();
     router();
+
+    // Scroll to Top Button Logic
+    if (scrollToTopBtn) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) { // Show button after scrolling 300px
+                scrollToTopBtn.classList.remove('hidden');
+            } else {
+                scrollToTopBtn.classList.add('hidden');
+            }
+        });
+
+        scrollToTopBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    }
 
     document.getElementById('home-link').addEventListener('click', () => { window.location.hash = '#landing'; });
     document.getElementById('calendar-nav-link').addEventListener('click', () => { window.location.hash = '#calendar'; });
