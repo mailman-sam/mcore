@@ -15,10 +15,12 @@ const scrollToTopBtn = document.getElementById('scrollToTopBtn');
 
 let deferredPrompt;
 
-let federalHolidaysData = [];
+let allEventsData = [];
+let userControls = {};
 let allAcronymsData = [];
 let allResourcesData = [];
 let appConfig = {};
+let specialEventsCache = {};
 
 const MCORE_LOGO_FALLBACK_PATH = '/mcore/icons/mcore-logo-fallback.png';
 
@@ -85,23 +87,57 @@ async function fetchAppConfig() {
     }
 }
 
-async function fetchHolidays() {
-    if (federalHolidaysData.length > 0) {
-        return federalHolidaysData;
+async function fetchEvents() {
+    if (allEventsData.length > 0) {
+        return allEventsData;
     }
     try {
-        const response = await fetch('/mcore/data/holidays.json');
+        const response = await fetch('/mcore/data/events.json');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        federalHolidaysData = data;
+        allEventsData = data;
         return data;
     } catch (error) {
-        console.error('Could not fetch federal holidays:', error);
+        console.error('Could not fetch events:', error);
         return [];
     }
 }
+
+async function fetchUserControls() {
+    const savedControls = localStorage.getItem('mcore-user-controls');
+    if (savedControls) {
+        userControls = JSON.parse(savedControls);
+        if (userControls.showPaydays === undefined) {
+            userControls.showPaydays = true;
+        }
+        return userControls;
+    }
+    try {
+        const response = await fetch('/mcore/data/user-control.json');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        data.showPaydays = true;
+        userControls = data;
+        localStorage.setItem('mcore-user-controls', JSON.stringify(data));
+        return data;
+    } catch (error) {
+        console.error('Could not fetch user controls:', error);
+        const defaultControls = {
+            showHolidays: true,
+            showDaylightSaving: true,
+            showSolstice: true,
+            showSeasons: true,
+            showPaydays: true
+        };
+        userControls = defaultControls;
+        return defaultControls;
+    }
+}
+
 
 async function fetchAcronymsData() {
     if (allAcronymsData.length > 0) {
@@ -158,70 +194,107 @@ function getObservedHolidayDate(holidayDate) {
     return observedDate;
 }
 
-function getFederalHoliday(date) {
+function getSpecialEvents(year) {
+    if (specialEventsCache[year]) {
+        return specialEventsCache[year];
+    }
+
+    const events = [];
+
+    let secondSundayInMarch = 1;
+    let sundayCount = 0;
+    while(sundayCount < 2){
+        const d = new Date(year, 2, secondSundayInMarch);
+        if(d.getDay() === 0) sundayCount++;
+        if(sundayCount < 2) secondSundayInMarch++;
+    }
+    const dstStart = new Date(year, 2, secondSundayInMarch);
+    events.push({ name: "Daylight Saving Start", date: dstStart, type: 'daylight-saving', icon: 'saving.png', info: "Daylight Saving Time begins." });
+
+    let firstSundayInNovember = 1;
+    while (new Date(year, 10, firstSundayInNovember).getDay() !== 0) {
+        firstSundayInNovember++;
+    }
+    const dstEnd = new Date(year, 10, firstSundayInNovember);
+    events.push({ name: "Daylight Saving End", date: dstEnd, type: 'daylight-saving', icon: 'saving.png', info: "Daylight Saving Time ends." });
+
+    events.push({ name: "Spring Equinox", date: new Date(year, 2, 20), type: 'season', icon: 'spring.png', info: "The beginning of spring." });
+    events.push({ name: "Summer Solstice", date: new Date(year, 5, 21), type: 'solstice', icon: 'summer-sol.png', info: "The longest day of the year." });
+    events.push({ name: "Fall Equinox", date: new Date(year, 8, 22), type: 'season', icon: 'fall.png', info: "The beginning of fall." });
+    events.push({ name: "Winter Solstice", date: new Date(year, 11, 21), type: 'solstice', icon: 'winter-sol.png', info: "The shortest day of the year." });
+
+    specialEventsCache[year] = events;
+    return events;
+}
+
+
+function getEventsForDate(date) {
     const year = date.getFullYear();
-    for (const holiday of federalHolidaysData) {
-        let actualHolidayDate;
-        if (typeof holiday.day === 'string' && holiday.day.includes('monday')) {
-            let tempDate = new Date(year, holiday.month - 1, 1);
-            let count = 0;
-            const targetDay = 1;
-            const nth = parseInt(holiday.day.split('-')[0].replace('first', '1').replace('second', '2').replace('third', '3').replace('fourth', '4').replace('last', '0'));
+    const foundEvents = [];
+    const specialEvents = getSpecialEvents(year);
 
-            if (holiday.day === 'last-monday') {
-                 tempDate = new Date(year, holiday.month, 0);
-                 while (tempDate.getDay() !== targetDay) {
-                     tempDate.setDate(tempDate.getDate() - 1);
-                 }
-                 actualHolidayDate = tempDate;
-            } else {
-                while (count < nth) {
-                    if (tempDate.getDay() === targetDay) {
-                        count++;
+    const checkDate = new Date(date);
+    checkDate.setHours(0,0,0,0);
+
+    for (const event of specialEvents) {
+        const eventDate = new Date(event.date);
+        eventDate.setHours(0,0,0,0);
+        if (eventDate.getTime() === checkDate.getTime()) {
+            foundEvents.push({
+                name: event.name,
+                info: event.info,
+                type: event.type,
+                icon: event.icon
+            });
+        }
+    }
+
+    for (const event of allEventsData) {
+        if (event.type !== 'holiday') continue;
+
+        let actualEventDate;
+        if (typeof event.day === 'string') {
+            const ruleParts = event.day.split('-');
+            const nth = ['first', 'second', 'third', 'fourth', 'last'].indexOf(ruleParts[0]) + 1;
+            const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(ruleParts[1]);
+        
+            if (nth > 0 && dayOfWeek !== -1) {
+                let tempDate = new Date(year, event.month - 1, 1);
+                if (ruleParts[0] === 'last') {
+                    tempDate = new Date(year, event.month, 0); 
+                    while (tempDate.getDay() !== dayOfWeek) {
+                        tempDate.setDate(tempDate.getDate() - 1);
                     }
-                    if (count === nth) {
-                        actualHolidayDate = tempDate;
-                        break;
+                    actualEventDate = tempDate;
+                } else {
+                    while (tempDate.getDay() !== dayOfWeek) {
+                        tempDate.setDate(tempDate.getDate() + 1);
                     }
-                    tempDate.setDate(tempDate.getDate() + 1);
+                    tempDate.setDate(tempDate.getDate() + (nth - 1) * 7);
+                    actualEventDate = tempDate;
                 }
             }
-        } else if (typeof holiday.day === 'string' && holiday.day.includes('thursday')) {
-            let tempDate = new Date(year, holiday.month - 1, 1);
-            let count = 0;
-            const targetDay = 4;
-            const nth = parseInt(holiday.day.split('-')[0].replace('first', '1').replace('second', '2').replace('third', '3').replace('fourth', '4'));
-
-            while (count < nth) {
-                if (tempDate.getDay() === targetDay) {
-                    count++;
-                }
-                if (count === nth) {
-                    actualHolidayDate = tempDate;
-                    break;
-                }
-                tempDate.setDate(tempDate.getDate() + 1);
-            }
-        }
-        else {
-            actualHolidayDate = new Date(year, holiday.month - 1, holiday.day);
+        } else {
+            actualEventDate = new Date(year, event.month - 1, event.day);
         }
 
-        if (actualHolidayDate) {
-            const observedHolidayDate = getObservedHolidayDate(actualHolidayDate);
-
-            if (observedHolidayDate.getDate() === date.getDate() &&
-                observedHolidayDate.getMonth() === date.getMonth() &&
-                observedHolidayDate.getFullYear() === date.getFullYear()) {
-                return {
-                    name: holiday.name,
-                    info: holiday.info || `Information for ${holiday.name} not available. Specific information regarding contract implications or labor laws would be displayed here in future enhancements.`
-                };
+        if (actualEventDate) {
+            const observedEventDate = getObservedHolidayDate(actualEventDate);
+            if (observedEventDate.getDate() === date.getDate() &&
+                observedEventDate.getMonth() === date.getMonth() &&
+                observedEventDate.getFullYear() === date.getFullYear()) {
+                foundEvents.push({
+                    name: event.name,
+                    info: event.info || `Information for ${event.name} not available.`,
+                    type: event.type,
+                    icon: event.icon
+                });
             }
         }
     }
-    return null;
+    return foundEvents;
 }
+
 
 function getPostalWorkWeekNumber(date) {
     const cycleStart = new Date('2025-01-04T00:00:00');
@@ -299,11 +372,12 @@ function generateMonthTile(month, year, selectedCarrier) {
         const currentDate = new Date(year, month, day);
         const formattedDate = currentDate.toISOString().split('T')[0];
         let dayClasses = ['calendar-day'];
-        let holidayHtml = '';
+        let eventIconsHtml = '';
         let paydayHtml = '';
         let isOffDay = false;
         let highlightClasses = [];
         let dataAttributes = '';
+        let eventInfos = [];
 
         if (currentDate.getDate() === today.getDate() &&
             currentDate.getMonth() === today.getMonth() &&
@@ -335,19 +409,32 @@ function generateMonthTile(month, year, selectedCarrier) {
         }
         dayClasses.push(...highlightClasses);
 
-        const holiday = getFederalHoliday(currentDate);
-        if (holiday) {
-            holidayHtml = `<img src="/mcore/icons/us.png" alt="Federal Holiday" class="holiday-symbol">`;
-            dataAttributes += `data-is-holiday="true" data-holiday-name="${holiday.name}" data-holiday-info="${holiday.info}"`;
+        const events = getEventsForDate(currentDate);
+        if (events.length > 0) {
+            events.forEach(event => {
+                const showEvent = (event.type === 'holiday' && userControls.showHolidays) ||
+                                  (event.type === 'daylight-saving' && userControls.showDaylightSaving) ||
+                                  (event.type === 'solstice' && userControls.showSolstice) ||
+                                  (event.type === 'season' && userControls.showSeasons);
+                if(showEvent) {
+                    eventIconsHtml += `<img src="/mcore/icons/${event.icon}" alt="${event.name}" class="event-icon">`;
+                    eventInfos.push({name: event.name, info: event.info, icon: event.icon});
+                }
+            });
+        }
+        
+        if (eventInfos.length > 0) {
+            const jsonString = JSON.stringify(eventInfos);
+            const escapedJsonString = jsonString.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+            dataAttributes += `data-is-event="true" data-events-json='${escapedJsonString}'`;
         }
 
-        if (payDaysForYear.has(formattedDate)) {
+        if (payDaysForYear.has(formattedDate) && userControls.showPaydays) {
             paydayHtml = `<img src="/mcore/icons/money-stack250.png" alt="Pay Day" class="payday-symbol">`;
             dataAttributes += ` data-is-payday="true"`;
         }
 
-
-        if (holiday || isOffDay || payDaysForYear.has(formattedDate)) {
+        if (eventInfos.length > 0 || isOffDay || (payDaysForYear.has(formattedDate) && userControls.showPaydays)) {
             dayClasses.push('cursor-pointer');
         } else {
             dayClasses.push('cursor-default');
@@ -356,7 +443,7 @@ function generateMonthTile(month, year, selectedCarrier) {
         daysHtml += `
             <div class="${dayClasses.join(' ')}" data-date="${formattedDate}" ${dataAttributes}>
                 <span class="day-number">${day}</span>
-                ${holidayHtml}
+                <div class="event-icon-container">${eventIconsHtml}</div>
                 ${paydayHtml}
             </div>
         `;
@@ -388,7 +475,6 @@ function jumpToTodayOnCalendar() {
         setTimeout(() => {
             todayCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
             todayCell.classList.add('flash-highlight-calendar');
-
             setTimeout(() => {
                 todayCell.classList.remove('flash-highlight-calendar');
             }, FLASH_ANIMATION_TOTAL_DURATION_MS);
@@ -396,9 +482,59 @@ function jumpToTodayOnCalendar() {
     }
 }
 
+function openDayDetailsLightbox(dayCell) {
+    const lightbox = document.getElementById('day-details-lightbox');
+    const dynamicContent = document.getElementById('lightbox-dynamic-content');
+
+    const isEvent = dayCell.dataset.isEvent === 'true';
+    const isPayday = dayCell.dataset.isPayday === 'true';
+    const date = new Date(dayCell.dataset.date + 'T00:00:00');
+
+    let contentHtml = `<h3 class="lightbox-title">${date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h3>`;
+    contentHtml += '<div class="lightbox-event-list">';
+
+    if (isEvent) {
+        const eventData = JSON.parse(dayCell.dataset.eventsJson.replace(/&quot;/g, '"'));
+        eventData.forEach(event => {
+            contentHtml += `
+                <div class="lightbox-event-item">
+                    <img src="/mcore/icons/${event.icon}" alt="${event.name}" class="lightbox-event-icon">
+                    <div class="lightbox-event-details">
+                        <h4>${event.name}</h4>
+                        <p>${event.info}</p>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    if (isPayday) {
+        contentHtml += `
+            <div class="lightbox-event-item">
+                <img src="/mcore/icons/money-stack250.png" alt="Pay Day" class="lightbox-event-icon">
+                <div class="lightbox-event-details">
+                    <h4>Pay Day</h4>
+                    <p>Your pay should be deposited on or around this date.</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    contentHtml += '</div>';
+
+    dynamicContent.innerHTML = contentHtml;
+    lightbox.classList.add('active');
+}
+
+function closeDayDetailsLightbox() {
+    const lightbox = document.getElementById('day-details-lightbox');
+    lightbox.classList.remove('active');
+}
+
 
 async function renderCalendarPage(year, selectedCarrier = null) {
-    await fetchHolidays();
+    await fetchEvents();
+    await fetchUserControls();
 
     const currentYear = new Date().getFullYear();
 
@@ -421,150 +557,110 @@ async function renderCalendarPage(year, selectedCarrier = null) {
     const headingTextColorClass = currentCarrierInfo.textClass;
 
     appContent.innerHTML = `
-        <h2 class="page-title ${headingTextColorClass}">Carrier Calendar</h2>
+        <h2 class="page-title tight-padding ${headingTextColorClass}">Carrier Calendar</h2>
         <div class="carrier-buttons-grid">
             ${carrierButtonsHtml}
         </div>
+        <div class="user-control-nav-box">
+            <button class="nav-button" data-filter="all">All</button>
+            <button class="nav-button" data-filter="none">None</button>
+            <button class="nav-button ${userControls.showHolidays ? 'selected' : ''}" data-filter="holidays">Holidays</button>
+            <button class="nav-button ${userControls.showSeasons ? 'selected' : ''}" data-filter="seasons">Seasons</button>
+            <button class="nav-button ${userControls.showSolstice ? 'selected' : ''}" data-filter="solstice">Solstices</button>
+            <button class="nav-button ${userControls.showDaylightSaving ? 'selected' : ''}" data-filter="daylightSaving">
+                <span class="full-text">Daylight Savings</span>
+                <span class="short-text">DST</span>
+            </button>
+            <button class="nav-button ${userControls.showPaydays ? 'selected' : ''}" data-filter="paydays">Pay</button>
+        </div>
         <div class="calendar-controls-group">
             <div class="calendar-year-controls">
-                <button id="prev-year-btn" class="nav-button">&laquo; Previous</button>
+                <button id="prev-year-btn" class="nav-button tight-padding">&laquo; Previous</button>
                 <span id="current-year-display" class="current-year-display text-usps-blue">${year}</span>
-                <button id="next-year-btn" class="nav-button">Next &raquo;</button>
+                <button id="next-year-btn" class="nav-button tight-padding">Next &raquo;</button>
                 <button id="current-year-btn" class="nav-button">Current Year</button>
                 <button id="today-calendar-btn" class="nav-button">Today</button>
             </div>
         </div>
-        <div id="calendar-grid" class="calendar-grid">
-            </div>
+        <div id="calendar-grid" class="calendar-grid"></div>
     `;
 
     const calendarGrid = document.getElementById('calendar-grid');
-    const prevYearBtn = document.getElementById('prev-year-btn');
-    const nextYearBtn = document.getElementById('next-year-btn');
-    const currentYearBtn = document.getElementById('current-year-btn');
-    const todayCalendarBtn = document.getElementById('today-calendar-btn');
-
+    
     function renderAllMonthTiles() {
         calendarGrid.innerHTML = '';
-        const currentSelectedCarrier = document.querySelector('.carrier-color-button.selected')?.dataset.carrierColor || null;
-        const currentSelectedYear = parseInt(document.getElementById('current-year-display').textContent);
         for (let i = 0; i < 12; i++) {
-            calendarGrid.innerHTML += generateMonthTile(i, currentSelectedYear, currentSelectedCarrier);
+            calendarGrid.innerHTML += generateMonthTile(i, year, selectedCarrier);
         }
-        attachHolidayLightboxListeners();
+        attachDayClickListeners();
+    }
+
+    function attachDayClickListeners() {
+        calendarGrid.querySelectorAll('.calendar-day[data-is-event="true"], .calendar-day[data-is-payday="true"]').forEach(dayCell => {
+            dayCell.addEventListener('click', () => openDayDetailsLightbox(dayCell));
+        });
     }
 
     renderAllMonthTiles();
 
-    prevYearBtn.addEventListener('click', () => {
-        const currentDisplayedYear = parseInt(document.getElementById('current-year-display').textContent);
-        document.getElementById('current-year-display').textContent = currentDisplayedYear - 1;
-        window.location.hash = `#calendar?year=${currentDisplayedYear - 1}&carrier=${selectedCarrier || ''}`;
+    document.getElementById('prev-year-btn').addEventListener('click', () => {
+        window.location.hash = `#calendar?year=${year - 1}&carrier=${selectedCarrier || ''}`;
     });
-    nextYearBtn.addEventListener('click', () => {
-        const currentDisplayedYear = parseInt(document.getElementById('current-year-display').textContent);
-        document.getElementById('current-year-display').textContent = currentDisplayedYear + 1;
-        window.location.hash = `#calendar?year=${currentDisplayedYear + 1}&carrier=${selectedCarrier || ''}`;
+    document.getElementById('next-year-btn').addEventListener('click', () => {
+        window.location.hash = `#calendar?year=${year + 1}&carrier=${selectedCarrier || ''}`;
     });
-    currentYearBtn.addEventListener('click', () => {
-        document.getElementById('current-year-display').textContent = currentYear;
-        window.location.hash = `#calendar?year=${currentYear}&carrier=${selectedCarrier || ''}`;
+    document.getElementById('current-year-btn').addEventListener('click', () => {
+        window.location.hash = `#calendar?year=${new Date().getFullYear()}&carrier=${selectedCarrier || ''}`;
     });
-
-    todayCalendarBtn.addEventListener('click', () => {
-        const currentDisplayedYear = parseInt(document.getElementById('current-year-display').textContent);
+    document.getElementById('today-calendar-btn').addEventListener('click', () => {
         const actualCurrentYear = new Date().getFullYear();
-
-        if (currentDisplayedYear !== actualCurrentYear) {
-            window.location.hash = `#calendar?year=${actualCurrentYear}`;
-            setTimeout(jumpToTodayOnCalendar, 200);
+        if (year !== actualCurrentYear) {
+            window.location.hash = `#calendar?year=${actualCurrentYear}&carrier=${selectedCarrier || ''}`;
         } else {
             jumpToTodayOnCalendar();
         }
     });
-
     document.querySelectorAll('.carrier-color-button').forEach(button => {
         button.addEventListener('click', (event) => {
-            document.querySelectorAll('.carrier-color-button').forEach(btn => btn.classList.remove('selected'));
-            event.currentTarget.classList.add('selected');
             const newCarrier = event.currentTarget.dataset.carrierColor || '';
-            const currentSelectedYear = parseInt(document.getElementById('current-year-display').textContent);
-            window.location.hash = `#calendar?year=${currentSelectedYear}&carrier=${newCarrier}`;
+            window.location.hash = `#calendar?year=${year}&carrier=${newCarrier}`;
         });
     });
+    document.querySelectorAll('.user-control-nav-box .nav-button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const filter = e.currentTarget.dataset.filter;
+            const keyMap = {
+                'holidays': 'showHolidays',
+                'seasons': 'showSeasons',
+                'solstice': 'showSolstice',
+                'daylightSaving': 'showDaylightSaving',
+                'paydays': 'showPaydays'
+            };
 
-    const holidayLightbox = document.getElementById('holiday-lightbox');
-    const lightboxCloseBtn = document.getElementById('lightbox-close-btn');
-    const lightboxHolidayName = document.getElementById('lightbox-holiday-name');
-    const lightboxHolidayInfo = document.getElementById('lightbox-holiday-info');
-
-    function openHolidayLightbox(name, info) {
-        lightboxHolidayName.textContent = name;
-        lightboxHolidayInfo.innerHTML = info;
-        holidayLightbox.classList.add('active');
-    }
-
-    function closeHolidayLightbox() {
-        lightboxHolidayName.textContent = '';
-        lightboxHolidayInfo.innerHTML = '';
-        holidayLightbox.classList.remove('active');
-    }
-
-    function attachHolidayLightboxListeners() {
-        document.querySelectorAll('.calendar-day[data-is-holiday="true"], .calendar-day[data-is-payday="true"]').forEach(dayCell => {
-            const oldDayCell = dayCell;
-            const newDayCell = oldDayCell.cloneNode(true);
-            oldDayCell.parentNode.replaceChild(newDayCell, oldDayCell);
-        });
-
-        document.querySelectorAll('.calendar-day[data-is-holiday="true"], .calendar-day[data-is-payday="true"]').forEach(dayCell => {
-            dayCell.addEventListener('click', (event) => {
-                const isHoliday = dayCell.dataset.isHoliday === 'true';
-                const isPayday = dayCell.dataset.isPayday === 'true';
-
-                let name = '';
-                let info = '';
-
-                if (isHoliday && isPayday) {
-                    const holidayName = dayCell.dataset.holidayName;
-                    const holidayInfo = dayCell.dataset.holidayInfo;
-                    name = `${holidayName} & Pay Day`;
-                    info = `${holidayInfo}<br><br>This date is also a pay day. Your pay should be deposited on or around this date.`;
-                } else if (isHoliday) {
-                    name = dayCell.dataset.holidayName;
-                    info = dayCell.dataset.holidayInfo;
-                } else if (isPayday) {
-                    name = "Pay Day";
-                    info = "This marks a pay day. Your pay should be deposited on or around this date.";
+            if (filter === 'all') {
+                Object.keys(userControls).forEach(key => userControls[key] = true);
+            } else if (filter === 'none') {
+                Object.keys(userControls).forEach(key => userControls[key] = false);
+            } else {
+                const key = keyMap[filter];
+                if (key) {
+                    userControls[key] = !userControls[key];
                 }
-
-                if (name && info) {
-                    openHolidayLightbox(name, info);
-                }
-            });
-        });
-    }
-
-    if (!lightboxCloseBtn.__listenerAttached) {
-        lightboxCloseBtn.addEventListener('click', closeHolidayLightbox);
-        holidayLightbox.addEventListener('click', (event) => {
-            if (event.target === holidayLightbox) {
-                closeHolidayLightbox();
             }
+            
+            localStorage.setItem('mcore-user-controls', JSON.stringify(userControls));
+            renderCalendarPage(year, selectedCarrier);
         });
-        lightboxCloseBtn.__listenerAttached = true;
-    }
-    renderAllMonthTiles();
+    });
 }
+
 
 function jumpToCurrentPayPeriod() {
     const currentPayPeriodRow = document.querySelector('.pay-period-table .current-pay-period-row');
     if (currentPayPeriodRow) {
         setTimeout(() => {
             currentPayPeriodRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
             currentPayPeriodRow.classList.add('flash-highlight');
-
             setTimeout(() => {
                 currentPayPeriodRow.classList.remove('flash-highlight');
             }, FLASH_ANIMATION_TOTAL_DURATION_MS);
@@ -620,7 +716,6 @@ function renderPayPeriodsPage(year) {
     normalizedToday.setHours(0, 0, 0, 0);
 
     let startPPDate = new Date(year, 0, 1);
-    let currentPPInfo = getPayPeriodInfo(startPPDate);
 
     let foundFirstPPOfYear = false;
     let initialDateForYear = new Date(year, 0, 1);
@@ -699,12 +794,10 @@ function renderPayPeriodsPage(year) {
     const todayPayPeriodBtn = document.getElementById('today-pay-period-btn');
 
     prevPPYearBtn.addEventListener('click', () => {
-        const currentDisplayedYear = parseInt(document.getElementById('current-pp-year-display').textContent);
-        window.location.hash = `#pay-periods?year=${currentDisplayedYear - 1}`;
+        window.location.hash = `#pay-periods?year=${year - 1}`;
     });
     nextPPYearBtn.addEventListener('click', () => {
-        const currentDisplayedYear = parseInt(document.getElementById('current-pp-year-display').textContent);
-        window.location.hash = `#pay-periods?year=${currentDisplayedYear + 1}`;
+        window.location.hash = `#pay-periods?year=${year + 1}`;
     });
     currentPPBtn.addEventListener('click', () => {
         const currentYear = new Date().getFullYear();
@@ -712,10 +805,8 @@ function renderPayPeriodsPage(year) {
     });
 
     todayPayPeriodBtn.addEventListener('click', () => {
-        const currentDisplayedYear = parseInt(document.getElementById('current-pp-year-display').textContent);
         const actualCurrentYear = new Date().getFullYear();
-
-        if (currentDisplayedYear !== actualCurrentYear) {
+        if (year !== actualCurrentYear) {
             window.location.hash = `#pay-periods?year=${actualCurrentYear}`;
             sessionStorage.setItem('mcore-jump-to-pay-today', 'true');
         } else {
@@ -817,17 +908,6 @@ async function router() {
     const urlParams = new URLSearchParams(hash.split('?')[1]);
     const currentYear = new Date().getFullYear();
 
-    await fetchHolidays();
-
-    const carrierMatch = hash.match(/^#calendar-([a-z]+)$/);
-    if (carrierMatch) {
-        const carrierColor = carrierMatch[1];
-        if (CARRIER_COLORS[carrierColor]) {
-            renderCalendarPage(currentYear, carrierColor);
-            return;
-        }
-    }
-
     if (hash.startsWith('#calendar')) {
         const year = parseInt(urlParams.get('year')) || currentYear;
         const carrier = urlParams.get('carrier') || null;
@@ -925,6 +1005,17 @@ function renderResourcesPage() {
 
 document.addEventListener('DOMContentLoaded', async () => {
     await fetchAppConfig();
+    
+    const lightbox = document.getElementById('day-details-lightbox');
+    const lightboxCloseBtn = document.getElementById('lightbox-close-btn');
+    if (lightboxCloseBtn && lightbox) {
+        lightboxCloseBtn.addEventListener('click', closeDayDetailsLightbox);
+        lightbox.addEventListener('click', (event) => {
+            if (event.target === lightbox) {
+                closeDayDetailsLightbox();
+            }
+        });
+    }
 
     const currentYearSpan = document.getElementById('current-year');
     if (currentYearSpan) {
@@ -949,10 +1040,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     initPreferences();
     router();
 
-    // Scroll to Top Button Logic
     if (scrollToTopBtn) {
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) { // Show button after scrolling 300px
+            if (window.scrollY > 300) {
                 scrollToTopBtn.classList.remove('hidden');
             } else {
                 scrollToTopBtn.classList.add('hidden');

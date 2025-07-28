@@ -3,13 +3,13 @@
 let CACHE_NAME = 'mcore-cache-dynamic';
 
 // List of URLs to cache (app shell).
-// Paths are now relative to the service worker's scope, which is the base of the app.
 const urlsToCache = [
     '/mcore/',
 	'/mcore/index.html',
     '/mcore/css/style.css',
     '/mcore/js/app.js',
-    '/mcore/data/holidays.json',
+    '/mcore/data/events.json',
+    '/mcore/data/user-control.json',
     '/mcore/data/acronyms.json',
     '/mcore/data/resources.json',
     '/mcore/manifest.json',
@@ -27,7 +27,33 @@ const urlsToCache = [
     '/mcore/icons/money-stack250.png',
 	'/mcore/icons/download-sm.png',
     '/mcore/icons/light-mode.png',
-    '/mcore/icons/dark-mode.png'
+    '/mcore/icons/dark-mode.png',
+    // Holiday Icons
+    '/mcore/icons/new-year-day.png',
+    '/mcore/icons/martin-luther-king-jr-day.png',
+    '/mcore/icons/washingtons-birthday-day.png',
+    '/mcore/icons/memorial-day.png',
+    '/mcore/icons/juneteenth-day.png',
+    '/mcore/icons/independence-day.png',
+    '/mcore/icons/labor-day.png',
+    '/mcore/icons/columbus-day.png',
+    '/mcore/icons/veterans-day.png',
+    '/mcore/icons/thanksgiving-day.png',
+    '/mcore/icons/christmas-day.png',
+    // Season Icons
+    '/mcore/icons/spring.png',
+    '/mcore/icons/summer.png',
+    '/mcore/icons/fall.png',
+    '/mcore/icons/winter.png',
+    // Other Event Icons
+    '/mcore/icons/summer-sol.png',
+    '/mcore/icons/winter-sol.png',
+    '/mcore/icons/saving.png',
+    // User Control Icons
+    '/mcore/icons/user-control-holidays.png',
+    '/mcore/icons/user-control-seasons.png',
+    '/mcore/icons/user-control-solstice.png',
+    '/mcore/icons/user-control-daylight-saving.png'
 ];
 
 // --- Install Event ---
