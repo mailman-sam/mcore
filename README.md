@@ -35,7 +35,7 @@ This application is completely free, open-source, and committed to user privacy:
 * **Service Worker:** Enables offline capabilities and faster loading.
 
 ## Project Structure
-,,,
+```
 
 mcore/
 ├── index.html              # Main application entry point
@@ -54,7 +54,7 @@ mcore/
 ├── manifest.json           # Web App Manifest for PWA features
 └── service-worker.js       # Service Worker for offline caching
 
-,,,
+```
 ## Installation and Setup
 
 ### Local Development Server (Apache2)
@@ -102,3 +102,4 @@ For any inquiries, please contact: a.mailman.sam@gmail.com
 
 
 This project adheres to [Semantic Versioning](https://semver.org/).
+
