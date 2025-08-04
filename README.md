@@ -36,6 +36,7 @@ This application is completely free, open-source, and committed to user privacy:
 
 ## Project Structure
 ,,,
+
 mcore/
 ├── index.html              # Main application entry point
 ├── css/
@@ -52,6 +53,7 @@ mcore/
 ├── favicon.ico             # Standard favicon
 ├── manifest.json           # Web App Manifest for PWA features
 └── service-worker.js       # Service Worker for offline caching
+
 ,,,
 ## Installation and Setup
 
@@ -97,5 +99,6 @@ This project is open-source under the MIT License. Contributions are welcome! If
 ## Contact
 
 For any inquiries, please contact: a.mailman.sam@gmail.com
+
 
 This project adheres to [Semantic Versioning](https://semver.org/).
