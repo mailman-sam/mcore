@@ -16,6 +16,7 @@ This application is completely free, open-source, and committed to user privacy:
     * Highlights universal Sundays with a distinct color.
     * Identifies and provides information on Federal Holidays, seasonal changes (equinoxes/solstices), paydays, and Daylight Saving Time changes.
     * **Filterable Event Display:** A responsive control panel allows you to toggle the visibility for holidays, seasons, solstices, DST, and paydays directly on the calendar page.
+    * **T6 Carrier Technician Scheduling:** A dedicated, collapsible section on the calendar page allows T6 carriers to input their 5-route string. The calendar then automatically populates with the correct route number for each workday based on the complex 6-week rotating schedule.
 * **Continuous Pay Periods:** Displays a scrollable table of pay periods, including start dates, end dates, and pay dates, with the current pay period highlighted.
 * **Useful Acronyms:** A searchable and sortable table of common USPS acronyms and their meanings.
 * **Useful Resources:** Provides direct, safe links to official websites for contract information, CCA resources, retirement, and more.
@@ -34,7 +35,7 @@ This application is completely free, open-source, and committed to user privacy:
 * **Service Worker:** Enables offline capabilities and faster loading.
 
 ## Project Structure
-```
+,,,
 mcore/
 ├── index.html              # Main application entry point
 ├── css/
@@ -51,7 +52,7 @@ mcore/
 ├── favicon.ico             # Standard favicon
 ├── manifest.json           # Web App Manifest for PWA features
 └── service-worker.js       # Service Worker for offline caching
-```
+,,,
 ## Installation and Setup
 
 ### Local Development Server (Apache2)
@@ -84,6 +85,7 @@ Simply open the `index.html` file in your browser (or navigate to your deployed 
 * **Navigation:** Use the links in the header to jump between Calendar, Resources, Acronyms, and Pay Periods.
 * **Theme Toggle:** Click the sun/moon icon in the header to switch between light and dark modes.
 * **Calendar:** Use the "Previous", "Next", "Current Year", and "Today" buttons to navigate years. Select a carrier color button (or "All") to view specific schedules. Use the filter buttons (All, None, Holidays, etc.) to toggle the visibility of different event icons on the calendar. Click on any day with an icon to see detailed information in a pop-up.
+* **T6 Scheduling:** On the calendar page, click the "T6 Route Rotation" bar to expand the panel. Enter your five route numbers. The calendar will automatically display the correct route on each workday. The schedule is saved locally to your device.
 * **Pay Periods:** Use the "Previous Year", "Next Year", "Current Year", and "Today" buttons to browse pay periods by year. The current pay period row will be highlighted.
 * **Acronyms:** Use the search bar to filter acronyms by term or meaning. Use the "Sort A-Z" and "Sort Z-A" buttons to reorder the list.
 * **Install App:** If your browser supports PWAs, an "Install App" button will appear in the header. Click it to add mCORE to your device's home screen for an app-like experience and offline access.

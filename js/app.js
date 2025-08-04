@@ -21,8 +21,25 @@ let allAcronymsData = [];
 let allResourcesData = [];
 let appConfig = {};
 let specialEventsCache = {};
+let t6Routes = []; // Holds the 5 T6 routes
 
 const MCORE_LOGO_FALLBACK_PATH = '/mcore/icons/mcore-logo-fallback.png';
+
+// T6 Carrier Technician Rotation Constants
+// Reference date: The start of a known 42-day cycle. July 19, 2025, is a Saturday and the start of the cycle containing Aug 4, 2025.
+const T6_CYCLE_REFERENCE_START_DATE = new Date('2025-07-19T00:00:00');
+// This map represents the 42-day (6-week) T6 rotation schedule.
+// Each number corresponds to an index in the user's t6Routes array (0-4).
+// -1 represents a day off. The cycle starts on a Saturday.
+const T6_CYCLE_MAP = [
+    0, -1, 1, -1, 0, 1, 2, // Week 1 (Days 0-6)
+    2, -1, 3, 4, -1, 0, 1, // Week 2 (Days 7-13)
+    1, -1, 2, 3, 4, -1, 0, // Week 3 (Days 14-20)
+    0, -1, 1, 2, 3, 4, -1, // Week 4 (Days 21-27)
+   -1, -1, 0, 1, 2, 3, 4, // Week 5 (Days 28-34)
+    4, -1, -1, 0, 1, 2, 3  // Week 6 (Days 35-41)
+];
+
 
 const CARRIER_COLORS = {
     'black': { name: 'Black', class: 'carrier-black', textClass: 'text-calendar-heading-black', baseDayOffIndex: 0 },
@@ -353,6 +370,54 @@ function getPayDays(year) {
     return payDays;
 }
 
+// T6 Feature: Load routes from localStorage
+function loadT6Routes() {
+    const savedRoutes = localStorage.getItem('mcore-t6-routes');
+    if (savedRoutes) {
+        t6Routes = JSON.parse(savedRoutes);
+    } else {
+        // Initialize with 5 empty strings if no data is saved
+        t6Routes = ['', '', '', '', ''];
+    }
+}
+
+// T6 Feature: Save routes to localStorage
+function saveT6Routes() {
+    localStorage.setItem('mcore-t6-routes', JSON.stringify(t6Routes));
+}
+
+// T6 Feature: Calculate route for a given date
+function getT6RouteForDate(date) {
+    // Ensure all 5 routes are filled to activate the feature
+    if (!t6Routes || t6Routes.length !== 5 || t6Routes.some(r => r === '')) {
+        return null;
+    }
+
+    // No routes on Sunday
+    if (date.getDay() === 0) {
+        return null;
+    }
+
+    // Normalize date to avoid time zone issues
+    const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    // Calculate the number of days since the reference start date
+    const diffMillis = checkDate.getTime() - T6_CYCLE_REFERENCE_START_DATE.getTime();
+    const diffDays = Math.floor(diffMillis / (1000 * 60 * 60 * 24));
+
+    // Calculate the day's position in the 42-day cycle
+    // The modulo logic ensures the result is always positive
+    const dayInCycle = (diffDays % 42 + 42) % 42;
+
+    const routeIndex = T6_CYCLE_MAP[dayInCycle];
+
+    if (routeIndex !== undefined && routeIndex !== -1) {
+        return t6Routes[routeIndex];
+    }
+
+    return null; // Return null if it's a day off or not in the map
+}
+
 
 function generateMonthTile(month, year, selectedCarrier) {
     const today = new Date();
@@ -374,6 +439,7 @@ function generateMonthTile(month, year, selectedCarrier) {
         let dayClasses = ['calendar-day'];
         let eventIconsHtml = '';
         let paydayHtml = '';
+        let t6RouteHtml = '';
         let isOffDay = false;
         let highlightClasses = [];
         let dataAttributes = '';
@@ -434,6 +500,13 @@ function generateMonthTile(month, year, selectedCarrier) {
             dataAttributes += ` data-is-payday="true"`;
         }
 
+        // T6 Feature: Get and display route number
+        const routeNumber = getT6RouteForDate(currentDate);
+        if (routeNumber) {
+            t6RouteHtml = `<span class="t6-route-number">${routeNumber}</span>`;
+        }
+
+
         if (eventInfos.length > 0 || isOffDay || (payDaysForYear.has(formattedDate) && userControls.showPaydays)) {
             dayClasses.push('cursor-pointer');
         } else {
@@ -445,6 +518,7 @@ function generateMonthTile(month, year, selectedCarrier) {
                 <span class="day-number">${day}</span>
                 <div class="event-icon-container">${eventIconsHtml}</div>
                 ${paydayHtml}
+                ${t6RouteHtml}
             </div>
         `;
     }
@@ -535,6 +609,7 @@ function closeDayDetailsLightbox() {
 async function renderCalendarPage(year, selectedCarrier = null) {
     await fetchEvents();
     await fetchUserControls();
+    loadT6Routes(); 
 
     const currentYear = new Date().getFullYear();
 
@@ -551,6 +626,12 @@ async function renderCalendarPage(year, selectedCarrier = null) {
                 </button>
             `;
         }
+    }
+
+    
+    let t6InputHtml = '';
+    for (let i = 0; i < 5; i++) {
+        t6InputHtml += `<input type="text" inputmode="numeric" pattern="[0-9]*" class="t6-route-input" data-index="${i}" value="${t6Routes[i] || ''}" placeholder="R${i+1}" maxlength="3">`;
     }
 
     const currentCarrierInfo = selectedCarrier ? CARRIER_COLORS[selectedCarrier] : CARRIER_COLORS['all'];
@@ -582,6 +663,18 @@ async function renderCalendarPage(year, selectedCarrier = null) {
                 <button id="today-calendar-btn" class="nav-button">Today</button>
             </div>
         </div>
+        
+        <!-- T6 Feature: Accordion UI -->
+        <div class="t6-accordion">
+            <button id="t6-accordion-toggle" class="t6-accordion-toggle">T6 Route Rotation</button>
+            <div id="t6-accordion-panel" class="t6-accordion-panel">
+                <p class="info-text">Day 1 begins the day after the NS day. All 5 routes must be filled out.</p>
+                <div class="t6-route-inputs">
+                    ${t6InputHtml}
+                </div>
+            </div>
+        </div>
+
         <div id="calendar-grid" class="calendar-grid"></div>
     `;
 
@@ -602,6 +695,26 @@ async function renderCalendarPage(year, selectedCarrier = null) {
     }
 
     renderAllMonthTiles();
+    
+    
+    const t6Toggle = document.getElementById('t6-accordion-toggle');
+    const t6Panel = document.getElementById('t6-accordion-panel');
+    t6Toggle.addEventListener('click', () => {
+        t6Toggle.classList.toggle('active');
+        t6Panel.classList.toggle('show');
+    });
+
+    document.querySelectorAll('.t6-route-input').forEach(input => {
+        input.addEventListener('input', (e) => {
+            // Sanitize input to allow only numbers
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            const index = parseInt(e.target.dataset.index, 10);
+            t6Routes[index] = e.target.value;
+            saveT6Routes();
+            renderAllMonthTiles(); // Re-render calendar on input change
+        });
+    });
+
 
     document.getElementById('prev-year-btn').addEventListener('click', () => {
         window.location.hash = `#calendar?year=${year - 1}&carrier=${selectedCarrier || ''}`;
