@@ -742,8 +742,14 @@ async function renderCalendarPage(year, selectedCarrier = null) {
     document.querySelectorAll('.carrier-color-button').forEach(button => {
         button.addEventListener('click', (event) => {
             const newCarrier = event.currentTarget.dataset.carrierColor || '';
-            // Save the selected carrier color to localStorage
             localStorage.setItem('mcore-selected-carrier', newCarrier);
+
+            // Preserve accordion state before re-rendering
+            const settingsPanel = document.getElementById('settings-accordion-panel');
+            if (settingsPanel && settingsPanel.classList.contains('show')) {
+                sessionStorage.setItem('mcore-accordion-open', 'true');
+            }
+
             window.location.hash = `#calendar?year=${year}&carrier=${newCarrier}`;
         });
     });
@@ -771,9 +777,26 @@ async function renderCalendarPage(year, selectedCarrier = null) {
             }
             
             localStorage.setItem('mcore-user-controls', JSON.stringify(userControls));
+            
+            // Preserve accordion state before re-rendering
+            const settingsPanel = document.getElementById('settings-accordion-panel');
+            if (settingsPanel && settingsPanel.classList.contains('show')) {
+                sessionStorage.setItem('mcore-accordion-open', 'true');
+            }
+
             renderCalendarPage(year, selectedCarrier);
         });
     });
+
+    // Restore accordion state if it was open before a re-render
+    if (sessionStorage.getItem('mcore-accordion-open') === 'true') {
+        if (settingsToggle && settingsPanel) {
+            settingsToggle.classList.add('active');
+            settingsPanel.classList.add('show');
+        }
+        // Clear the flag so it doesn't persist on next navigation
+        sessionStorage.removeItem('mcore-accordion-open');
+    }
 }
 
 
