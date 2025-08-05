@@ -122,37 +122,42 @@ async function fetchEvents() {
     }
 }
 
+// Updated function to robustly handle loading and saving user filter preferences.
 async function fetchUserControls() {
-    const savedControls = localStorage.getItem('mcore-user-controls');
-    if (savedControls) {
-        userControls = JSON.parse(savedControls);
-        if (userControls.showPaydays === undefined) {
-            userControls.showPaydays = true;
-        }
-        return userControls;
-    }
+    // Define the default structure and values for all filters.
+    const defaultControls = {
+        showHolidays: true,
+        showDaylightSaving: true,
+        showSolstice: true,
+        showSeasons: true,
+        showPaydays: true
+    };
+
+    let savedControls = {};
     try {
-        const response = await fetch('/mcore/data/user-control.json');
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        // Attempt to retrieve saved settings from localStorage.
+        const savedControlsRaw = localStorage.getItem('mcore-user-controls');
+        if (savedControlsRaw) {
+            savedControls = JSON.parse(savedControlsRaw);
         }
-        const data = await response.json();
-        data.showPaydays = true;
-        userControls = data;
-        localStorage.setItem('mcore-user-controls', JSON.stringify(data));
-        return data;
-    } catch (error) {
-        console.error('Could not fetch user controls:', error);
-        const defaultControls = {
-            showHolidays: true,
-            showDaylightSaving: true,
-            showSolstice: true,
-            showSeasons: true,
-            showPaydays: true
-        };
-        userControls = defaultControls;
-        return defaultControls;
+    } catch (e) {
+        console.error("Could not parse user controls from localStorage", e);
+        // If there's an error (e.g., corrupted data), start with fresh defaults.
+        savedControls = {}; 
     }
+
+    // Merge defaults with any saved settings. This ensures that if new filters are
+    // added in the future, the app doesn't break for users with old settings.
+    const finalControls = { ...defaultControls, ...savedControls };
+
+    // Update the global userControls object with the final, merged settings.
+    userControls = finalControls;
+
+    // Save the cleaned-up/merged settings back to localStorage. This keeps the
+    // stored data consistent with the current app version.
+    localStorage.setItem('mcore-user-controls', JSON.stringify(finalControls));
+
+    return finalControls;
 }
 
 
@@ -609,14 +614,14 @@ function closeDayDetailsLightbox() {
 async function renderCalendarPage(year, selectedCarrier = null) {
     await fetchEvents();
     await fetchUserControls();
-    loadT6Routes(); 
+    loadT6Routes();
 
-    const currentYear = new Date().getFullYear();
+    const currentCarrierInfo = selectedCarrier ? CARRIER_COLORS[selectedCarrier] : CARRIER_COLORS['all'];
+    const headingTextColorClass = currentCarrierInfo.textClass;
 
-    let carrierButtonsHtml = `<button class="carrier-color-button ${CARRIER_COLORS['all'].class} ${selectedCarrier === null ? 'selected' : ''}" data-carrier-color="">
+    let carrierButtonsHtml = `<button class="carrier-color-button ${CARRIER_COLORS['all'].class} ${selectedCarrier === null || selectedCarrier === '' ? 'selected' : ''}" data-carrier-color="">
                                 <span class="button-text">All</span>
                               </button>`;
-
     for (const key in CARRIER_COLORS) {
         if (key !== 'all') {
             const carrier = CARRIER_COLORS[key];
@@ -628,50 +633,56 @@ async function renderCalendarPage(year, selectedCarrier = null) {
         }
     }
 
-    
     let t6InputHtml = '';
     for (let i = 0; i < 5; i++) {
         t6InputHtml += `<input type="text" inputmode="numeric" pattern="[0-9]*" class="t6-route-input" data-index="${i}" value="${t6Routes[i] || ''}" placeholder="R${i+1}" maxlength="3">`;
     }
 
-    const currentCarrierInfo = selectedCarrier ? CARRIER_COLORS[selectedCarrier] : CARRIER_COLORS['all'];
-    const headingTextColorClass = currentCarrierInfo.textClass;
-
     appContent.innerHTML = `
         <h2 class="page-title tight-padding ${headingTextColorClass}">Carrier Calendar</h2>
-        <div class="carrier-buttons-grid">
-            ${carrierButtonsHtml}
+
+        <div class="calendar-main-nav">
+            <button id="prev-year-btn" class="nav-button tight-padding">&laquo;</button>
+            <span id="current-year-display" class="current-year-display text-usps-blue">${year}</span>
+            <button id="next-year-btn" class="nav-button tight-padding">&raquo;</button>
+            <button id="today-calendar-btn" class="nav-button">Today</button>
         </div>
-        <div class="user-control-nav-box">
-            <button class="nav-button" data-filter="all">All</button>
-            <button class="nav-button" data-filter="none">None</button>
-            <button class="nav-button ${userControls.showHolidays ? 'selected' : ''}" data-filter="holidays">Holidays</button>
-            <button class="nav-button ${userControls.showSeasons ? 'selected' : ''}" data-filter="seasons">Seasons</button>
-            <button class="nav-button ${userControls.showSolstice ? 'selected' : ''}" data-filter="solstice">Solstices</button>
-            <button class="nav-button ${userControls.showDaylightSaving ? 'selected' : ''}" data-filter="daylightSaving">
-                <span class="full-text">Daylight Savings</span>
-                <span class="short-text">DST</span>
-            </button>
-            <button class="nav-button ${userControls.showPaydays ? 'selected' : ''}" data-filter="paydays">Pay</button>
-        </div>
-        <div class="calendar-controls-group">
-            <div class="calendar-year-controls">
-                <button id="prev-year-btn" class="nav-button tight-padding">&laquo; Previous</button>
-                <span id="current-year-display" class="current-year-display text-usps-blue">${year}</span>
-                <button id="next-year-btn" class="nav-button tight-padding">Next &raquo;</button>
-                <button id="current-year-btn" class="nav-button">Current Year</button>
-                <button id="today-calendar-btn" class="nav-button">Today</button>
-            </div>
-        </div>
-        
-        <!-- T6 Feature: Accordion UI -->
-        <div class="t6-accordion">
-            <button id="t6-accordion-toggle" class="t6-accordion-toggle">T6 Route Rotation</button>
-            <div id="t6-accordion-panel" class="t6-accordion-panel">
-                <p class="info-text">Day 1 begins the day after the NS day. All 5 routes must be filled out.</p>
-                <div class="t6-route-inputs">
-                    ${t6InputHtml}
+
+        <div class="settings-accordion">
+            <button id="settings-accordion-toggle" class="settings-accordion-toggle">Display Options</button>
+            <div id="settings-accordion-panel" class="settings-accordion-panel">
+                
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Carrier Color Schedule</h3>
+                    <div class="carrier-buttons-grid">
+                        ${carrierButtonsHtml}
+                    </div>
                 </div>
+
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Filter Calendar Events</h3>
+                    <div class="user-control-nav-box">
+                        <button class="nav-button" data-filter="all">All</button>
+                        <button class="nav-button" data-filter="none">None</button>
+                        <button class="nav-button ${userControls.showHolidays ? 'selected' : ''}" data-filter="holidays">Holidays</button>
+                        <button class="nav-button ${userControls.showSeasons ? 'selected' : ''}" data-filter="seasons">Seasons</button>
+                        <button class="nav-button ${userControls.showSolstice ? 'selected' : ''}" data-filter="solstice">Solstices</button>
+                        <button class="nav-button ${userControls.showDaylightSaving ? 'selected' : ''}" data-filter="daylightSaving">
+                            <span class="full-text">Daylight Savings</span>
+                            <span class="short-text">DST</span>
+                        </button>
+                        <button class="nav-button ${userControls.showPaydays ? 'selected' : ''}" data-filter="paydays">Pay</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3 class="settings-section-title">T6 Route Rotation</h3>
+                    <p class="info-text">Enter your 5 rotating routes. The schedule appears once all 5 are filled.</p>
+                    <div class="t6-route-inputs">
+                        ${t6InputHtml}
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -696,34 +707,28 @@ async function renderCalendarPage(year, selectedCarrier = null) {
 
     renderAllMonthTiles();
     
-    
-    const t6Toggle = document.getElementById('t6-accordion-toggle');
-    const t6Panel = document.getElementById('t6-accordion-panel');
-    t6Toggle.addEventListener('click', () => {
-        t6Toggle.classList.toggle('active');
-        t6Panel.classList.toggle('show');
+    const settingsToggle = document.getElementById('settings-accordion-toggle');
+    const settingsPanel = document.getElementById('settings-accordion-panel');
+    settingsToggle.addEventListener('click', () => {
+        settingsToggle.classList.toggle('active');
+        settingsPanel.classList.toggle('show');
     });
 
     document.querySelectorAll('.t6-route-input').forEach(input => {
         input.addEventListener('input', (e) => {
-            // Sanitize input to allow only numbers
             e.target.value = e.target.value.replace(/[^0-9]/g, '');
             const index = parseInt(e.target.dataset.index, 10);
             t6Routes[index] = e.target.value;
             saveT6Routes();
-            renderAllMonthTiles(); // Re-render calendar on input change
+            renderAllMonthTiles();
         });
     });
-
 
     document.getElementById('prev-year-btn').addEventListener('click', () => {
         window.location.hash = `#calendar?year=${year - 1}&carrier=${selectedCarrier || ''}`;
     });
     document.getElementById('next-year-btn').addEventListener('click', () => {
         window.location.hash = `#calendar?year=${year + 1}&carrier=${selectedCarrier || ''}`;
-    });
-    document.getElementById('current-year-btn').addEventListener('click', () => {
-        window.location.hash = `#calendar?year=${new Date().getFullYear()}&carrier=${selectedCarrier || ''}`;
     });
     document.getElementById('today-calendar-btn').addEventListener('click', () => {
         const actualCurrentYear = new Date().getFullYear();
@@ -733,12 +738,16 @@ async function renderCalendarPage(year, selectedCarrier = null) {
             jumpToTodayOnCalendar();
         }
     });
+
     document.querySelectorAll('.carrier-color-button').forEach(button => {
         button.addEventListener('click', (event) => {
             const newCarrier = event.currentTarget.dataset.carrierColor || '';
+            // Save the selected carrier color to localStorage
+            localStorage.setItem('mcore-selected-carrier', newCarrier);
             window.location.hash = `#calendar?year=${year}&carrier=${newCarrier}`;
         });
     });
+
     document.querySelectorAll('.user-control-nav-box .nav-button').forEach(button => {
         button.addEventListener('click', (e) => {
             const filter = e.currentTarget.dataset.filter;
@@ -876,11 +885,10 @@ function renderPayPeriodsPage(year) {
     appContent.innerHTML = `
         <div class="page-content-wrapper align-center">
             <h2 class="page-title">Pay Periods</h2>
-            <div class="pay-period-controls-group">
-                <button id="prev-pp-year-btn" class="nav-button">&laquo; Previous</button>
+            <div class="calendar-main-nav">
+                <button id="prev-pp-year-btn" class="nav-button tight-padding">&laquo;</button>
                 <span id="current-pp-year-display" class="current-year-display text-usps-blue">${year}</span>
-                <button id="next-pp-year-btn" class="nav-button">Next &raquo;</button>
-                <button id="current-pp-btn" class="nav-button">Current Year</button>
+                <button id="next-pp-year-btn" class="nav-button tight-padding">&raquo;</button>
                 <button id="today-pay-period-btn" class="nav-button">Today</button>
             </div>
             <div class="table-container">
@@ -903,7 +911,6 @@ function renderPayPeriodsPage(year) {
 
     const prevPPYearBtn = document.getElementById('prev-pp-year-btn');
     const nextPPYearBtn = document.getElementById('next-pp-year-btn');
-    const currentPPBtn = document.getElementById('current-pp-btn');
     const todayPayPeriodBtn = document.getElementById('today-pay-period-btn');
 
     prevPPYearBtn.addEventListener('click', () => {
@@ -911,10 +918,6 @@ function renderPayPeriodsPage(year) {
     });
     nextPPYearBtn.addEventListener('click', () => {
         window.location.hash = `#pay-periods?year=${year + 1}`;
-    });
-    currentPPBtn.addEventListener('click', () => {
-        const currentYear = new Date().getFullYear();
-        window.location.hash = `#pay-periods?year=${currentYear}`;
     });
 
     todayPayPeriodBtn.addEventListener('click', () => {
@@ -1023,7 +1026,13 @@ async function router() {
 
     if (hash.startsWith('#calendar')) {
         const year = parseInt(urlParams.get('year')) || currentYear;
-        const carrier = urlParams.get('carrier') || null;
+        let carrier = urlParams.get('carrier');
+
+        // If carrier param is not in the URL, check localStorage for a saved preference.
+        if (carrier === null) {
+            carrier = localStorage.getItem('mcore-selected-carrier') || null;
+        }
+        
         renderCalendarPage(year, carrier);
     } else if (hash.startsWith('#resources')) {
         renderResourcesPage();

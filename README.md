@@ -15,8 +15,11 @@ This application is completely free, open-source, and committed to user privacy:
     * Highlights carrier-specific non-service days (Black, Yellow, Blue, Green, Brown, Red) based on rotating schedules.
     * Highlights universal Sundays with a distinct color.
     * Identifies and provides information on Federal Holidays, seasonal changes (equinoxes/solstices), paydays, and Daylight Saving Time changes.
-    * **Filterable Event Display:** A responsive control panel allows you to toggle the visibility for holidays, seasons, solstices, DST, and paydays directly on the calendar page.
-    * **T6 Carrier Technician Scheduling:** A dedicated, collapsible section on the calendar page allows T6 carriers to input their 5-route string. The calendar then automatically populates with the correct route number for each workday based on the complex 6-week rotating schedule.
+* **Persistent UI Selections:** The application remembers your last-used settings, including your selected carrier color and event filters, providing a consistent experience every time you visit.
+* **Consolidated Display Options:** A streamlined accordion menu on the calendar page neatly organizes all display settings, including:
+    * **Carrier Color Schedule:** Select your specific color schedule to see your rotating days off.
+    * **Filterable Event Display:** A responsive control panel allows you to toggle the visibility for holidays, seasons, solstices, DST, and paydays.
+    * **T6 Carrier Technician Scheduling:** A dedicated section allows T6 carriers to input their 5-route string. The calendar then automatically populates with the correct route number for each workday based on the complex 6-week rotating schedule.
 * **Continuous Pay Periods:** Displays a scrollable table of pay periods, including start dates, end dates, and pay dates, with the current pay period highlighted.
 * **Useful Acronyms:** A searchable and sortable table of common USPS acronyms and their meanings.
 * **Useful Resources:** Provides direct, safe links to official websites for contract information, CCA resources, retirement, and more.
@@ -35,7 +38,7 @@ This application is completely free, open-source, and committed to user privacy:
 * **Service Worker:** Enables offline capabilities and faster loading.
 
 ## Project Structure
-```
+,,,
 
 mcore/
 ├── index.html              # Main application entry point
@@ -54,7 +57,7 @@ mcore/
 ├── manifest.json           # Web App Manifest for PWA features
 └── service-worker.js       # Service Worker for offline caching
 
-```
+,,,
 ## Installation and Setup
 
 ### Local Development Server (Apache2)
@@ -86,8 +89,11 @@ Simply open the `index.html` file in your browser (or navigate to your deployed 
 
 * **Navigation:** Use the links in the header to jump between Calendar, Resources, Acronyms, and Pay Periods.
 * **Theme Toggle:** Click the sun/moon icon in the header to switch between light and dark modes.
-* **Calendar:** Use the "Previous", "Next", "Current Year", and "Today" buttons to navigate years. Select a carrier color button (or "All") to view specific schedules. Use the filter buttons (All, None, Holidays, etc.) to toggle the visibility of different event icons on the calendar. Click on any day with an icon to see detailed information in a pop-up.
-* **T6 Scheduling:** On the calendar page, click the "T6 Route Rotation" bar to expand the panel. Enter your five route numbers. The calendar will automatically display the correct route on each workday. The schedule is saved locally to your device.
+* **Calendar:** Use the primary navigation buttons to move between years or jump to the current day. All other display settings are located in the "Display Options" menu.
+* **Display Options:**
+    * **Carrier Color:** Select a color to see your rotating day off schedule. Your choice is saved for your next visit.
+    * **Event Filters:** Toggle visibility for holidays, seasons, paydays, etc. Your preferences are saved.
+    * **T6 Scheduling:** Enter your five route numbers to see your T6 schedule on the calendar. Your routes are saved locally.
 * **Pay Periods:** Use the "Previous Year", "Next Year", "Current Year", and "Today" buttons to browse pay periods by year. The current pay period row will be highlighted.
 * **Acronyms:** Use the search bar to filter acronyms by term or meaning. Use the "Sort A-Z" and "Sort Z-A" buttons to reorder the list.
 * **Install App:** If your browser supports PWAs, an "Install App" button will appear in the header. Click it to add mCORE to your device's home screen for an app-like experience and offline access.
@@ -100,6 +106,4 @@ This project is open-source under the MIT License. Contributions are welcome! If
 
 For any inquiries, please contact: a.mailman.sam@gmail.com
 
-
 This project adheres to [Semantic Versioning](https://semver.org/).
-
