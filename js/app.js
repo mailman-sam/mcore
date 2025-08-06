@@ -123,7 +123,8 @@ async function fetchUserControls() {
         showDaylightSaving: true,
         showSolstice: true,
         showSeasons: true,
-        showPaydays: true
+        showPaydays: true,
+        eventImageOpacity: 0.25
     };
 
     let savedControls = {};
@@ -413,13 +414,13 @@ function generateMonthTile(month, year, selectedCarrier) {
         const currentDate = new Date(year, month, day);
         const formattedDate = currentDate.toISOString().split('T')[0];
         let dayClasses = ['calendar-day'];
-        let eventIconsHtml = '';
         let paydayHtml = '';
         let t6RouteHtml = '';
         let isOffDay = false;
         let highlightClasses = [];
         let dataAttributes = '';
         let eventInfos = [];
+        let dayStyles = ''; // For inline styles like background images
 
         if (currentDate.getDate() === today.getDate() &&
             currentDate.getMonth() === today.getMonth() &&
@@ -452,6 +453,7 @@ function generateMonthTile(month, year, selectedCarrier) {
         dayClasses.push(...highlightClasses);
 
         const events = getEventsForDate(currentDate);
+        const visibleEvents = [];
         if (events.length > 0) {
             events.forEach(event => {
                 const showEvent = (event.type === 'holiday' && userControls.showHolidays) ||
@@ -459,12 +461,19 @@ function generateMonthTile(month, year, selectedCarrier) {
                                   (event.type === 'solstice' && userControls.showSolstice) ||
                                   (event.type === 'season' && userControls.showSeasons);
                 if(showEvent) {
-                    eventIconsHtml += `<img src="/mcore/icons/${event.icon}" alt="${event.name}" class="event-icon">`;
+                    visibleEvents.push(event);
                     eventInfos.push({name: event.name, info: event.info, icon: event.icon});
                 }
             });
         }
         
+        if (visibleEvents.length > 0) {
+            dayClasses.push('has-event-bg');
+            const primaryEvent = visibleEvents[0]; // Use the first event for the background
+            const imageUrl = `/mcore/icons/${primaryEvent.icon}`;
+            dayStyles = `style="--event-bg-image: url('${imageUrl}'); --event-bg-opacity: ${userControls.eventImageOpacity};"`;
+        }
+
         if (eventInfos.length > 0) {
             const jsonString = JSON.stringify(eventInfos);
             const escapedJsonString = jsonString.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
@@ -489,9 +498,9 @@ function generateMonthTile(month, year, selectedCarrier) {
         }
 
         daysHtml += `
-            <div class="${dayClasses.join(' ')}" data-date="${formattedDate}" ${dataAttributes}>
+            <div class="${dayClasses.join(' ')}" data-date="${formattedDate}" ${dataAttributes} ${dayStyles}>
                 <span class="day-number">${day}</span>
-                <div class="event-icon-container">${eventIconsHtml}</div>
+                <div class="event-icon-container"></div>
                 ${paydayHtml}
                 ${t6RouteHtml}
             </div>
@@ -646,6 +655,15 @@ async function renderCalendarPage(year, selectedCarrier = null) {
                 </div>
 
                 <div class="settings-section">
+                    <h3 class="settings-section-title">Event Image Opacity</h3>
+                    <div class="opacity-slider-container">
+                        <label for="event-opacity-slider">Opacity:</label>
+                        <input type="range" id="event-opacity-slider" min="0" max="1" step="0.05" value="${userControls.eventImageOpacity || 0.25}">
+                        <span id="opacity-value-display">${(userControls.eventImageOpacity || 0.25).toFixed(2)}</span>
+                    </div>
+                </div>
+
+                <div class="settings-section">
                     <h3 class="settings-section-title">T6 Route Rotation</h3>
                     <p class="info-text">Enter your 5 rotating routes. The schedule appears once all 5 are filled.</p>
                     <div class="t6-route-inputs">
@@ -683,6 +701,25 @@ async function renderCalendarPage(year, selectedCarrier = null) {
         settingsToggle.classList.toggle('active');
         settingsPanel.classList.toggle('show');
     });
+
+    const opacitySlider = document.getElementById('event-opacity-slider');
+    const opacityDisplay = document.getElementById('opacity-value-display');
+
+    if(opacitySlider && opacityDisplay) {
+        opacitySlider.addEventListener('input', (e) => {
+            const newOpacity = parseFloat(e.target.value);
+            opacityDisplay.textContent = newOpacity.toFixed(2);
+            document.querySelectorAll('.calendar-day.has-event-bg').forEach(day => {
+                day.style.setProperty('--event-bg-opacity', newOpacity);
+            });
+        });
+
+        opacitySlider.addEventListener('change', (e) => {
+            const newOpacity = parseFloat(e.target.value);
+            userControls.eventImageOpacity = newOpacity;
+            localStorage.setItem('mcore-user-controls', JSON.stringify(userControls));
+        });
+    }
 
     document.querySelectorAll('.t6-route-input').forEach(input => {
         input.addEventListener('input', (e) => {
@@ -735,9 +772,9 @@ async function renderCalendarPage(year, selectedCarrier = null) {
             };
 
             if (filter === 'all') {
-                Object.keys(userControls).forEach(key => userControls[key] = true);
+                Object.keys(keyMap).forEach(key => userControls[keyMap[key]] = true);
             } else if (filter === 'none') {
-                Object.keys(userControls).forEach(key => userControls[key] = false);
+                Object.keys(keyMap).forEach(key => userControls[keyMap[key]] = false);
             } else {
                 const key = keyMap[filter];
                 if (key) {
