@@ -1,8 +1,7 @@
 // app.js
 
-// Constants for flash animation
 const FLASH_ANIMATION_COUNT = 3;
-const FLASH_ANIMATION_SINGLE_DURATION_MS = 500; // Duration of one flash cycle in ms
+const FLASH_ANIMATION_SINGLE_DURATION_MS = 500;
 const FLASH_ANIMATION_TOTAL_DURATION_MS = FLASH_ANIMATION_COUNT * FLASH_ANIMATION_SINGLE_DURATION_MS;
 
 const appContent = document.getElementById('app-content');
@@ -21,23 +20,19 @@ let allAcronymsData = [];
 let allResourcesData = [];
 let appConfig = {};
 let specialEventsCache = {};
-let t6Routes = []; // Holds the 5 T6 routes
+let t6Routes = [];
 
 const MCORE_LOGO_FALLBACK_PATH = '/mcore/icons/mcore-logo-fallback.png';
 
 // T6 Carrier Technician Rotation Constants
-// Reference date: The start of a known 42-day cycle. July 19, 2025, is a Saturday and the start of the cycle containing Aug 4, 2025.
-const T6_CYCLE_REFERENCE_START_DATE = new Date('2025-07-19T00:00:00');
-// This map represents the 42-day (6-week) T6 rotation schedule.
-// Each number corresponds to an index in the user's t6Routes array (0-4).
-// -1 represents a day off. The cycle starts on a Saturday.
+const T6_CYCLE_REFERENCE_START_DATE = new Date('2025-07-05T00:00:00');
 const T6_CYCLE_MAP = [
-    0, -1, 1, -1, 0, 1, 2, // Week 1 (Days 0-6)
-    2, -1, 3, 4, -1, 0, 1, // Week 2 (Days 7-13)
-    1, -1, 2, 3, 4, -1, 0, // Week 3 (Days 14-20)
-    0, -1, 1, 2, 3, 4, -1, // Week 4 (Days 21-27)
-   -1, -1, 0, 1, 2, 3, 4, // Week 5 (Days 28-34)
-    4, -1, -1, 0, 1, 2, 3  // Week 6 (Days 35-41)
+    -1, -1, 0, 1, 2, 3, 4,
+    4, -1, -1, 0, 1, 2, 3,
+    3, -1, 4, -1, 0, 1, 2,
+    2, -1, 3, 4, -1, 0, 1,
+    1, -1, 2, 3, 4, -1, 0,
+    0, -1, 1, 2, 3, 4, -1
 ];
 
 
@@ -122,9 +117,7 @@ async function fetchEvents() {
     }
 }
 
-// Updated function to robustly handle loading and saving user filter preferences.
 async function fetchUserControls() {
-    // Define the default structure and values for all filters.
     const defaultControls = {
         showHolidays: true,
         showDaylightSaving: true,
@@ -135,26 +128,17 @@ async function fetchUserControls() {
 
     let savedControls = {};
     try {
-        // Attempt to retrieve saved settings from localStorage.
         const savedControlsRaw = localStorage.getItem('mcore-user-controls');
         if (savedControlsRaw) {
             savedControls = JSON.parse(savedControlsRaw);
         }
     } catch (e) {
         console.error("Could not parse user controls from localStorage", e);
-        // If there's an error (e.g., corrupted data), start with fresh defaults.
         savedControls = {}; 
     }
 
-    // Merge defaults with any saved settings. This ensures that if new filters are
-    // added in the future, the app doesn't break for users with old settings.
     const finalControls = { ...defaultControls, ...savedControls };
-
-    // Update the global userControls object with the final, merged settings.
     userControls = finalControls;
-
-    // Save the cleaned-up/merged settings back to localStorage. This keeps the
-    // stored data consistent with the current app version.
     localStorage.setItem('mcore-user-controls', JSON.stringify(finalControls));
 
     return finalControls;
@@ -319,7 +303,7 @@ function getEventsForDate(date) {
 
 
 function getPostalWorkWeekNumber(date) {
-    const cycleStart = new Date('2025-01-04T00:00:00');
+    const cycleStart = new Date('2024-11-23T00:00:00');
     const targetDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const dayOfWeek = targetDate.getDay();
     if (dayOfWeek !== 6) {
@@ -375,52 +359,39 @@ function getPayDays(year) {
     return payDays;
 }
 
-// T6 Feature: Load routes from localStorage
 function loadT6Routes() {
     const savedRoutes = localStorage.getItem('mcore-t6-routes');
     if (savedRoutes) {
         t6Routes = JSON.parse(savedRoutes);
     } else {
-        // Initialize with 5 empty strings if no data is saved
         t6Routes = ['', '', '', '', ''];
     }
 }
 
-// T6 Feature: Save routes to localStorage
 function saveT6Routes() {
     localStorage.setItem('mcore-t6-routes', JSON.stringify(t6Routes));
 }
 
-// T6 Feature: Calculate route for a given date
 function getT6RouteForDate(date) {
-    // Ensure all 5 routes are filled to activate the feature
     if (!t6Routes || t6Routes.length !== 5 || t6Routes.some(r => r === '')) {
         return null;
     }
 
-    // No routes on Sunday
     if (date.getDay() === 0) {
         return null;
     }
 
-    // Normalize date to avoid time zone issues
     const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-    // Calculate the number of days since the reference start date
     const diffMillis = checkDate.getTime() - T6_CYCLE_REFERENCE_START_DATE.getTime();
     const diffDays = Math.floor(diffMillis / (1000 * 60 * 60 * 24));
-
-    // Calculate the day's position in the 42-day cycle
-    // The modulo logic ensures the result is always positive
     const dayInCycle = (diffDays % 42 + 42) % 42;
-
     const routeIndex = T6_CYCLE_MAP[dayInCycle];
 
     if (routeIndex !== undefined && routeIndex !== -1) {
         return t6Routes[routeIndex];
     }
 
-    return null; // Return null if it's a day off or not in the map
+    return null;
 }
 
 
@@ -505,7 +476,6 @@ function generateMonthTile(month, year, selectedCarrier) {
             dataAttributes += ` data-is-payday="true"`;
         }
 
-        // T6 Feature: Get and display route number
         const routeNumber = getT6RouteForDate(currentDate);
         if (routeNumber) {
             t6RouteHtml = `<span class="t6-route-number">${routeNumber}</span>`;
@@ -744,7 +714,6 @@ async function renderCalendarPage(year, selectedCarrier = null) {
             const newCarrier = event.currentTarget.dataset.carrierColor || '';
             localStorage.setItem('mcore-selected-carrier', newCarrier);
 
-            // Preserve accordion state before re-rendering
             const settingsPanel = document.getElementById('settings-accordion-panel');
             if (settingsPanel && settingsPanel.classList.contains('show')) {
                 sessionStorage.setItem('mcore-accordion-open', 'true');
@@ -778,7 +747,6 @@ async function renderCalendarPage(year, selectedCarrier = null) {
             
             localStorage.setItem('mcore-user-controls', JSON.stringify(userControls));
             
-            // Preserve accordion state before re-rendering
             const settingsPanel = document.getElementById('settings-accordion-panel');
             if (settingsPanel && settingsPanel.classList.contains('show')) {
                 sessionStorage.setItem('mcore-accordion-open', 'true');
@@ -788,13 +756,11 @@ async function renderCalendarPage(year, selectedCarrier = null) {
         });
     });
 
-    // Restore accordion state if it was open before a re-render
     if (sessionStorage.getItem('mcore-accordion-open') === 'true') {
         if (settingsToggle && settingsPanel) {
             settingsToggle.classList.add('active');
             settingsPanel.classList.add('show');
         }
-        // Clear the flag so it doesn't persist on next navigation
         sessionStorage.removeItem('mcore-accordion-open');
     }
 }
@@ -1051,7 +1017,6 @@ async function router() {
         const year = parseInt(urlParams.get('year')) || currentYear;
         let carrier = urlParams.get('carrier');
 
-        // If carrier param is not in the URL, check localStorage for a saved preference.
         if (carrier === null) {
             carrier = localStorage.getItem('mcore-selected-carrier') || null;
         }
