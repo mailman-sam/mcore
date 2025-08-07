@@ -9,39 +9,27 @@ This application is completely free, open-source, and committed to user privacy:
 ## Key Features
 
 * **Live USPS Time Clock:** A sleek, live-updating display in the header shows the current date, standard 24-hour time (with seconds), and the special USPS 24-hour decimal time, all based on the user's local timezone.
-* **Responsive Design:** Optimized for seamless use across desktop, Android, and Apple mobile devices.
-* **Theme Toggle:** Switch between light and dark modes for optimal viewing comfort.
 * **Dynamic Calendar:**
     * Generates monthly calendars for various years.
     * Highlights carrier-specific non-service days (Black, Yellow, Blue, Green, Brown, Red) based on rotating schedules.
-    * Highlights universal Sundays with a distinct color.
-    * Identifies and provides information on Federal Holidays, seasonal changes (equinoxes/solstices), paydays, and Daylight Saving Time changes.
-    * Displays event icons as scalable background images on the day's tile, with adjustable opacity.
-* **Persistent UI Selections:** The application remembers your last-used settings, including your selected carrier color and event filters, providing a consistent experience every time you visit.
-* **Consolidated Display Options:** A streamlined accordion menu on the calendar page neatly organizes all display settings, including:
-    * **Carrier Color Schedule:** Select your specific color schedule to see your rotating days off, or choose "None" for a traditional, bordered calendar view.
-    * **Filterable Event Display:** A responsive control panel allows you to toggle the visibility for holidays, seasons, solstices, DST, and paydays.
-    * **Event Image Opacity:** An adjustable slider to control the visibility of the event background images on the calendar.
-    * **T6 Carrier Technician Scheduling:** A dedicated section allows T6 carriers to input their 5-route string. The calendar then automatically populates with the correct route number for each workday based on the complex 6-week rotating schedule.
-* **Continuous Pay Periods:** Displays a scrollable table of pay periods, including start dates, end dates, and pay dates, with the current pay period highlighted.
-* **Useful Acronyms:** A searchable and sortable table of common USPS acronyms and their meanings.
-* **Useful Resources:** Provides direct, safe links to official websites for contract information, CCA resources, retirement, vehicle safety checks, and more.
+    * Identifies and provides information on Federal Holidays, seasonal changes, paydays, and other events like the Stamp Out Hunger Food Drive.
+* **Time Conversion Table:** An internal tool that displays a detailed breakdown of minutes to hundredths and ordinary time to 24-hour time, with the current hour and minute highlighted in real-time.
+* **Pay Period Tracker:** A continuous, scrollable table of pay periods with start dates, end dates, and pay dates clearly marked. The current pay period is always highlighted.
+* **Acronyms Database:** A searchable and sortable reference for common USPS acronyms.
+* **Resource Hub:** A curated list of safe, direct links to official websites and internal app tools.
 * **PWA (Progressive Web App):** Installable on mobile and desktop devices for an app-like experience and robust offline access.
-* **Offline Functionality:** The application is designed to work seamlessly offline, allowing access to cached content and functionality even without an internet connection.
-* **UI Enhancements:** Includes a "Scroll to Top" button for easy navigation and enhanced visual feedback on interactive elements.
-* **Lightweight:** The entire application is designed to be small in size, ensuring quick loading times and minimal storage usage.
-* **Disclaimer:** Clear terms and conditions outlining the app's independent nature and disclaimer of liability.
+* **Privacy Focused:** The application collects no user data, serves no ads, and is completely free and open-source.
 
 ## Technologies Used
 
 * **HTML5:** For semantic structure.
 * **CSS3:** Custom styling and responsive design.
 * **JavaScript (ES6+):** For all dynamic content generation, routing, and interactive features.
-* **JSON:** For storing dynamic data (events, acronyms, resources, and user preferences).
+* **JSON:** For storing dynamic data (events, acronyms, resources).
 * **Service Worker:** Enables offline capabilities and faster loading.
 
 ## Project Structure
-```
+,,,
 
 mcore/
 ├── index.html              # Main application entry point
@@ -60,31 +48,34 @@ mcore/
 ├── manifest.json           # Web App Manifest for PWA features
 └── service-worker.js       # Service Worker for offline caching
 
-```
+,,,
 ## Installation and Setup
 
-### Local Development Server (Apache2)
+### Local Development
+
+To run the project on your local machine, you'll need a simple web server.
 
 1.  **Clone the repository:**
     ```bash
     git clone [https://github.com/mailman-sam/mcore.git](https://github.com/mailman-sam/mcore.git)
     ```
-2.  **Place the `mcore` folder:** Copy the entire `mcore` directory into your Apache web server's document root (e.g., `/var/www/html/` on Linux, `htdocs/` for XAMPP/WAMP).
-3.  **Access in browser:** Open your web browser and navigate to `http://localhost/mcore/` (or your server's IP address if configured differently).
+2.  **Set Up a Local Server (example using Python):**
+    ```bash
+    # Navigate into the project directory
+    cd mcore
+    # For Python 3
+    python -m http.server
+    ```
+3.  **Access in browser:** Open your web browser and navigate to `http://localhost:8000`.
 
 ### GitHub Pages Deployment
 
-This project is configured for deployment to GitHub Pages when hosted from a repository that is *not* named after your GitHub username (i.e., it's hosted in a subdirectory like `yourusername.github.io/mcore/`).
-
-1.  **Create a GitHub Repository:** Create a new public repository on GitHub (e.g., `mcore`).
-2.  **Push your code:** Push your local `mcore` project files to this new repository.
-3.  **Configure GitHub Pages:**
-    * Go to your repository on GitHub.
-    * Navigate to **Settings > Pages**.
-    * Under "Build and deployment", set "Source" to **Deploy from a branch**.
-    * Select your primary branch (e.g., `main` or `master`) and the `/ (root)` folder.
-    * Click **Save**.
-4.  **Access your app:** Your app should be live at `https://yourusername.github.io/mcore/` within a few minutes.
+1.  **Push your code** to a public GitHub repository.
+2.  **Configure GitHub Pages:**
+    * Go to your repository's **Settings > Pages**.
+    * Under "Build and deployment", set the "Source" to **Deploy from a branch**.
+    * Select your primary branch (e.g., `main`) and the `/ (root)` folder, then **Save**.
+3.  Your app will be live at `https://your-username.github.io/your-repository-name/`.
 
 ## Usage
 
@@ -105,11 +96,10 @@ Simply open the `index.html` file in your browser (or navigate to your deployed 
 
 ## Contributing
 
-This project is open-source under the MIT License. Contributions are welcome! If you have suggestions for new features, bug fixes, or improvements, please feel free to fork the repository and submit a pull request.
+Contributions are welcome! Please feel free to fork the repository and submit a pull request for any improvements or bug fixes.
 
 ## Contact
 
 For any inquiries, please contact: a.mailman.sam@gmail.com
-
 
 This project adheres to [Semantic Versioning](https://semver.org/).

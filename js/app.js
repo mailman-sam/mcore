@@ -21,6 +21,7 @@ let allResourcesData = [];
 let appConfig = {};
 let specialEventsCache = {};
 let t6Routes = [];
+let timeTableInterval = null;
 
 const MCORE_LOGO_FALLBACK_PATH = '/mcore/icons/mcore-logo-fallback.png';
 
@@ -602,7 +603,7 @@ function getPayPeriodInfo(date) {
     const ppStartDate = new Date(PP_REFERENCE_DATE.getTime());
     ppStartDate.setUTCDate(ppStartDate.getUTCDate() + (payPeriodsPassed * 14));
     const ppEndDate = new Date(ppStartDate.getTime());
-    ppEndDate.setUTCDate(ppStartDate.getUTCDate() + 13);
+    ppEndDate.setUTCDate(ppEndDate.getUTCDate() + 13);
     const payDate = new Date(ppEndDate.getTime());
     payDate.setUTCDate(ppEndDate.getUTCDate() + 7);
     return { payPeriodYear: currentPayPeriodYear, payPeriodNumber: String(currentPayPeriodNumber).padStart(2, '0'), startDate: ppStartDate, endDate: ppEndDate, payDate: payDate };
@@ -679,6 +680,10 @@ async function renderAcronymsPage() {
 }
 
 async function router() {
+    if (timeTableInterval) {
+        clearInterval(timeTableInterval);
+        timeTableInterval = null;
+    }
     const hash = window.location.hash;
     const urlParams = new URLSearchParams(hash.split('?')[1]);
     const currentYear = new Date().getFullYear();
@@ -694,6 +699,8 @@ async function router() {
     } else if (hash.startsWith('#pay-periods')) {
         const year = parseInt(urlParams.get('year')) || currentYear;
         renderPayPeriodsPage(year);
+    } else if (hash.startsWith('#time-table')) {
+        renderTimeTablePage();
     } else if (hash === '#disclaimer') {
         renderDisclaimerPage();
     } else {
@@ -710,15 +717,81 @@ function renderDisclaimerPage() {
 }
 
 function renderResourcesPage() {
-    appContent.innerHTML = `<div class="page-content-wrapper align-left"><h2 class="page-title">Useful Resources</h2><p class="info-text">This section provides links to publicly available resources for mail carriers. Please note that mCORE is an independent application and is not affiliated with USPS, or any other official entity, NALC, NRLCA, or any other union. Always verify information with official sources.</p><ul id="resources-list" class="resource-list"></ul><div class="button-group"><a href="#landing" class="button primary-button">Back to Home</a></div></div>`;
+    appContent.innerHTML = `<div class="page-content-wrapper align-left"><h2 class="page-title">Useful Resources</h2><p class="info-text">This section provides links to publicly available resources and internal app tools for mail carriers. Please note that mCORE is an independent application and is not affiliated with USPS, or any other official entity, NALC, NRLCA, or any other union. Always verify information with official sources.</p><ul id="resources-list" class="resource-list"></ul><div class="button-group"><a href="#landing" class="button primary-button">Back to Home</a></div></div>`;
     const resourcesList = document.getElementById('resources-list');
     fetchAllResourcesData().then(data => {
         if (data && data.length > 0) {
-            resourcesList.innerHTML = data.map(item => `<li><a href="${item.url}" target="_blank" rel="noopener noreferrer" class="resource-link">${item.title}</a><p class="resource-description">${item.description}</p></li>`).join('');
+            resourcesList.innerHTML = data.map(item => {
+                const isInternal = item.url.startsWith('#');
+                return `<li><a href="${item.url}" ${isInternal ? '' : 'target="_blank" rel="noopener noreferrer"'} class="resource-link">${item.title}</a><p class="resource-description">${item.description}</p></li>`;
+            }).join('');
         } else {
             resourcesList.innerHTML = '<li>No resources available at this time.</li>';
         }
     });
+}
+
+function renderTimeTablePage() {
+    const timeData = [
+        { min: 0, hun: '00' }, { min: 1, hun: '02' }, { min: 2, hun: '03' }, { min: 3, hun: '05' }, { min: 4, hun: '07' }, { min: 5, hun: '08' }, { min: 6, hun: '10' }, { min: 7, hun: '12' }, { min: 8, hun: '13' }, { min: 9, hun: '15' }, { min: 10, hun: '17' }, { min: 11, hun: '18' }, { min: 12, hun: '20' }, { min: 13, hun: '22' }, { min: 14, hun: '23' },
+        { min: 15, hun: '25' }, { min: 16, hun: '27' }, { min: 17, hun: '28' }, { min: 18, hun: '30' }, { min: 19, hun: '32' }, { min: 20, hun: '33' }, { min: 21, hun: '35' }, { min: 22, hun: '37' }, { min: 23, hun: '38' }, { min: 24, hun: '40' }, { min: 25, hun: '42' }, { min: 26, hun: '43' }, { min: 27, hun: '45' }, { min: 28, hun: '47' }, { min: 29, hun: '48' },
+        { min: 30, hun: '50' }, { min: 31, hun: '52' }, { min: 32, hun: '53' }, { min: 33, hun: '55' }, { min: 34, hun: '57' }, { min: 35, hun: '58' }, { min: 36, hun: '60' }, { min: 37, hun: '62' }, { min: 38, hun: '63' }, { min: 39, hun: '65' }, { min: 40, hun: '67' }, { min: 41, hun: '68' }, { min: 42, hun: '70' }, { min: 43, hun: '72' }, { min: 44, hun: '73' },
+        { min: 45, hun: '75' }, { min: 46, hun: '77' }, { min: 47, hun: '78' }, { min: 48, hun: '80' }, { min: 49, hun: '82' }, { min: 50, hun: '83' }, { min: 51, hun: '85' }, { min: 52, hun: '87' }, { min: 53, hun: '88' }, { min: 54, hun: '90' }, { min: 55, hun: '92' }, { min: 56, hun: '93' }, { min: 57, hun: '95' }, { min: 58, hun: '97' }, { min: 59, hun: '98' }
+    ];
+    const hourData = [
+        { ord: '12 Midnight', mil: '0000', hour: 0 }, { ord: '1:00 AM', mil: '0100', hour: 1 }, { ord: '2:00 AM', mil: '0200', hour: 2 }, { ord: '3:00 AM', mil: '0300', hour: 3 }, { ord: '4:00 AM', mil: '0400', hour: 4 }, { ord: '5:00 AM', mil: '0500', hour: 5 }, { ord: '6:00 AM', mil: '0600', hour: 6 }, { ord: '7:00 AM', mil: '0700', hour: 7 }, { ord: '8:00 AM', mil: '0800', hour: 8 }, { ord: '9:00 AM', mil: '0900', hour: 9 }, { ord: '10:00 AM', mil: '1000', hour: 10 }, { ord: '11:00 AM', mil: '1100', hour: 11 },
+        { ord: '12 Noon', mil: '1200', hour: 12 }, { ord: '1:00 PM', mil: '1300', hour: 13 }, { ord: '2:00 PM', mil: '1400', hour: 14 }, { ord: '3:00 PM', mil: '1500', hour: 15 }, { ord: '4:00 PM', mil: '1600', hour: 16 }, { ord: '5:00 PM', mil: '1700', hour: 17 }, { ord: '6:00 PM', mil: '1800', hour: 18 }, { ord: '7:00 PM', mil: '1900', hour: 19 }, { ord: '8:00 PM', mil: '2000', hour: 20 }, { ord: '9:00 PM', mil: '2100', hour: 21 }, { ord: '10:00 PM', mil: '2200', hour: 22 }, { ord: '11:00 PM', mil: '2300', hour: 23 }
+    ];
+
+    let minutesTable = '<div class="time-table-section"><h3>Minutes to Hundredths</h3><table class="time-table"><thead><tr><th>Min</th><th>Hun</th><th>Min</th><th>Hun</th><th>Min</th><th>Hun</th><th>Min</th><th>Hun</th></tr></thead><tbody>';
+    for (let i = 0; i < 15; i++) {
+        minutesTable += `<tr>`;
+        for (let j = 0; j < 4; j++) {
+            const index = i + (j * 15);
+            if (index < 60) {
+                minutesTable += `<td data-minute="${timeData[index].min}">${timeData[index].min}</td><td>.${timeData[index].hun}</td>`;
+            }
+        }
+        minutesTable += `</tr>`;
+    }
+    minutesTable += '</tbody></table></div>';
+
+    let hoursTable = '<div class="time-table-section"><h3>Ordinary Time to 24-Hour Time</h3><table class="time-table"><thead><tr><th>Ordinary</th><th>24-Hour</th><th>Ordinary</th><th>24-Hour</th></tr></thead><tbody>';
+    for (let i = 0; i < 12; i++) {
+        hoursTable += `<tr><td data-hour="${hourData[i].hour}">${hourData[i].ord}</td><td>${hourData[i].mil}</td><td data-hour="${hourData[i+12].hour}">${hourData[i+12].ord}</td><td>${hourData[i+12].mil}</td></tr>`;
+    }
+    hoursTable += '</tbody></table></div>';
+
+    appContent.innerHTML = `<div class="page-content-wrapper align-center"><h2 class="page-title">Time Conversion Table</h2><div class="time-table-container">${hoursTable}${minutesTable}</div></div>`;
+    
+    function updateHighlight() {
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+
+        document.querySelectorAll('.time-table .current-time-cell').forEach(el => {
+            el.classList.remove('current-time-cell');
+        });
+
+        const hourCells = document.querySelectorAll(`.time-table td[data-hour="${currentHour}"]`);
+        hourCells.forEach(cell => {
+            cell.classList.add('current-time-cell');
+            if (cell.nextElementSibling) {
+                cell.nextElementSibling.classList.add('current-time-cell');
+            }
+        });
+
+        const minuteCell = document.querySelector(`.time-table td[data-minute="${currentMinute}"]`);
+        if (minuteCell) {
+            minuteCell.classList.add('current-time-cell');
+            if (minuteCell.nextElementSibling) {
+                minuteCell.nextElementSibling.classList.add('current-time-cell');
+            }
+        }
+    }
+
+    updateHighlight();
+    timeTableInterval = setInterval(updateHighlight, 1000);
 }
 
 // --- Live Time Clock Functions ---
