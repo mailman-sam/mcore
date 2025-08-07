@@ -8,6 +8,7 @@ This application is completely free, open-source, and committed to user privacy:
 
 ## Key Features
 
+* **Live USPS Time Clock:** A sleek, live-updating display in the header shows the current date, standard 24-hour time (with seconds), and the special USPS 24-hour decimal time, all based on the user's local timezone.
 * **Responsive Design:** Optimized for seamless use across desktop, Android, and Apple mobile devices.
 * **Theme Toggle:** Switch between light and dark modes for optimal viewing comfort.
 * **Dynamic Calendar:**
@@ -15,14 +16,16 @@ This application is completely free, open-source, and committed to user privacy:
     * Highlights carrier-specific non-service days (Black, Yellow, Blue, Green, Brown, Red) based on rotating schedules.
     * Highlights universal Sundays with a distinct color.
     * Identifies and provides information on Federal Holidays, seasonal changes (equinoxes/solstices), paydays, and Daylight Saving Time changes.
+    * Displays event icons as scalable background images on the day's tile, with adjustable opacity.
 * **Persistent UI Selections:** The application remembers your last-used settings, including your selected carrier color and event filters, providing a consistent experience every time you visit.
 * **Consolidated Display Options:** A streamlined accordion menu on the calendar page neatly organizes all display settings, including:
-    * **Carrier Color Schedule:** Select your specific color schedule to see your rotating days off.
+    * **Carrier Color Schedule:** Select your specific color schedule to see your rotating days off, or choose "None" for a traditional, bordered calendar view.
     * **Filterable Event Display:** A responsive control panel allows you to toggle the visibility for holidays, seasons, solstices, DST, and paydays.
+    * **Event Image Opacity:** An adjustable slider to control the visibility of the event background images on the calendar.
     * **T6 Carrier Technician Scheduling:** A dedicated section allows T6 carriers to input their 5-route string. The calendar then automatically populates with the correct route number for each workday based on the complex 6-week rotating schedule.
 * **Continuous Pay Periods:** Displays a scrollable table of pay periods, including start dates, end dates, and pay dates, with the current pay period highlighted.
 * **Useful Acronyms:** A searchable and sortable table of common USPS acronyms and their meanings.
-* **Useful Resources:** Provides direct, safe links to official websites for contract information, CCA resources, retirement, and more.
+* **Useful Resources:** Provides direct, safe links to official websites for contract information, CCA resources, retirement, vehicle safety checks, and more.
 * **PWA (Progressive Web App):** Installable on mobile and desktop devices for an app-like experience and robust offline access.
 * **Offline Functionality:** The application is designed to work seamlessly offline, allowing access to cached content and functionality even without an internet connection.
 * **UI Enhancements:** Includes a "Scroll to Top" button for easy navigation and enhanced visual feedback on interactive elements.
@@ -38,7 +41,7 @@ This application is completely free, open-source, and committed to user privacy:
 * **Service Worker:** Enables offline capabilities and faster loading.
 
 ## Project Structure
-```
+,,,
 
 mcore/
 ├── index.html              # Main application entry point
@@ -57,7 +60,7 @@ mcore/
 ├── manifest.json           # Web App Manifest for PWA features
 └── service-worker.js       # Service Worker for offline caching
 
-```
+,,,
 ## Installation and Setup
 
 ### Local Development Server (Apache2)
@@ -88,11 +91,13 @@ This project is configured for deployment to GitHub Pages when hosted from a rep
 Simply open the `index.html` file in your browser (or navigate to your deployed GitHub Pages URL).
 
 * **Navigation:** Use the links in the header to jump between Calendar, Resources, Acronyms, and Pay Periods.
+* **Live Time:** View the live date and time, including the special USPS decimal format, in the header.
 * **Theme Toggle:** Click the sun/moon icon in the header to switch between light and dark modes.
 * **Calendar:** Use the primary navigation buttons to move between years or jump to the current day. All other display settings are located in the "Display Options" menu.
 * **Display Options:**
-    * **Carrier Color:** Select a color to see your rotating day off schedule. Your choice is saved for your next visit.
+    * **Carrier Color:** Select a color to see your rotating day off schedule. Choose "None" for a classic bordered view. Your choice is saved for your next visit.
     * **Event Filters:** Toggle visibility for holidays, seasons, paydays, etc. Your preferences are saved.
+    * **Event Image Opacity:** Use the slider to adjust the visibility of event background images.
     * **T6 Scheduling:** Enter your five route numbers to see your T6 schedule on the calendar. Your routes are saved locally.
 * **Pay Periods:** Use the "Previous Year", "Next Year", "Current Year", and "Today" buttons to browse pay periods by year. The current pay period row will be highlighted.
 * **Acronyms:** Use the search bar to filter acronyms by term or meaning. Use the "Sort A-Z" and "Sort Z-A" buttons to reorder the list.
@@ -105,6 +110,5 @@ This project is open-source under the MIT License. Contributions are welcome! If
 ## Contact
 
 For any inquiries, please contact: a.mailman.sam@gmail.com
-
 
 This project adheres to [Semantic Versioning](https://semver.org/).

@@ -24,8 +24,11 @@ let t6Routes = [];
 
 const MCORE_LOGO_FALLBACK_PATH = '/mcore/icons/mcore-logo-fallback.png';
 
+// --- Reference Dates & Cycles ---
+// All reference dates are set in UTC ('Z') to ensure calculations are consistent across all timezones.
+
 // T6 Carrier Technician Rotation Constants
-const T6_CYCLE_REFERENCE_START_DATE = new Date('2025-07-05T00:00:00');
+const T6_CYCLE_REFERENCE_START_DATE = new Date('2025-07-05T00:00:00Z');
 const T6_CYCLE_MAP = [
     -1, -1, 0, 1, 2, 3, 4,
     4, -1, -1, 0, 1, 2, 3,
@@ -34,6 +37,14 @@ const T6_CYCLE_MAP = [
     1, -1, 2, 3, 4, -1, 0,
     0, -1, 1, 2, 3, 4, -1
 ];
+
+// Postal Work Week (for rotating days off)
+const POSTAL_WORK_WEEK_START_DATE = new Date('2024-11-23T00:00:00Z');
+
+// Pay Period (PP) Constants
+const PP_REFERENCE_DATE = new Date('2024-12-14T00:00:00Z');
+const PP_REFERENCE_NUMBER = 1;
+const PP_REFERENCE_YEAR = 2025;
 
 
 const CARRIER_COLORS = {
@@ -46,10 +57,6 @@ const CARRIER_COLORS = {
     'red': { name: 'Red', class: 'carrier-red', textClass: 'text-calendar-heading-red', baseDayOffIndex: 5 },
     'all': { name: 'All', class: 'carrier-sunday', textClass: 'text-calendar-heading-all' }
 };
-
-const PP_REFERENCE_DATE = new Date('2024-12-14T00:00:00');
-const PP_REFERENCE_NUMBER = 1;
-const PP_REFERENCE_YEAR = 2025;
 
 function applyTheme(theme) {
     body.classList.remove('theme-light', 'theme-dark');
@@ -305,14 +312,18 @@ function getEventsForDate(date) {
 
 
 function getPostalWorkWeekNumber(date) {
-    const cycleStart = new Date('2024-11-23T00:00:00');
-    const targetDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const dayOfWeek = targetDate.getDay();
-    if (dayOfWeek !== 6) {
-        targetDate.setDate(targetDate.getDate() - (dayOfWeek + 1) % 7);
+    // Create a date at midnight UTC for the given local date to remove timezone ambiguity
+    const targetDateUtcTimestamp = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+    const targetDate = new Date(targetDateUtcTimestamp);
+
+    const dayOfWeek = targetDate.getUTCDay();
+    if (dayOfWeek !== 6) { // If not a Saturday (6), find the preceding Saturday
+        targetDate.setUTCDate(targetDate.getUTCDate() - (dayOfWeek + 1) % 7);
     }
-    const diffTime = Math.abs(targetDate.getTime() - cycleStart.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    const diffTime = targetDate.getTime() - POSTAL_WORK_WEEK_START_DATE.getTime();
+    // Use Math.floor for accuracy to get the number of full days elapsed.
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     return Math.floor(diffDays / 7) + 1;
 }
 
@@ -320,13 +331,11 @@ function getCarrierDayOff(date, carrierColor) {
     if (date.getDay() === 0) {
         return true;
     }
-    // If no color is selected, or it's the 'none' view, it's not a rotating day off.
     if (!carrierColor || carrierColor === 'none') {
         return false;
     }
 
     const carrier = CARRIER_COLORS[carrierColor];
-    // Also check if the carrier object is valid and has a day off index.
     if (!carrier || typeof carrier.baseDayOffIndex === 'undefined') {
         return false;
     }
@@ -348,19 +357,19 @@ function getPayDays(year) {
 
     while (currentPayDate.getFullYear() >= year - 1) {
         const ppInfo = getPayPeriodInfo(currentPayDate);
-        if (ppInfo.payDate.getFullYear() === year) {
+        if (ppInfo.payDate.getUTCFullYear() === year) {
             payDays.add(ppInfo.payDate.toISOString().split('T')[0]);
         }
-        currentPayDate.setDate(currentPayDate.getDate() - 14);
+        currentPayDate.setUTCDate(currentPayDate.getUTCDate() - 14);
     }
 
     currentPayDate = ppInfoForRef.payDate;
-    while (currentPayDate.getFullYear() <= year + 1) {
+    while (currentPayDate.getUTCFullYear() <= year + 1) {
         const ppInfo = getPayPeriodInfo(currentPayDate);
-        if (ppInfo.payDate.getFullYear() === year) {
+        if (ppInfo.payDate.getUTCFullYear() === year) {
             payDays.add(ppInfo.payDate.toISOString().split('T')[0]);
         }
-        currentPayDate.setDate(currentPayDate.getDate() + 14);
+        currentPayDate.setUTCDate(currentPayDate.getUTCDate() + 14);
     }
     return payDays;
 }
@@ -387,8 +396,11 @@ function getT6RouteForDate(date) {
         return null;
     }
 
-    const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const diffMillis = checkDate.getTime() - T6_CYCLE_REFERENCE_START_DATE.getTime();
+    // Use UTC for the calculation to ensure consistency across timezones
+    const checkDateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+    
+    const diffMillis = checkDateUtc - T6_CYCLE_REFERENCE_START_DATE.getTime();
+    // Using Math.floor is the most accurate method for calculating the number of full elapsed days.
     const diffDays = Math.floor(diffMillis / (1000 * 60 * 60 * 24));
     const dayInCycle = (diffDays % 42 + 42) % 42;
     const routeIndex = T6_CYCLE_MAP[dayInCycle];
@@ -417,7 +429,7 @@ function generateMonthTile(month, year, selectedCarrier) {
 
     for (let day = 1; day <= daysInMonth; day++) {
         const currentDate = new Date(year, month, day);
-        const formattedDate = currentDate.toISOString().split('T')[0];
+        const formattedDate = new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
         let dayClasses = ['calendar-day'];
         let paydayHtml = '';
         let t6RouteHtml = '';
@@ -425,7 +437,7 @@ function generateMonthTile(month, year, selectedCarrier) {
         let highlightClasses = [];
         let dataAttributes = '';
         let eventInfos = [];
-        let dayStyles = ''; // For inline styles like background images
+        let dayStyles = '';
 
         if (currentDate.getDate() === today.getDate() &&
             currentDate.getMonth() === today.getMonth() &&
@@ -443,7 +455,7 @@ function generateMonthTile(month, year, selectedCarrier) {
                 isOffDay = true;
                 highlightClasses.push(CARRIER_COLORS[selectedCarrier].class);
             }
-        } else { // 'all' view
+        } else {
             for (const colorKey in CARRIER_COLORS) {
                 if (colorKey !== 'all' && colorKey !== 'none' && getCarrierDayOff(currentDate, colorKey)) {
                     isOffDay = true;
@@ -474,7 +486,7 @@ function generateMonthTile(month, year, selectedCarrier) {
         
         if (visibleEvents.length > 0) {
             dayClasses.push('has-event-bg');
-            const primaryEvent = visibleEvents[0]; // Use the first event for the background
+            const primaryEvent = visibleEvents[0];
             const imageUrl = `/mcore/icons/${primaryEvent.icon}`;
             dayStyles = `style="--event-bg-image: url('${imageUrl}'); --event-bg-opacity: ${userControls.eventImageOpacity};"`;
         }
@@ -503,7 +515,7 @@ function generateMonthTile(month, year, selectedCarrier) {
         }
 
         daysHtml += `
-            <div class="${dayClasses.join(' ')}" data-date="${formattedDate}" ${dataAttributes} ${dayStyles}>
+            <div class="${dayClasses.join(' ')}" data-date="${currentDate.toISOString().split('T')[0]}" ${dataAttributes} ${dayStyles}>
                 <span class="day-number">${day}</span>
                 <div class="event-icon-container"></div>
                 ${paydayHtml}
@@ -551,9 +563,9 @@ function openDayDetailsLightbox(dayCell) {
 
     const isEvent = dayCell.dataset.isEvent === 'true';
     const isPayday = dayCell.dataset.isPayday === 'true';
-    const date = new Date(dayCell.dataset.date + 'T00:00:00');
+    const date = new Date(dayCell.dataset.date);
 
-    let contentHtml = `<h3 class="lightbox-title">${date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h3>`;
+    let contentHtml = `<h3 class="lightbox-title">${date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}</h3>`;
     contentHtml += '<div class="lightbox-event-list">';
 
     if (isEvent) {
@@ -822,10 +834,10 @@ function jumpToCurrentPayPeriod() {
 }
 
 function getPayPeriodInfo(date) {
-    const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const referenceDateNormalized = new Date(PP_REFERENCE_DATE.getFullYear(), PP_REFERENCE_DATE.getMonth(), PP_REFERENCE_DATE.getDate());
+    // Use UTC for all calculations to avoid timezone issues
+    const checkDateUtc = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
 
-    const diffTime = checkDate.getTime() - referenceDateNormalized.getTime();
+    const diffTime = checkDateUtc - PP_REFERENCE_DATE.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     const payPeriodsPassed = Math.floor(diffDays / 14);
 
@@ -841,12 +853,14 @@ function getPayPeriodInfo(date) {
         currentPayPeriodYear--;
     }
 
-    const ppStartDate = new Date(referenceDateNormalized);
-    ppStartDate.setDate(referenceDateNormalized.getDate() + (payPeriodsPassed * 14));
-    const ppEndDate = new Date(ppStartDate);
-    ppEndDate.setDate(ppStartDate.getDate() + 13);
-    const payDate = new Date(ppEndDate);
-    payDate.setDate(ppEndDate.getDate() + 7);
+    const ppStartDate = new Date(PP_REFERENCE_DATE.getTime());
+    ppStartDate.setUTCDate(ppStartDate.getUTCDate() + (payPeriodsPassed * 14));
+
+    const ppEndDate = new Date(ppStartDate.getTime());
+    ppEndDate.setUTCDate(ppStartDate.getUTCDate() + 13);
+    
+    const payDate = new Date(ppEndDate.getTime());
+    payDate.setUTCDate(ppEndDate.getUTCDate() + 7);
 
     return {
         payPeriodYear: currentPayPeriodYear,
@@ -858,58 +872,51 @@ function getPayPeriodInfo(date) {
 }
 
 function formatDate(date) {
+    // Display the date in the user's local timezone, but based on the correct UTC date value
     return date.toLocaleDateString('en-US', {
-        weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
+        weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
+        timeZone: 'UTC'
     });
 }
 
 function renderPayPeriodsPage(year) {
     let tableRowsHtml = '';
-    const normalizedToday = new Date();
-    normalizedToday.setHours(0, 0, 0, 0);
+    const localToday = new Date();
+    const normalizedToday = new Date(Date.UTC(localToday.getUTCFullYear(), localToday.getUTCMonth(), localToday.getUTCDate()));
 
-    let startPPDate = new Date(year, 0, 1);
-
-    let foundFirstPPOfYear = false;
-    let initialDateForYear = new Date(year, 0, 1);
+    let initialDateForYear = new Date(Date.UTC(year, 0, 1));
     let ppInfoIter = getPayPeriodInfo(initialDateForYear);
 
-    while (ppInfoIter.payPeriodYear < year || (ppInfoIter.payPeriodYear === year && ppInfoIter.startDate.getFullYear() < year && !foundFirstPPOfYear)) {
-        ppInfoIter.startDate.setDate(ppInfoIter.startDate.getDate() + 14);
-        ppInfoIter = getPayPeriodInfo(ppInfoIter.startDate);
-        if (ppInfoIter.payPeriodYear === year) {
-            foundFirstPPOfYear = true;
-        }
+    while (ppInfoIter.startDate.getUTCFullYear() < year) {
+        let nextDate = new Date(ppInfoIter.startDate.getTime());
+        nextDate.setUTCDate(nextDate.getUTCDate() + 14);
+        ppInfoIter = getPayPeriodInfo(nextDate);
     }
+    
     let currentDate = ppInfoIter.startDate;
 
-    let count = 0;
-    const maxPayPeriodsPerYear = 26;
-    while (count < maxPayPeriodsPerYear + 2) {
+    for (let i = 0; i < 28; i++) { // Render about a year's worth of pay periods
         const ppInfo = getPayPeriodInfo(currentDate);
 
-        if (ppInfo.payPeriodYear > year && ppInfo.payPeriodNumber > 5) {
-            break;
+        if (ppInfo.payPeriodYear > year && ppInfo.payPeriodNumber > 2) {
+            break; 
         }
 
-        if (ppInfo.payPeriodYear === year ||
-            (ppInfo.payPeriodYear === year - 1 && ppInfo.endDate.getFullYear() === year) ||
-            (ppInfo.payPeriodYear === year + 1 && ppInfo.startDate.getFullYear() === year)) {
+        const isCurrentPayPeriod = normalizedToday >= ppInfo.startDate && normalizedToday <= ppInfo.endDate;
+        const rowClasses = isCurrentPayPeriod ? 'current-pay-period-row' : '';
 
-            const isCurrentPayPeriod = normalizedToday >= ppInfo.startDate && normalizedToday <= ppInfo.endDate;
-            const rowClasses = isCurrentPayPeriod ? 'current-pay-period-row' : '';
-
-            tableRowsHtml += `
-                <tr class="${rowClasses}">
-                    <td>${ppInfo.payPeriodYear}-${ppInfo.payPeriodNumber}</td>
-                    <td>${formatDate(ppInfo.startDate)}</td>
-                    <td>${formatDate(ppInfo.endDate)}</td>
-                    <td class="pay-date">${formatDate(ppInfo.payDate)}</td>
-                </tr>
-            `;
-            count++;
-        }
-        currentDate.setDate(currentDate.getDate() + 14);
+        tableRowsHtml += `
+            <tr class="${rowClasses}">
+                <td>${ppInfo.payPeriodYear}-${ppInfo.payPeriodNumber}</td>
+                <td>${formatDate(ppInfo.startDate)}</td>
+                <td>${formatDate(ppInfo.endDate)}</td>
+                <td class="pay-date">${formatDate(ppInfo.payDate)}</td>
+            </tr>
+        `;
+        
+        let nextDate = new Date(currentDate.getTime());
+        nextDate.setUTCDate(nextDate.getUTCDate() + 14);
+        currentDate = nextDate;
     }
 
 
@@ -1154,7 +1161,47 @@ function renderResourcesPage() {
     });
 }
 
+// --- Live Time Clock Functions ---
+function getDaySuffix(day) {
+    if (day > 3 && day < 21) return 'th';
+    switch (day % 10) {
+        case 1: return "st";
+        case 2: return "nd";
+        case 3: return "rd";
+        default: return "th";
+    }
+}
 
+function padZero(num) {
+    return num.toString().padStart(2, '0');
+}
+
+function updateLiveTime() {
+    const now = new Date();
+    const liveTimeContainer = document.getElementById('live-time-container');
+    if (!liveTimeContainer) return;
+
+    const dayName = now.toLocaleDateString('en-US', { weekday: 'long' });
+    const monthName = now.toLocaleDateString('en-US', { month: 'long' });
+    const dayOfMonth = now.getDate();
+    const year = now.getFullYear();
+    const dateString = `<span class="live-date">${dayName}, ${monthName} ${dayOfMonth}${getDaySuffix(dayOfMonth)} ${year}</span>`;
+
+    const hours24 = padZero(now.getHours());
+    const minutes = padZero(now.getMinutes());
+    const seconds = padZero(now.getSeconds());
+    const time24String = `${hours24}:${minutes}:${seconds}`;
+
+    const uspsMinutes = Math.floor((now.getMinutes() / 60) * 100);
+    const uspsTimeString = `${hours24}:${padZero(uspsMinutes)}:${seconds}`;
+
+    const timeString = `<span class="live-times">${time24String} - USPS: ${uspsTimeString}</span>`;
+
+    liveTimeContainer.innerHTML = `${dateString}${timeString}`;
+}
+
+
+// --- App Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
     await fetchAppConfig();
     
@@ -1191,6 +1238,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     initPreferences();
     router();
+    updateLiveTime();
+    setInterval(updateLiveTime, 1000);
 
     if (scrollToTopBtn) {
         window.addEventListener('scroll', () => {
@@ -1236,8 +1285,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     installAppButton.addEventListener('click', async () => {
         installAppButton.style.display = 'none';
         if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
+            await deferredPrompt.prompt();
             deferredPrompt = null;
         }
     });
@@ -1253,7 +1301,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             navigator.serviceWorker.register(swUrl)
                 .then(registration => {
                     console.log('ServiceWorker registration successful with scope: ', registration.scope);
-
                     registration.addEventListener('updatefound', () => {
                         const installingWorker = registration.installing;
                         if (installingWorker) {
@@ -1273,7 +1320,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     console.error('ServiceWorker registration failed: ', err);
                 });
         });
-
         navigator.serviceWorker.addEventListener('controllerchange', () => {
             console.log('New service worker controlling this page. Reloading for fresh content.');
             window.location.reload();

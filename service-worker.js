@@ -1,8 +1,7 @@
-// Define a cache name for your application assets
-// This value is dynamically pulled from app-config.json
-let CACHE_NAME = 'mcore-cache-dynamic';
+// service-worker.js
 
-// List of URLs to cache (app shell).
+// --- Cache Setup ---
+let CACHE_NAME = 'mcore-cache-dynamic';
 const urlsToCache = [
     '/mcore/',
 	'/mcore/index.html',
@@ -28,7 +27,6 @@ const urlsToCache = [
 	'/mcore/icons/download-sm.png',
     '/mcore/icons/light-mode.png',
     '/mcore/icons/dark-mode.png',
-    // Holiday Icons
     '/mcore/icons/new-year-day.png',
     '/mcore/icons/martin-luther-king-jr-day.png',
     '/mcore/icons/washingtons-birthday-day.png',
@@ -40,16 +38,13 @@ const urlsToCache = [
     '/mcore/icons/veterans-day.png',
     '/mcore/icons/thanksgiving-day.png',
     '/mcore/icons/christmas-day.png',
-    // Season Icons
     '/mcore/icons/spring.png',
     '/mcore/icons/summer.png',
     '/mcore/icons/fall.png',
     '/mcore/icons/winter.png',
-    // Other Event Icons
     '/mcore/icons/summer-sol.png',
     '/mcore/icons/winter-sol.png',
     '/mcore/icons/saving.png',
-    // User Control Icons
     '/mcore/icons/user-control-holidays.png',
     '/mcore/icons/user-control-seasons.png',
     '/mcore/icons/user-control-solstice.png',
@@ -62,9 +57,7 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         fetch(`/mcore/data/app-config.json?_=${new Date().getTime()}`)
             .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const configResponse = response.clone();
                 return configResponse.json().then(config => {
                     CACHE_NAME = `mcore-cache-v${config.cacheVersion}`;
@@ -77,10 +70,7 @@ self.addEventListener('install', (event) => {
             })
             .then((cache) => {
                 console.log('Service Worker: Caching App Shell');
-                const filteredUrlsToCache = urlsToCache.filter(url =>
-                    !url.includes('service-worker.js')
-                );
-
+                const filteredUrlsToCache = urlsToCache.filter(url => !url.includes('service-worker.js'));
                 return Promise.allSettled(
                     filteredUrlsToCache.map(url => {
                         return fetch(url, { cache: 'no-cache' }).then(response => {
@@ -156,21 +146,17 @@ self.addEventListener('fetch', (event) => {
         event.respondWith(
             caches.match(event.request)
                 .then((response) => {
-                    if (response) {
-                        return response;
-                    }
+                    if (response) return response;
                     return fetch(event.request)
                         .then((networkResponse) => {
                             if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
                                 return networkResponse;
                             }
                             const responseToCache = networkResponse.clone();
-
                             caches.open(CACHE_NAME)
                                 .then((cache) => {
                                     cache.put(event.request, responseToCache);
                                 });
-
                             return networkResponse;
                         })
                         .catch(() => {
