@@ -29,7 +29,8 @@ This application is completely free, open-source, and committed to user privacy:
 * **Service Worker:** Enables offline capabilities and faster loading.
 
 ## Project Structure
-```
+,,,
+
 mcore/
 ├── index.html              # Main application entry point
 ├── css/
@@ -46,7 +47,8 @@ mcore/
 ├── favicon.ico             # Standard favicon
 ├── manifest.json           # Web App Manifest for PWA features
 └── service-worker.js       # Service Worker for offline caching
-```
+
+,,,
 ## Installation and Setup
 
 ### Local Development
@@ -99,6 +101,5 @@ Contributions are welcome! Please feel free to fork the repository and submit a 
 ## Contact
 
 For any inquiries, please contact: a.mailman.sam@gmail.com
-
 
 This project adheres to [Semantic Versioning](https://semver.org/).
