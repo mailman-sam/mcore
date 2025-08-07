@@ -24,6 +24,14 @@
         "icon": "washingtons-birthday-day.png"
     },
     {
+        "name": "Stamp Out Hunger Food Drive",
+        "month": 5,
+        "day": "second-saturday",
+        "info": "The NALC's annual food drive, the largest one-day food drive in the nation. Held on the second Saturday in May.",
+        "type": "misc",
+        "icon": "food-drive.png"
+    },
+    {
         "name": "Memorial Day",
         "month": 5,
         "day": "last-monday",

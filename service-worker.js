@@ -27,6 +27,7 @@ const urlsToCache = [
 	'/mcore/icons/download-sm.png',
     '/mcore/icons/light-mode.png',
     '/mcore/icons/dark-mode.png',
+    // Holiday Icons
     '/mcore/icons/new-year-day.png',
     '/mcore/icons/martin-luther-king-jr-day.png',
     '/mcore/icons/washingtons-birthday-day.png',
@@ -38,17 +39,16 @@ const urlsToCache = [
     '/mcore/icons/veterans-day.png',
     '/mcore/icons/thanksgiving-day.png',
     '/mcore/icons/christmas-day.png',
+    // Season Icons
     '/mcore/icons/spring.png',
     '/mcore/icons/summer.png',
     '/mcore/icons/fall.png',
     '/mcore/icons/winter.png',
+    // Other Event Icons
     '/mcore/icons/summer-sol.png',
     '/mcore/icons/winter-sol.png',
     '/mcore/icons/saving.png',
-    '/mcore/icons/user-control-holidays.png',
-    '/mcore/icons/user-control-seasons.png',
-    '/mcore/icons/user-control-solstice.png',
-    '/mcore/icons/user-control-daylight-saving.png'
+    '/mcore/icons/food-drive.png'
 ];
 
 // --- Install Event ---
