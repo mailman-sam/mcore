@@ -100,5 +100,4 @@ Contributions are welcome! Please feel free to fork the repository and submit a 
 
 For any inquiries, please contact: a.mailman.sam@gmail.com
 
-
 This project adheres to [Semantic Versioning](https://semver.org/).
