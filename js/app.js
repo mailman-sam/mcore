@@ -37,6 +37,7 @@ const T6_CYCLE_MAP = [
 
 
 const CARRIER_COLORS = {
+    'none': { name: 'None', class: 'carrier-none', textClass: 'text-calendar-heading-none' },
     'black': { name: 'Black', class: 'carrier-black', textClass: 'text-calendar-heading-black', baseDayOffIndex: 0 },
     'yellow': { name: 'Yellow', class: 'carrier-yellow', textClass: 'text-calendar-heading-yellow', baseDayOffIndex: 1 },
     'blue': { name: 'Blue', class: 'carrier-blue', textClass: 'text-calendar-heading-blue', baseDayOffIndex: 2 },
@@ -319,12 +320,16 @@ function getCarrierDayOff(date, carrierColor) {
     if (date.getDay() === 0) {
         return true;
     }
-    if (!carrierColor) {
+    // If no color is selected, or it's the 'none' view, it's not a rotating day off.
+    if (!carrierColor || carrierColor === 'none') {
         return false;
     }
 
     const carrier = CARRIER_COLORS[carrierColor];
-    if (!carrier) return false;
+    // Also check if the carrier object is valid and has a day off index.
+    if (!carrier || typeof carrier.baseDayOffIndex === 'undefined') {
+        return false;
+    }
 
     const weekNumber = getPostalWorkWeekNumber(date);
     const rotatingDayOffIndex = (carrier.baseDayOffIndex + (weekNumber - 1)) % 6;
@@ -438,9 +443,9 @@ function generateMonthTile(month, year, selectedCarrier) {
                 isOffDay = true;
                 highlightClasses.push(CARRIER_COLORS[selectedCarrier].class);
             }
-        } else {
+        } else { // 'all' view
             for (const colorKey in CARRIER_COLORS) {
-                if (colorKey !== 'all' && getCarrierDayOff(currentDate, colorKey)) {
+                if (colorKey !== 'all' && colorKey !== 'none' && getCarrierDayOff(currentDate, colorKey)) {
                     isOffDay = true;
                     highlightClasses.push(CARRIER_COLORS[colorKey].class);
                 }
@@ -674,7 +679,7 @@ async function renderCalendarPage(year, selectedCarrier = null) {
             </div>
         </div>
 
-        <div id="calendar-grid" class="calendar-grid"></div>
+        <div id="calendar-grid" class="calendar-grid ${selectedCarrier === 'none' ? 'traditional-view' : ''}"></div>
     `;
 
     const calendarGrid = document.getElementById('calendar-grid');
