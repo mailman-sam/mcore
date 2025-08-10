@@ -21,6 +21,8 @@ let allResourcesData = [];
 let appConfig = {};
 let specialEventsCache = {};
 let t6Routes = [];
+let letterSchedule = ['', '', '', '', '', ''];
+let customColors = {};
 let timeTableInterval = null;
 
 const MCORE_LOGO_FALLBACK_PATH = '/mcore/icons/mcore-logo-fallback.png';
@@ -43,14 +45,56 @@ const T6_CYCLE_MAP = [
 
 const CARRIER_COLORS = {
     'none': { name: 'None', class: 'carrier-none', textClass: 'text-calendar-heading-none' },
-    'black': { name: 'Black', class: 'carrier-black', textClass: 'text-calendar-heading-black', baseDayOffIndex: 0 },
-    'yellow': { name: 'Yellow', class: 'carrier-yellow', textClass: 'text-calendar-heading-yellow', baseDayOffIndex: 1 },
-    'blue': { name: 'Blue', class: 'carrier-blue', textClass: 'text-calendar-heading-blue', baseDayOffIndex: 2 },
-    'green': { name: 'Green', class: 'carrier-green', textClass: 'text-calendar-heading-green', baseDayOffIndex: 3 },
-    'brown': { name: 'Brown', class: 'carrier-brown', textClass: 'text-calendar-heading-brown', baseDayOffIndex: 4 },
-    'red': { name: 'Red', class: 'carrier-red', textClass: 'text-calendar-heading-red', baseDayOffIndex: 5 },
+    'black': { name: 'Black', class: 'carrier-black', textClass: 'text-calendar-heading-black', baseDayOffIndex: 0, defaultColor: { h: 0, s: 0, l: 0 }, defaultTextColor: '#ffffff', defaultDayCellTextColor: '#ffffff' },
+    'yellow': { name: 'Yellow', class: 'carrier-yellow', textClass: 'text-calendar-heading-yellow', baseDayOffIndex: 1, defaultColor: { h: 56, s: 100, l: 50 }, defaultTextColor: '#000000', defaultDayCellTextColor: '#000000' },
+    'blue': { name: 'Blue', class: 'carrier-blue', textClass: 'text-calendar-heading-blue', baseDayOffIndex: 2, defaultColor: { h: 225, s: 100, l: 56 }, defaultTextColor: '#ffffff', defaultDayCellTextColor: '#ffffff' },
+    'green': { name: 'Green', class: 'carrier-green', textClass: 'text-calendar-heading-green', baseDayOffIndex: 3, defaultColor: { h: 120, s: 100, l: 25 }, defaultTextColor: '#ffffff', defaultDayCellTextColor: '#ffffff' },
+    'brown': { name: 'Brown', class: 'carrier-brown', textClass: 'text-calendar-heading-brown', baseDayOffIndex: 4, defaultColor: { h: 30, s: 100, l: 24 }, defaultTextColor: '#ffffff', defaultDayCellTextColor: '#ffffff' },
+    'red': { name: 'Red', class: 'carrier-red', textClass: 'text-calendar-heading-red', baseDayOffIndex: 5, defaultColor: { h: 0, s: 100, l: 50 }, defaultTextColor: '#ffffff', defaultDayCellTextColor: '#ffffff' },
     'all': { name: 'All', class: 'carrier-sunday', textClass: 'text-calendar-heading-all' }
 };
+
+// --- Accordion State Management ---
+function getOpenAccordionIds() {
+    const openAccordionIds = [];
+    document.querySelectorAll('.settings-accordion-toggle.active').forEach(toggle => {
+        if (toggle.id) {
+            openAccordionIds.push(toggle.id);
+        }
+    });
+    return openAccordionIds;
+}
+
+function saveAccordionStateToSession() {
+    const openAccordionIds = getOpenAccordionIds();
+    if (openAccordionIds.length > 0) {
+        sessionStorage.setItem('mcore-open-accordions', JSON.stringify(openAccordionIds));
+    }
+}
+
+function restoreAccordionState(ids) {
+    if (!ids || ids.length === 0) return;
+    ids.forEach(id => {
+        const toggle = document.getElementById(id);
+        if (toggle) {
+            toggle.classList.add('active');
+            const panel = toggle.nextElementSibling;
+            if (panel) {
+                panel.classList.add('show');
+            }
+        }
+    });
+}
+
+function applyAccordionStateFromSession() {
+    const openAccordionIdsJSON = sessionStorage.getItem('mcore-open-accordions');
+    if (openAccordionIdsJSON) {
+        const openAccordionIds = JSON.parse(openAccordionIdsJSON);
+        restoreAccordionState(openAccordionIds);
+        sessionStorage.removeItem('mcore-open-accordions');
+    }
+}
+
 
 // --- Theme Management ---
 function applyTheme(theme) {
@@ -72,6 +116,62 @@ function toggleTheme() {
     applyTheme(newTheme);
 }
 
+// --- Color Customization ---
+function loadCustomColors() {
+    const savedColors = localStorage.getItem('mcore-custom-colors');
+    if (savedColors) {
+        customColors = JSON.parse(savedColors);
+    } else {
+        customColors = {};
+    }
+    updateColorStyles();
+}
+
+function saveCustomColors() {
+    localStorage.setItem('mcore-custom-colors', JSON.stringify(customColors));
+}
+
+function getCarrierColorProp(colorKey, prop) {
+    const defaults = CARRIER_COLORS[colorKey];
+    const customs = customColors[colorKey];
+
+    if (prop === 'name') {
+        return (customs && customs.name) || defaults.name;
+    }
+    if (prop === 'color') {
+        return (customs && customs.color) || defaults.defaultColor;
+    }
+    if (prop === 'textColor') {
+        return (customs && customs.textColor) || defaults.defaultTextColor;
+    }
+    if (prop === 'dayCellTextColor') {
+        return (customs && customs.dayCellTextColor) || defaults.defaultDayCellTextColor;
+    }
+    return null;
+}
+
+function updateColorStyles() {
+    for (const key in CARRIER_COLORS) {
+        if (CARRIER_COLORS[key].defaultColor) {
+            const color = getCarrierColorProp(key, 'color');
+            const textColor = getCarrierColorProp(key, 'textColor');
+            const dayCellTextColor = getCarrierColorProp(key, 'dayCellTextColor');
+            document.documentElement.style.setProperty(`--carrier-${key}-bg`, `hsl(${color.h}, ${color.s}%, ${color.l}%)`);
+            document.documentElement.style.setProperty(`--carrier-${key}-text`, textColor);
+            document.documentElement.style.setProperty(`--carrier-${key}-day-cell-text`, dayCellTextColor);
+        }
+    }
+}
+
+function resetCustomColors() {
+    customColors = {};
+    localStorage.removeItem('mcore-custom-colors');
+    updateColorStyles();
+    const currentHash = window.location.hash;
+    router(currentHash); // Re-render the current page
+}
+
+
 function initPreferences() {
     const savedTheme = localStorage.getItem('mcore-theme');
     if (savedTheme) {
@@ -81,6 +181,7 @@ function initPreferences() {
     } else {
         applyTheme('light');
     }
+    loadCustomColors();
 }
 
 // --- Data Fetching ---
@@ -271,15 +372,22 @@ function getPostalWorkWeekNumber(date) {
     return Math.floor(diffDays / 7) + 1;
 }
 
+function getRotatingDayIndex(date, rotationLength) {
+    const weekNumber = getPostalWorkWeekNumber(date);
+    return (weekNumber - 1) % rotationLength;
+}
+
 function getCarrierDayOff(date, carrierColor) {
     if (date.getDay() === 0) return true;
     if (!carrierColor || carrierColor === 'none') return false;
     const carrier = CARRIER_COLORS[carrierColor];
     if (!carrier || typeof carrier.baseDayOffIndex === 'undefined') return false;
-    const weekNumber = getPostalWorkWeekNumber(date);
-    const rotatingDayOffIndex = (carrier.baseDayOffIndex + (weekNumber - 1)) % 6;
+    
+    const rotatingIndex = getRotatingDayIndex(date, 6);
+    const dayOffIndex = (carrier.baseDayOffIndex + rotatingIndex) % 6;
+
     const actualDayOfWeek = date.getDay();
-    const expectedDayOffForDate = rotatingDayOffIndex + 1;
+    const expectedDayOffForDate = dayOffIndex + 1;
     return actualDayOfWeek === expectedDayOffForDate;
 }
 
@@ -315,7 +423,7 @@ function saveT6Routes() {
 }
 
 function getT6RouteForDate(date) {
-    if (!t6Routes || t6Routes.length !== 5 || t6Routes.some(r => r === '')) return null;
+    if (!t6Routes || t6Routes.length !== 5) return null;
     if (date.getDay() === 0) return null;
     const checkDateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
     const diffMillis = checkDateUtc - T6_CYCLE_REFERENCE_START_DATE.getTime();
@@ -323,10 +431,43 @@ function getT6RouteForDate(date) {
     const dayInCycle = (diffDays % 42 + 42) % 42;
     const routeIndex = T6_CYCLE_MAP[dayInCycle];
     if (routeIndex !== undefined && routeIndex !== -1) {
-        return t6Routes[routeIndex];
+        const route = t6Routes[routeIndex];
+        return route && route.trim() !== '' ? route : null;
     }
     return null;
 }
+
+function loadLetterSchedule() {
+    const savedSchedule = localStorage.getItem('mcore-letter-schedule');
+    letterSchedule = savedSchedule ? JSON.parse(savedSchedule) : ['', '', '', '', '', ''];
+}
+
+function saveLetterSchedule() {
+    localStorage.setItem('mcore-letter-schedule', JSON.stringify(letterSchedule));
+}
+
+function getLetterForDate(date) {
+    if (!letterSchedule || letterSchedule.length !== 6) return null;
+    if (date.getUTCDay() === 0) return null; // No letter on Sundays
+
+    let dayOffColorIndex = -1;
+    for (const colorKey in CARRIER_COLORS) {
+        if (colorKey !== 'all' && colorKey !== 'none') {
+            if (getCarrierDayOff(date, colorKey)) {
+                dayOffColorIndex = CARRIER_COLORS[colorKey].baseDayOffIndex;
+                break;
+            }
+        }
+    }
+
+    if (dayOffColorIndex !== -1) {
+        const letter = letterSchedule[dayOffColorIndex];
+        return letter && letter.trim() !== '' ? letter : null;
+    }
+    
+    return null;
+}
+
 
 function generateMonthTile(month, year, selectedCarrier) {
     const today = new Date();
@@ -344,6 +485,7 @@ function generateMonthTile(month, year, selectedCarrier) {
         let dayClasses = ['calendar-day'];
         let paydayHtml = '';
         let t6RouteHtml = '';
+        let letterScheduleHtml = '';
         let isOffDay = false;
         let highlightClasses = [];
         let dataAttributes = '';
@@ -356,19 +498,20 @@ function generateMonthTile(month, year, selectedCarrier) {
         if (isSunday) {
             isOffDay = true;
             highlightClasses.push('carrier-sunday');
-        } else if (selectedCarrier) {
+        } else if (selectedCarrier && selectedCarrier !== 'all' && selectedCarrier !== 'none') {
             if (getCarrierDayOff(currentDate, selectedCarrier)) {
                 isOffDay = true;
                 highlightClasses.push(CARRIER_COLORS[selectedCarrier].class);
             }
-        } else {
-            for (const colorKey in CARRIER_COLORS) {
+        } else if (selectedCarrier === 'all') {
+             for (const colorKey in CARRIER_COLORS) {
                 if (colorKey !== 'all' && colorKey !== 'none' && getCarrierDayOff(currentDate, colorKey)) {
                     isOffDay = true;
                     highlightClasses.push(CARRIER_COLORS[colorKey].class);
                 }
             }
         }
+
         if (isOffDay) highlightClasses.push('day-off-highlight');
         dayClasses.push(...highlightClasses);
         const events = getEventsForDate(currentDate);
@@ -402,13 +545,21 @@ function generateMonthTile(month, year, selectedCarrier) {
             dataAttributes += ` data-is-payday="true"`;
         }
         const routeNumber = getT6RouteForDate(currentDate);
-        if (routeNumber) t6RouteHtml = `<span class="t6-route-number">${routeNumber}</span>`;
+        if (routeNumber) {
+            t6RouteHtml = `<span class="t6-route-number">${routeNumber}</span>`;
+        }
+
+        const scheduleLetter = getLetterForDate(currentDate);
+        if (scheduleLetter) {
+            letterScheduleHtml = `<span class="schedule-letter">${scheduleLetter}</span>`;
+        }
+
         if (eventInfos.length > 0 || isOffDay || (payDaysForYear.has(formattedDate) && userControls.showPaydays)) {
             dayClasses.push('cursor-pointer');
         } else {
             dayClasses.push('cursor-default');
         }
-        daysHtml += `<div class="${dayClasses.join(' ')}" data-date="${currentDate.toISOString().split('T')[0]}" ${dataAttributes} ${dayStyles}><span class="day-number">${day}</span><div class="event-icon-container"></div>${paydayHtml}${t6RouteHtml}</div>`;
+        daysHtml += `<div class="${dayClasses.join(' ')}" data-date="${currentDate.toISOString().split('T')[0]}" ${dataAttributes} ${dayStyles}>${letterScheduleHtml}<span class="day-number">${day}</span><div class="event-icon-container"></div>${paydayHtml}${t6RouteHtml}</div>`;
     }
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -455,27 +606,144 @@ function closeDayDetailsLightbox() {
 }
 
 // --- Page Rendering ---
-async function renderCalendarPage(year, selectedCarrier = null) {
+async function renderCalendarPage(year, selectedCarrier = null, options = {}) {
     await fetchEvents();
     await fetchUserControls();
     loadT6Routes();
+    loadLetterSchedule();
     const currentCarrierInfo = selectedCarrier ? CARRIER_COLORS[selectedCarrier] : CARRIER_COLORS['all'];
     const headingTextColorClass = currentCarrierInfo.textClass;
-    let carrierButtonsHtml = `<button class="carrier-color-button ${CARRIER_COLORS['all'].class} ${selectedCarrier === null || selectedCarrier === '' ? 'selected' : ''}" data-carrier-color="">
-                                <span class="button-text">All</span>
-                              </button>`;
-    for (const key in CARRIER_COLORS) {
-        if (key !== 'all') {
-            const carrier = CARRIER_COLORS[key];
-            carrierButtonsHtml += `<button class="carrier-color-button ${carrier.class} ${selectedCarrier === key ? 'selected' : ''}" data-carrier-color="${key}"><span class="button-text">${carrier.name}</span></button>`;
-        }
-    }
-    let t6InputHtml = '';
-    for (let i = 0; i < 5; i++) {
-        t6InputHtml += `<input type="text" inputmode="numeric" pattern="[0-9]*" class="t6-route-input" data-index="${i}" value="${t6Routes[i] || ''}" placeholder="R${i+1}" maxlength="3">`;
-    }
-    appContent.innerHTML = `<h2 class="page-title tight-padding ${headingTextColorClass}">Carrier Calendar</h2><div class="calendar-main-nav"><button id="prev-year-btn" class="nav-button tight-padding">&laquo;</button><span id="current-year-display" class="current-year-display text-usps-blue">${year}</span><button id="next-year-btn" class="nav-button tight-padding">&raquo;</button><button id="today-calendar-btn" class="nav-button">Today</button></div><div class="settings-accordion"><button id="settings-accordion-toggle" class="settings-accordion-toggle">Display Options</button><div id="settings-accordion-panel" class="settings-accordion-panel"><div class="settings-section"><h3 class="settings-section-title">Carrier Color Schedule</h3><div class="carrier-buttons-grid">${carrierButtonsHtml}</div></div><div class="settings-section"><h3 class="settings-section-title">Filter Calendar Events</h3><div class="user-control-nav-box"><button class="nav-button" data-filter="all">All</button><button class="nav-button" data-filter="none">None</button><button class="nav-button ${userControls.showHolidays ? 'selected' : ''}" data-filter="holidays">Holidays</button><button class="nav-button ${userControls.showSeasons ? 'selected' : ''}" data-filter="seasons">Seasons</button><button class="nav-button ${userControls.showSolstice ? 'selected' : ''}" data-filter="solstice">Solstices</button><button class="nav-button ${userControls.showDaylightSaving ? 'selected' : ''}" data-filter="daylightSaving"><span class="full-text">Daylight Savings</span><span class="short-text">DST</span></button><button class="nav-button ${userControls.showPaydays ? 'selected' : ''}" data-filter="paydays">Pay</button><button class="nav-button ${userControls.showMisc ? 'selected' : ''}" data-filter="misc">Misc</button></div></div><div class="settings-section"><h3 class="settings-section-title">Event Image Opacity</h3><div class="opacity-slider-container"><label for="event-opacity-slider">Opacity:</label><input type="range" id="event-opacity-slider" min="0" max="1" step="0.05" value="${userControls.eventImageOpacity || 0.25}"><span id="opacity-value-display">${(userControls.eventImageOpacity || 0.25).toFixed(2)}</span></div></div><div class="settings-section"><h3 class="settings-section-title">T6 Route Rotation</h3><p class="info-text">Enter your 5 rotating routes. The schedule appears once all 5 are filled.</p><div class="t6-route-inputs">${t6InputHtml}</div></div></div></div><div id="calendar-grid" class="calendar-grid ${selectedCarrier === 'none' ? 'traditional-view' : ''}"></div>`;
+    
+    appContent.innerHTML = `
+        <h2 class="page-title tight-padding ${headingTextColorClass}">Carrier Calendar</h2>
+        <div class="calendar-main-nav">
+            <button id="prev-year-btn" class="nav-button tight-padding">&laquo;</button>
+            <span id="current-year-display" class="current-year-display text-usps-blue">${year}</span>
+            <button id="next-year-btn" class="nav-button tight-padding">&raquo;</button>
+            <button id="today-calendar-btn" class="nav-button">Today</button>
+        </div>
+
+        <div class="settings-accordion">
+            <button id="display-options-toggle" class="settings-accordion-toggle">Display Options</button>
+            <div id="display-options-panel" class="settings-accordion-panel">
+                
+                <div class="settings-accordion nested">
+                    <button id="schedule-type-toggle" class="settings-accordion-toggle">Schedule Type</button>
+                    <div id="schedule-type-panel" class="settings-accordion-panel">
+                        
+                        <div class="settings-accordion nested">
+                            <button id="color-schedule-toggle" class="settings-accordion-toggle">Color Schedule</button>
+                            <div id="color-schedule-panel" class="settings-accordion-panel">
+                                <div class="carrier-buttons-grid"></div>
+                                <div class="settings-accordion nested">
+                                    <button id="customize-toggle" class="settings-accordion-toggle">Customize</button>
+                                    <div id="customize-panel" class="settings-accordion-panel">
+                                        <p class="info-text">Select a color button above to customize it.</p>
+                                        <div id="color-customizer-ui" class="color-customizer-ui hidden">
+                                            <div class="color-preview-wrapper">
+                                                <div id="color-preview-box"></div>
+                                                <div class="custom-input-group">
+                                                    <label for="color-name-input">Name:</label>
+                                                    <input type="text" id="color-name-input" maxlength="10">
+                                                </div>
+                                            </div>
+                                            <div class="sliders-container">
+                                                <div class="slider-group">
+                                                    <label for="hue-slider">H</label>
+                                                    <input type="range" id="hue-slider" min="0" max="360" step="1">
+                                                    <span id="hue-value">0</span>
+                                                </div>
+                                                <div class="slider-group">
+                                                    <label for="saturation-slider">S</label>
+                                                    <input type="range" id="saturation-slider" min="0" max="100" step="1">
+                                                    <span id="saturation-value">0</span>
+                                                </div>
+                                                <div class="slider-group">
+                                                    <label for="lightness-slider">L</label>
+                                                    <input type="range" id="lightness-slider" min="0" max="100" step="1">
+                                                    <span id="lightness-value">0</span>
+                                                </div>
+                                            </div>
+                                            <div class="custom-input-group font-color-group">
+                                                <label>Button Font:</label>
+                                                <div class="font-color-options">
+                                                    <button data-textcolor="#ffffff" class="font-color-btn light-btn">Light</button>
+                                                    <button data-textcolor="#000000" class="font-color-btn dark-btn">Dark</button>
+                                                </div>
+                                            </div>
+                                            <div class="custom-input-group font-color-group">
+                                                <label>Day Cell Font:</label>
+                                                <div class="font-color-options">
+                                                    <button data-daycelltextcolor="#ffffff" class="font-color-btn day-cell-font-color-btn light-btn">Light</button>
+                                                    <button data-daycelltextcolor="#000000" class="font-color-btn day-cell-font-color-btn dark-btn">Dark</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button id="reset-colors-btn" class="nav-button">Reset to Defaults</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-accordion nested">
+                            <button id="letter-schedule-toggle" class="settings-accordion-toggle">Letter Schedule</button>
+                            <div id="letter-schedule-panel" class="settings-accordion-panel">
+                                <p class="info-text">Enter up to 3 characters per field. This will disable the color schedule.</p>
+                                <div class="letter-schedule-inputs-wrapper">
+                                    <div class="letter-schedule-inputs"></div>
+                                    <button id="clear-letter-schedule-btn" class="nav-button clear-btn">Clear</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-accordion nested">
+                    <button id="filter-events-toggle" class="settings-accordion-toggle">Filter Calendar Events</button>
+                    <div id="filter-events-panel" class="settings-accordion-panel">
+                         <div class="user-control-nav-box">
+                            <button class="nav-button" data-filter="all">All</button>
+                            <button class="nav-button" data-filter="none">None</button>
+                            <button class="nav-button ${userControls.showHolidays ? 'selected' : ''}" data-filter="holidays">Holidays</button>
+                            <button class="nav-button ${userControls.showSeasons ? 'selected' : ''}" data-filter="seasons">Seasons</button>
+                            <button class="nav-button ${userControls.showSolstice ? 'selected' : ''}" data-filter="solstice">Solstices</button>
+                            <button class="nav-button ${userControls.showDaylightSaving ? 'selected' : ''}" data-filter="daylightSaving"><span class="full-text">Daylight Savings</span><span class="short-text">DST</span></button>
+                            <button class="nav-button ${userControls.showPaydays ? 'selected' : ''}" data-filter="paydays">Pay</button>
+                            <button class="nav-button ${userControls.showMisc ? 'selected' : ''}" data-filter="misc">Misc</button>
+                        </div>
+                        <div class="opacity-slider-container">
+                            <label for="event-opacity-slider">Opacity:</label>
+                            <input type="range" id="event-opacity-slider" min="0" max="1" step="0.05" value="${userControls.eventImageOpacity || 0.25}">
+                            <span id="opacity-value-display">${(userControls.eventImageOpacity || 0.25).toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-accordion nested">
+                    <button id="t6-routes-toggle" class="settings-accordion-toggle">T6 Route Rotation</button>
+                    <div id="t6-routes-panel" class="settings-accordion-panel">
+                         <p class="info-text">Enter your 5 rotating routes. The schedule appears once all 5 are filled.</p>
+                         <div class="t6-route-inputs-wrapper">
+                            <div class="t6-route-inputs"></div>
+                            <button id="clear-t6-routes-btn" class="nav-button clear-btn">Clear</button>
+                         </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="calendar-grid" class="calendar-grid ${selectedCarrier === 'none' ? 'traditional-view' : ''}"></div>
+    `;
+
     const calendarGrid = document.getElementById('calendar-grid');
+
+    function attachDayClickListeners() {
+        calendarGrid.querySelectorAll('.calendar-day[data-is-event="true"], .calendar-day[data-is-payday="true"]').forEach(dayCell => {
+            dayCell.addEventListener('click', () => openDayDetailsLightbox(dayCell));
+        });
+    }
+
     function renderAllMonthTiles() {
         calendarGrid.innerHTML = '';
         for (let i = 0; i < 12; i++) {
@@ -483,18 +751,95 @@ async function renderCalendarPage(year, selectedCarrier = null) {
         }
         attachDayClickListeners();
     }
-    function attachDayClickListeners() {
-        calendarGrid.querySelectorAll('.calendar-day[data-is-event="true"], .calendar-day[data-is-payday="true"]').forEach(dayCell => {
-            dayCell.addEventListener('click', () => openDayDetailsLightbox(dayCell));
-        });
+
+    function refreshCalendarGridOnly() {
+        const activeElement = document.activeElement;
+        const isT6Input = activeElement && activeElement.classList.contains('t6-route-input');
+        const isLetterInput = activeElement && activeElement.classList.contains('letter-schedule-input');
+        const activeIndex = activeElement ? parseInt(activeElement.dataset.index) : -1;
+        const selectionStart = activeElement ? activeElement.selectionStart : 0;
+
+        renderAllMonthTiles();
+
+        if (isT6Input && activeIndex !== -1) {
+            const inputs = document.querySelectorAll('.t6-route-input');
+            if (inputs[activeIndex]) {
+                inputs[activeIndex].focus();
+                inputs[activeIndex].setSelectionRange(selectionStart, selectionStart);
+            }
+        } else if (isLetterInput && activeIndex !== -1) {
+            const inputs = document.querySelectorAll('.letter-schedule-input');
+            if (inputs[activeIndex]) {
+                inputs[activeIndex].focus();
+                inputs[activeIndex].setSelectionRange(selectionStart, selectionStart);
+            }
+        }
     }
+
     renderAllMonthTiles();
-    const settingsToggle = document.getElementById('settings-accordion-toggle');
-    const settingsPanel = document.getElementById('settings-accordion-panel');
-    settingsToggle.addEventListener('click', () => {
-        settingsToggle.classList.toggle('active');
-        settingsPanel.classList.toggle('show');
+
+    document.querySelectorAll('.settings-accordion-toggle').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            button.classList.toggle('active');
+            const panel = button.nextElementSibling;
+            panel.classList.toggle('show');
+        });
     });
+
+    const colorSchedulePanel = document.getElementById('color-schedule-panel');
+    if (colorSchedulePanel) {
+        const carrierButtonsContainer = colorSchedulePanel.querySelector('.carrier-buttons-grid');
+        if(carrierButtonsContainer){
+            let carrierButtonsHtml = `<button class="carrier-color-button ${CARRIER_COLORS['all'].class} ${selectedCarrier === null || selectedCarrier === 'all' ? 'selected' : ''}" data-carrier-color="all"><span class="button-text">All</span></button>`;
+            for (const key in CARRIER_COLORS) {
+                if (key !== 'all' && key !== 'none') {
+                    const carrier = CARRIER_COLORS[key];
+                    const buttonName = getCarrierColorProp(key, 'name');
+                    carrierButtonsHtml += `<button class="carrier-color-button ${carrier.class} ${selectedCarrier === key ? 'selected' : ''}" data-carrier-color="${key}"><span class="button-text">${buttonName}</span></button>`;
+                }
+            }
+            carrierButtonsHtml += `<button class="carrier-color-button ${CARRIER_COLORS['none'].class} ${selectedCarrier === 'none' ? 'selected' : ''}" data-carrier-color="none"><span class="button-text">None</span></button>`;
+            carrierButtonsContainer.innerHTML = carrierButtonsHtml;
+        }
+    }
+    
+    document.getElementById('prev-year-btn').addEventListener('click', () => {
+        saveAccordionStateToSession();
+        window.location.hash = `#calendar?year=${year - 1}&carrier=${selectedCarrier || ''}`;
+    });
+    document.getElementById('next-year-btn').addEventListener('click', () => {
+        saveAccordionStateToSession();
+        window.location.hash = `#calendar?year=${year + 1}&carrier=${selectedCarrier || ''}`;
+    });
+    document.getElementById('today-calendar-btn').addEventListener('click', () => {
+        const actualCurrentYear = new Date().getFullYear();
+        if (year !== actualCurrentYear) {
+            saveAccordionStateToSession();
+            window.location.hash = `#calendar?year=${actualCurrentYear}&carrier=${selectedCarrier || ''}`;
+        } else {
+            jumpToTodayOnCalendar();
+        }
+    });
+
+    document.querySelectorAll('.user-control-nav-box .nav-button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const openAccordionIds = getOpenAccordionIds();
+            const filter = e.currentTarget.dataset.filter;
+            const keyMap = { holidays: 'showHolidays', seasons: 'showSeasons', solstice: 'showSolstice', daylightSaving: 'showDaylightSaving', paydays: 'showPaydays', misc: 'showMisc' };
+            if (filter === 'all') {
+                Object.keys(keyMap).forEach(key => userControls[keyMap[key]] = true);
+            } else if (filter === 'none') {
+                Object.keys(keyMap).forEach(key => userControls[keyMap[key]] = false);
+            } else {
+                const key = keyMap[filter];
+                if (key) userControls[key] = !userControls[key];
+            }
+            localStorage.setItem('mcore-user-controls', JSON.stringify(userControls));
+            renderCalendarPage(year, selectedCarrier, { openAccordionIds });
+        });
+    });
+
     const opacitySlider = document.getElementById('event-opacity-slider');
     const opacityDisplay = document.getElementById('opacity-value-display');
     if (opacitySlider && opacityDisplay) {
@@ -511,64 +856,216 @@ async function renderCalendarPage(year, selectedCarrier = null) {
             localStorage.setItem('mcore-user-controls', JSON.stringify(userControls));
         });
     }
-    document.querySelectorAll('.t6-route-input').forEach(input => {
-        input.addEventListener('input', (e) => {
-            e.target.value = e.target.value.replace(/[^0-9]/g, '');
-            const index = parseInt(e.target.dataset.index, 10);
-            t6Routes[index] = e.target.value;
-            saveT6Routes();
-            renderAllMonthTiles();
-        });
-    });
-    document.getElementById('prev-year-btn').addEventListener('click', () => {
-        window.location.hash = `#calendar?year=${year - 1}&carrier=${selectedCarrier || ''}`;
-    });
-    document.getElementById('next-year-btn').addEventListener('click', () => {
-        window.location.hash = `#calendar?year=${year + 1}&carrier=${selectedCarrier || ''}`;
-    });
-    document.getElementById('today-calendar-btn').addEventListener('click', () => {
-        const actualCurrentYear = new Date().getFullYear();
-        if (year !== actualCurrentYear) {
-            window.location.hash = `#calendar?year=${actualCurrentYear}&carrier=${selectedCarrier || ''}`;
-        } else {
-            jumpToTodayOnCalendar();
-        }
-    });
+
+    // --- Color Customization and Carrier Selection Logic ---
+    let selectedColorForCustomization = null;
+    const customizerUI = document.getElementById('color-customizer-ui');
+    const colorNameInput = document.getElementById('color-name-input');
+    const fontColorBtns = document.querySelectorAll('.font-color-btn');
+    const dayCellFontColorBtns = document.querySelectorAll('.day-cell-font-color-btn');
+    const colorPreviewBox = document.getElementById('color-preview-box');
+    const hueSlider = document.getElementById('hue-slider');
+    const saturationSlider = document.getElementById('saturation-slider');
+    const lightnessSlider = document.getElementById('lightness-slider');
+    const hueValue = document.getElementById('hue-value');
+    const saturationValue = document.getElementById('saturation-value');
+    const lightnessValue = document.getElementById('lightness-value');
+    const resetColorsBtn = document.getElementById('reset-colors-btn');
+
     document.querySelectorAll('.carrier-color-button').forEach(button => {
         button.addEventListener('click', (event) => {
-            const newCarrier = event.currentTarget.dataset.carrierColor || '';
-            localStorage.setItem('mcore-selected-carrier', newCarrier);
-            if (settingsPanel && settingsPanel.classList.contains('show')) {
-                sessionStorage.setItem('mcore-accordion-open', 'true');
-            }
-            window.location.hash = `#calendar?year=${year}&carrier=${newCarrier}`;
-        });
-    });
-    document.querySelectorAll('.user-control-nav-box .nav-button').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const filter = e.currentTarget.dataset.filter;
-            const keyMap = { holidays: 'showHolidays', seasons: 'showSeasons', solstice: 'showSolstice', daylightSaving: 'showDaylightSaving', paydays: 'showPaydays', misc: 'showMisc' };
-            if (filter === 'all') {
-                Object.keys(keyMap).forEach(key => userControls[keyMap[key]] = true);
-            } else if (filter === 'none') {
-                Object.keys(keyMap).forEach(key => userControls[keyMap[key]] = false);
+            const customizeAccordion = document.getElementById('customize-toggle');
+            const colorKey = event.currentTarget.dataset.carrierColor;
+
+            if (customizeAccordion.classList.contains('active') && colorKey && colorKey !== 'all' && colorKey !== 'none') {
+                event.stopPropagation(); 
+                selectedColorForCustomization = colorKey;
+                
+                document.querySelectorAll('.carrier-color-button.customizing').forEach(b => b.classList.remove('customizing'));
+                event.currentTarget.classList.add('customizing');
+
+                const colorData = getCarrierColorProp(colorKey, 'color');
+                const nameData = getCarrierColorProp(colorKey, 'name');
+                const textColorData = getCarrierColorProp(colorKey, 'textColor');
+                const dayCellTextColorData = getCarrierColorProp(colorKey, 'dayCellTextColor');
+
+                customizerUI.classList.remove('hidden');
+                colorNameInput.value = nameData;
+                
+                hueSlider.value = colorData.h;
+                saturationSlider.value = colorData.s;
+                lightnessSlider.value = colorData.l;
+
+                hueValue.textContent = colorData.h;
+                saturationValue.textContent = colorData.s;
+                lightnessValue.textContent = colorData.l;
+
+                const colorString = `hsl(${colorData.h}, ${colorData.s}%, ${colorData.l}%)`;
+                colorPreviewBox.style.backgroundColor = colorString;
+
+                fontColorBtns.forEach(btn => {
+                    btn.classList.toggle('selected', btn.dataset.textcolor === textColorData);
+                });
+                dayCellFontColorBtns.forEach(btn => {
+                    btn.classList.toggle('selected', btn.dataset.daycelltextcolor === dayCellTextColorData);
+                });
+
             } else {
-                const key = keyMap[filter];
-                if (key) userControls[key] = !userControls[key];
+                saveAccordionStateToSession();
+                const newCarrier = colorKey || '';
+                localStorage.setItem('mcore-selected-carrier', newCarrier);
+                window.location.hash = `#calendar?year=${year}&carrier=${newCarrier}`;
             }
-            localStorage.setItem('mcore-user-controls', JSON.stringify(userControls));
-            if (settingsPanel && settingsPanel.classList.contains('show')) {
-                sessionStorage.setItem('mcore-accordion-open', 'true');
-            }
-            renderCalendarPage(year, selectedCarrier);
         });
     });
-    if (sessionStorage.getItem('mcore-accordion-open') === 'true') {
-        if (settingsToggle && settingsPanel) {
-            settingsToggle.classList.add('active');
-            settingsPanel.classList.add('show');
+
+    function updateCustomProperty(prop, value) {
+        if (!selectedColorForCustomization) return;
+        if (!customColors[selectedColorForCustomization]) {
+            customColors[selectedColorForCustomization] = {};
         }
-        sessionStorage.removeItem('mcore-accordion-open');
+        customColors[selectedColorForCustomization][prop] = value;
+        saveCustomColors();
+    }
+
+    colorNameInput.addEventListener('keyup', () => {
+        updateCustomProperty('name', colorNameInput.value);
+        const buttonToUpdate = document.querySelector(`.carrier-color-button[data-carrier-color="${selectedColorForCustomization}"] .button-text`);
+        if (buttonToUpdate) {
+            buttonToUpdate.textContent = colorNameInput.value;
+        }
+    });
+
+    fontColorBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const newTextColor = btn.dataset.textcolor;
+            updateCustomProperty('textColor', newTextColor);
+            updateColorStyles();
+            fontColorBtns.forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        });
+    });
+
+    dayCellFontColorBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const newTextColor = btn.dataset.daycelltextcolor;
+            updateCustomProperty('dayCellTextColor', newTextColor);
+            updateColorStyles();
+            dayCellFontColorBtns.forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        });
+    });
+
+    function handleSliderChange() {
+        if (!selectedColorForCustomization) return;
+
+        const h = hueSlider.value;
+        const s = saturationSlider.value;
+        const l = lightnessSlider.value;
+
+        hueValue.textContent = h;
+        saturationValue.textContent = s;
+        lightnessValue.textContent = l;
+
+        updateCustomProperty('color', { h: parseInt(h), s: parseInt(s), l: parseInt(l) });
+        
+        const colorString = `hsl(${h}, ${s}%, ${l}%)`;
+        colorPreviewBox.style.backgroundColor = colorString;
+        
+        updateColorStyles();
+    }
+
+    hueSlider.addEventListener('input', handleSliderChange);
+    saturationSlider.addEventListener('input', handleSliderChange);
+    lightnessSlider.addEventListener('input', handleSliderChange);
+    
+    resetColorsBtn.addEventListener('click', () => {
+        saveAccordionStateToSession();
+        resetCustomColors();
+    });
+
+    // --- Letter Schedule & T6 Route Input Logic ---
+    function setupInputNavigation(selector, dataArray, saveFunction, onUpdate) {
+        const inputs = document.querySelectorAll(selector);
+        inputs.forEach((input, idx) => {
+            const handleInput = (e) => {
+                dataArray[idx] = e.target.value.toUpperCase();
+                saveFunction();
+                
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (idx < inputs.length - 1) {
+                        inputs[idx + 1].focus();
+                    }
+                }
+                onUpdate();
+            };
+            input.addEventListener('keyup', handleInput);
+        });
+    }
+
+    const t6InputsContainer = document.querySelector('.t6-route-inputs');
+    if (t6InputsContainer) {
+        let t6InputHtml = '';
+        for (let i = 0; i < 5; i++) {
+            t6InputHtml += `<input type="text" inputmode="numeric" pattern="[0-9]*" class="t6-route-input" data-index="${i}" value="${t6Routes[i] || ''}" placeholder="R${i+1}" maxlength="3">`;
+        }
+        t6InputsContainer.innerHTML = t6InputHtml;
+        setupInputNavigation('.t6-route-input', t6Routes, saveT6Routes, refreshCalendarGridOnly);
+    }
+
+    const letterInputsContainer = document.querySelector('.letter-schedule-inputs');
+    if (letterInputsContainer) {
+        let letterInputHtml = '';
+        for (let i = 0; i < 6; i++) {
+            letterInputHtml += `<input type="text" class="letter-schedule-input" data-index="${i}" value="${letterSchedule[i] || ''}" placeholder="L${i+1}" maxlength="3">`;
+        }
+        letterInputsContainer.innerHTML = letterInputHtml;
+
+        setupInputNavigation('.letter-schedule-input', letterSchedule, saveLetterSchedule, () => {
+            const isUsingLetters = letterSchedule.some(l => l.trim() !== '');
+            const wasUsingLetters = selectedCarrier === 'none' && !letterSchedule.every(l => l.trim() === '');
+            
+            if (isUsingLetters && !wasUsingLetters) {
+                saveAccordionStateToSession();
+                window.location.hash = `#calendar?year=${year}&carrier=none`;
+            } else if (!isUsingLetters && wasUsingLetters) {
+                saveAccordionStateToSession();
+                const lastCarrier = localStorage.getItem('mcore-selected-carrier') || 'all';
+                window.location.hash = `#calendar?year=${year}&carrier=${lastCarrier}`;
+            } else {
+                refreshCalendarGridOnly();
+            }
+        });
+    }
+
+    const clearLetterScheduleBtn = document.getElementById('clear-letter-schedule-btn');
+    if (clearLetterScheduleBtn) {
+        clearLetterScheduleBtn.addEventListener('click', () => {
+            letterSchedule = ['', '', '', '', '', ''];
+            saveLetterSchedule();
+            const openAccordionIds = getOpenAccordionIds();
+            const lastCarrier = localStorage.getItem('mcore-selected-carrier') || 'all';
+            renderCalendarPage(year, lastCarrier, { openAccordionIds });
+        });
+    }
+
+    const clearT6RoutesBtn = document.getElementById('clear-t6-routes-btn');
+    if (clearT6RoutesBtn) {
+        clearT6RoutesBtn.addEventListener('click', () => {
+            t6Routes = ['', '', '', '', ''];
+            saveT6Routes();
+            const openAccordionIds = getOpenAccordionIds();
+            renderCalendarPage(year, selectedCarrier, { openAccordionIds });
+        });
+    }
+
+
+    // Restore accordion state
+    if (options.openAccordionIds) {
+        restoreAccordionState(options.openAccordionIds);
+    } else {
+        applyAccordionStateFromSession();
     }
 }
 
@@ -687,10 +1184,18 @@ async function router() {
     const hash = window.location.hash;
     const urlParams = new URLSearchParams(hash.split('?')[1]);
     const currentYear = new Date().getFullYear();
+
     if (hash.startsWith('#calendar')) {
         const year = parseInt(urlParams.get('year')) || currentYear;
         let carrier = urlParams.get('carrier');
-        if (carrier === null) carrier = localStorage.getItem('mcore-selected-carrier') || null;
+
+        if (carrier === null) {
+            carrier = localStorage.getItem('mcore-selected-carrier') || 'all';
+             if (!localStorage.getItem('mcore-calendar-visited')) {
+                localStorage.setItem('mcore-calendar-visited', 'true');
+            }
+        }
+        
         renderCalendarPage(year, carrier);
     } else if (hash.startsWith('#resources')) {
         renderResourcesPage();
