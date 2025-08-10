@@ -717,7 +717,7 @@ async function renderCalendarPage(year, selectedCarrier = null, options = {}) {
                 <div class="settings-accordion nested">
                     <button id="t6-routes-toggle" class="settings-accordion-toggle">T6 Route Rotation</button>
                     <div id="t6-routes-panel" class="settings-accordion-panel">
-                         <p class="info-text">Enter your 5 rotating routes. The schedule appears once all 5 are filled.</p>
+                         <p class="info-text">Enter your 5 rotating routes. The schedule appears on the calendar in real-time.</p>
                          <div class="t6-route-inputs-wrapper">
                             <div class="t6-route-inputs"></div>
                             <button id="clear-t6-routes-btn" class="nav-button clear-btn">Clear</button>
@@ -750,38 +750,40 @@ async function renderCalendarPage(year, selectedCarrier = null, options = {}) {
     function refreshCalendarGridOnly() {
         const activeElement = document.activeElement;
         const isInputActive = activeElement && (
-            activeElement.classList.contains('t6-route-input') || 
+            activeElement.classList.contains('t6-route-input') ||
             activeElement.classList.contains('letter-schedule-input') ||
             activeElement.id === 'color-name-input' ||
             activeElement.closest('.sliders-container') ||
             activeElement.closest('.font-color-options')
         );
-        
+    
+        // Store more specific info to restore focus accurately
         const activeId = activeElement ? activeElement.id : null;
         const activeClasses = activeElement ? Array.from(activeElement.classList) : [];
-        const activeDataAttrs = {};
-        if (activeElement && activeElement.dataset) {
-            Object.keys(activeElement.dataset).forEach(key => {
-                activeDataAttrs[key] = activeElement.dataset[key];
-            });
-        }
+        const activeIndex = activeElement?.dataset?.index; // Get the data-index
         const selectionStart = activeElement ? activeElement.selectionStart : 0;
-
+        const selectionEnd = activeElement ? activeElement.selectionEnd : 0;
+    
         renderAllMonthTiles();
-
+    
         if (isInputActive) {
             let elementToFocus = null;
-            if (activeId) {
+            // Build a more specific selector using class and data-index
+            const mainClass = activeClasses.find(c => c.includes('-input'));
+            if (mainClass && activeIndex !== undefined) {
+                elementToFocus = document.querySelector(`.${mainClass}[data-index="${activeIndex}"]`);
+            }
+            
+            // Fallback to ID if the specific selector fails
+            if (!elementToFocus && activeId) {
                 elementToFocus = document.getElementById(activeId);
             }
-            if (!elementToFocus) {
-                 const selector = activeClasses.map(c => `.${c}`).join('');
-                 elementToFocus = document.querySelector(selector);
-            }
-            if(elementToFocus) {
+    
+            if (elementToFocus) {
                 elementToFocus.focus();
-                if(typeof selectionStart === 'number') {
-                   elementToFocus.setSelectionRange(selectionStart, selectionStart);
+                // Restore selection range
+                if (typeof elementToFocus.setSelectionRange === 'function') {
+                    elementToFocus.setSelectionRange(selectionStart, selectionEnd);
                 }
             }
         }
@@ -1001,20 +1003,26 @@ async function renderCalendarPage(year, selectedCarrier = null, options = {}) {
     // --- Letter Schedule & T6 Route Input Logic ---
     function setupInputNavigation(selector, dataArray, saveFunction, onUpdate) {
         const inputs = document.querySelectorAll(selector);
+
         inputs.forEach((input, idx) => {
-            const handleInput = (e) => {
+            // Use 'input' event for live updates as the user types, pastes, etc.
+            input.addEventListener('input', (e) => {
                 dataArray[idx] = e.target.value.toUpperCase();
                 saveFunction();
-                
+                onUpdate();
+            });
+
+            // Use 'keydown' for special key handling like 'Enter'
+            input.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
-                    e.preventDefault();
+                    e.preventDefault(); // Prevent form submission
                     if (idx < inputs.length - 1) {
-                        inputs[idx + 1].focus();
+                        inputs[idx + 1].focus(); // Move to next input
+                    } else {
+                        inputs[idx].blur(); // Or blur the last input
                     }
                 }
-                onUpdate();
-            };
-            input.addEventListener('keyup', handleInput);
+            });
         });
     }
 
