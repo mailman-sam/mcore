@@ -1,19 +1,17 @@
 // service-worker.js
 
-// --- Cache Setup ---
-let CACHE_NAME = 'mcore-cache-dynamic';
+let CACHE_NAME; // Will be set dynamically from app-config.json
+
 const urlsToCache = [
     '/mcore/',
-	'/mcore/index.html',
+    '/mcore/index.html',
     '/mcore/css/style.css',
     '/mcore/js/app.js',
     '/mcore/data/events.json',
-    '/mcore/data/user-control.json',
     '/mcore/data/acronyms.json',
     '/mcore/data/resources.json',
     '/mcore/manifest.json',
     '/mcore/data/app-config.json',
-    '/mcore/fontawesome/css/all.min.css',
     '/mcore/icons/mcore-logo.png',
     '/mcore/icons/mcore-logo-fallback.png',
     '/mcore/icons/android-chrome-192x192.png',
@@ -24,7 +22,6 @@ const urlsToCache = [
     '/mcore/favicon.ico',
     '/mcore/icons/us.png',
     '/mcore/icons/money-stack250.png',
-	'/mcore/icons/download-sm.png',
     '/mcore/icons/light-mode.png',
     '/mcore/icons/dark-mode.png',
     // Holiday Icons
@@ -51,78 +48,33 @@ const urlsToCache = [
     '/mcore/icons/food-drive.png'
 ];
 
-// --- Install Event ---
+// Listen for a message from the client to skip waiting.
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.action === 'skipWaiting') {
+        self.skipWaiting();
+    }
+});
+
 self.addEventListener('install', (event) => {
     console.log('Service Worker: Installing...');
+    // The cache name is now set via a query parameter on the SW file itself
+    const url = new URL(location);
+    const version = url.searchParams.get('v');
+    if (version) {
+        CACHE_NAME = `mcore-cache-v${version}`;
+    }
+
     event.waitUntil(
-        fetch(`/mcore/data/app-config.json?_=${new Date().getTime()}`)
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const configResponse = response.clone();
-                return configResponse.json().then(config => {
-                    CACHE_NAME = `mcore-cache-v${config.cacheVersion}`;
-                    console.log(`Service Worker: Using dynamic cache name: ${CACHE_NAME}`);
-                    return caches.open(CACHE_NAME).then(cache => {
-                        cache.put(event.request, response);
-                        return cache;
-                    });
-                });
-            })
-            .then((cache) => {
-                console.log('Service Worker: Caching App Shell');
-                const filteredUrlsToCache = urlsToCache.filter(url => !url.includes('service-worker.js'));
-                return Promise.allSettled(
-                    filteredUrlsToCache.map(url => {
-                        return fetch(url, { cache: 'no-cache' }).then(response => {
-                            if (!response.ok) {
-                                console.warn(`Service Worker: Failed to fetch ${url} (Status: ${response.status})`);
-                                return Promise.reject(new Error(`Failed to fetch ${url}`));
-                            }
-                            const responseToCache = response.clone();
-                            return cache.put(url, responseToCache);
-                        }).then(() => {
-                            console.log(`Service Worker: Successfully cached ${url}`);
-                        }).catch(error => {
-                            console.error(`Service Worker: Failed to cache ${url}:`, error);
-                            return Promise.reject(error);
-                        });
-                    })
-                ).then(results => {
-                    results.forEach(result => {
-                        if (result.status === 'rejected') {
-                            console.error('Service Worker: Caching item rejected:', result.reason);
-                        }
-                    });
-                });
-            })
-            .catch(error => {
-                console.error('Service Worker: Overall Cache install failed:', error);
-                CACHE_NAME = 'mcore-cache-fallback-v1';
-                console.warn('Service Worker: Attempting fallback cache due to previous failure.');
-                return caches.open(CACHE_NAME).then(cache => {
-                    return Promise.allSettled(
-                        urlsToCache.filter(url => !url.includes('service-worker.js')).map(url => {
-                            return fetch(url, { cache: 'no-cache' }).then(response => {
-                                if (!response.ok) {
-                                    console.warn(`Service Worker: Fallback cache failed to fetch ${url} (Status: ${response.status})`);
-                                    return Promise.reject(new Error(`Fallback: Failed to fetch ${url}`));
-                                }
-                                const responseToCache = response.clone();
-                                return cache.put(url, responseToCache);
-                            }).then(() => {
-                                console.log(`Service Worker: Fallback: Successfully cached ${url}`);
-                            }).catch(error => {
-                                console.error(`Service Worker: Fallback: Failed to cache ${url}:`, error);
-                                return Promise.reject(error);
-                            });
-                        })
-                    );
-                });
-            })
+        caches.open(CACHE_NAME).then((cache) => {
+            console.log(`Service Worker: Caching App Shell for version ${version}`);
+            return cache.addAll(urlsToCache);
+        }).then(() => {
+            // Force the waiting service worker to become the active service worker.
+            return self.skipWaiting();
+        })
     );
 });
 
-// --- Activate Event ---
 self.addEventListener('activate', (event) => {
     console.log('Service Worker: Activating...');
     event.waitUntil(
@@ -134,40 +86,27 @@ self.addEventListener('activate', (event) => {
                         return caches.delete(cacheName);
                     }
                 })
-            );
+            ).then(() => {
+                // Tell the active service worker to take control of the page immediately.
+                return self.clients.claim();
+            });
         })
     );
-    return self.clients.claim();
 });
 
-// --- Fetch Event ---
 self.addEventListener('fetch', (event) => {
-    if (event.request.url.startsWith('http') || event.request.url.startsWith('https')) {
-        event.respondWith(
-            caches.match(event.request)
-                .then((response) => {
-                    if (response) return response;
-                    return fetch(event.request)
-                        .then((networkResponse) => {
-                            if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-                                return networkResponse;
-                            }
-                            const responseToCache = networkResponse.clone();
-                            caches.open(CACHE_NAME)
-                                .then((cache) => {
-                                    cache.put(event.request, responseToCache);
-                                });
-                            return networkResponse;
-                        })
-                        .catch(() => {
-                            if (event.request.mode === 'navigate' || event.request.destination === 'document') {
-                                return new Response('<h1>You are offline!</h1><p>Please check your internet connection.</p>', {
-                                    headers: { 'Content-Type': 'text/html' }
-                                });
-                            }
-                            return new Response(null, { status: 503, statusText: 'Service Unavailable - Offline' });
-                        });
-                })
-        );
-    }
+    // Use a cache-first strategy.
+    event.respondWith(
+        caches.match(event.request).then((response) => {
+            return response || fetch(event.request).then((fetchResponse) => {
+                // Optionally, you could add non-essential assets to the cache here as they are requested.
+                return fetchResponse;
+            });
+        }).catch(() => {
+            // Fallback for navigation requests when offline.
+            if (event.request.mode === 'navigate') {
+                return caches.match('/mcore/index.html');
+            }
+        })
+    );
 });

@@ -188,7 +188,8 @@ function initPreferences() {
 async function fetchAppConfig() {
     if (Object.keys(appConfig).length > 0) return appConfig;
     try {
-        const response = await fetch('/mcore/data/app-config.json');
+        // Add a cache-busting query parameter to ensure we always get the latest config
+        const response = await fetch(`/mcore/data/app-config.json?t=${new Date().getTime()}`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         appConfig = data;
@@ -628,72 +629,66 @@ async function renderCalendarPage(year, selectedCarrier = null, options = {}) {
             <div id="display-options-panel" class="settings-accordion-panel">
                 
                 <div class="settings-accordion nested">
-                    <button id="schedule-type-toggle" class="settings-accordion-toggle">Schedule Type</button>
-                    <div id="schedule-type-panel" class="settings-accordion-panel">
-                        
+                    <button id="color-schedule-toggle" class="settings-accordion-toggle">Color Schedule</button>
+                    <div id="color-schedule-panel" class="settings-accordion-panel">
+                        <div class="carrier-buttons-grid"></div>
                         <div class="settings-accordion nested">
-                            <button id="color-schedule-toggle" class="settings-accordion-toggle">Color Schedule</button>
-                            <div id="color-schedule-panel" class="settings-accordion-panel">
-                                <div class="carrier-buttons-grid"></div>
-                                <div class="settings-accordion nested">
-                                    <button id="customize-toggle" class="settings-accordion-toggle">Customize</button>
-                                    <div id="customize-panel" class="settings-accordion-panel">
-                                        <p class="info-text">Select a color button above to customize it.</p>
-                                        <div id="color-customizer-ui" class="color-customizer-ui hidden">
-                                            <div class="color-preview-wrapper">
-                                                <div id="color-preview-box"></div>
-                                                <div class="custom-input-group">
-                                                    <label for="color-name-input">Name:</label>
-                                                    <input type="text" id="color-name-input" maxlength="10">
-                                                </div>
-                                            </div>
-                                            <div class="sliders-container">
-                                                <div class="slider-group">
-                                                    <label for="hue-slider">H</label>
-                                                    <input type="range" id="hue-slider" min="0" max="360" step="1">
-                                                    <span id="hue-value">0</span>
-                                                </div>
-                                                <div class="slider-group">
-                                                    <label for="saturation-slider">S</label>
-                                                    <input type="range" id="saturation-slider" min="0" max="100" step="1">
-                                                    <span id="saturation-value">0</span>
-                                                </div>
-                                                <div class="slider-group">
-                                                    <label for="lightness-slider">L</label>
-                                                    <input type="range" id="lightness-slider" min="0" max="100" step="1">
-                                                    <span id="lightness-value">0</span>
-                                                </div>
-                                            </div>
-                                            <div class="custom-input-group font-color-group">
-                                                <label>Button Font:</label>
-                                                <div class="font-color-options">
-                                                    <button data-textcolor="#ffffff" class="font-color-btn light-btn">Light</button>
-                                                    <button data-textcolor="#000000" class="font-color-btn dark-btn">Dark</button>
-                                                </div>
-                                            </div>
-                                            <div class="custom-input-group font-color-group">
-                                                <label>Day Cell Font:</label>
-                                                <div class="font-color-options">
-                                                    <button data-daycelltextcolor="#ffffff" class="font-color-btn day-cell-font-color-btn light-btn">Light</button>
-                                                    <button data-daycelltextcolor="#000000" class="font-color-btn day-cell-font-color-btn dark-btn">Dark</button>
-                                                </div>
-                                            </div>
+                            <button id="customize-toggle" class="settings-accordion-toggle">Customize</button>
+                            <div id="customize-panel" class="settings-accordion-panel">
+                                <p class="info-text">Select a color button above to customize it.</p>
+                                <div id="color-customizer-ui" class="color-customizer-ui hidden">
+                                    <div class="color-preview-wrapper">
+                                        <div id="color-preview-box"></div>
+                                        <div class="custom-input-group">
+                                            <label for="color-name-input">Name:</label>
+                                            <input type="text" id="color-name-input" maxlength="10">
                                         </div>
-                                        <button id="reset-colors-btn" class="nav-button">Reset to Defaults</button>
+                                    </div>
+                                    <div class="sliders-container">
+                                        <div class="slider-group">
+                                            <label for="hue-slider">H</label>
+                                            <input type="range" id="hue-slider" min="0" max="360" step="1">
+                                            <span id="hue-value">0</span>
+                                        </div>
+                                        <div class="slider-group">
+                                            <label for="saturation-slider">S</label>
+                                            <input type="range" id="saturation-slider" min="0" max="100" step="1">
+                                            <span id="saturation-value">0</span>
+                                        </div>
+                                        <div class="slider-group">
+                                            <label for="lightness-slider">L</label>
+                                            <input type="range" id="lightness-slider" min="0" max="100" step="1">
+                                            <span id="lightness-value">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="custom-input-group font-color-group">
+                                        <label>Button Font:</label>
+                                        <div class="font-color-options">
+                                            <button data-textcolor="#ffffff" class="font-color-btn light-btn">Light</button>
+                                            <button data-textcolor="#000000" class="font-color-btn dark-btn">Dark</button>
+                                        </div>
+                                    </div>
+                                    <div class="custom-input-group font-color-group">
+                                        <label>Day Cell Font:</label>
+                                        <div class="font-color-options">
+                                            <button data-daycelltextcolor="#ffffff" class="font-color-btn day-cell-font-color-btn light-btn">Light</button>
+                                            <button data-daycelltextcolor="#000000" class="font-color-btn day-cell-font-color-btn dark-btn">Dark</button>
+                                        </div>
                                     </div>
                                 </div>
+                                <button id="reset-colors-btn" class="nav-button">Reset to Defaults</button>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <div class="settings-accordion nested">
-                            <button id="letter-schedule-toggle" class="settings-accordion-toggle">Letter Schedule</button>
-                            <div id="letter-schedule-panel" class="settings-accordion-panel">
-                                <p class="info-text">Enter up to 3 characters per field. This will disable the color schedule.</p>
-                                <div class="letter-schedule-inputs-wrapper">
-                                    <div class="letter-schedule-inputs"></div>
-                                    <button id="clear-letter-schedule-btn" class="nav-button clear-btn">Clear</button>
-                                </div>
-                            </div>
+                <div class="settings-accordion nested">
+                    <button id="letter-schedule-toggle" class="settings-accordion-toggle">Letter Schedule</button>
+                    <div id="letter-schedule-panel" class="settings-accordion-panel">
+                        <p class="info-text">Enter up to 3 characters per field. This will disable the color schedule.</p>
+                        <div class="letter-schedule-inputs-wrapper">
+                            <div class="letter-schedule-inputs"></div>
+                            <button id="clear-letter-schedule-btn" class="nav-button clear-btn">Clear</button>
                         </div>
                     </div>
                 </div>
@@ -754,24 +749,40 @@ async function renderCalendarPage(year, selectedCarrier = null, options = {}) {
 
     function refreshCalendarGridOnly() {
         const activeElement = document.activeElement;
-        const isT6Input = activeElement && activeElement.classList.contains('t6-route-input');
-        const isLetterInput = activeElement && activeElement.classList.contains('letter-schedule-input');
-        const activeIndex = activeElement ? parseInt(activeElement.dataset.index) : -1;
+        const isInputActive = activeElement && (
+            activeElement.classList.contains('t6-route-input') || 
+            activeElement.classList.contains('letter-schedule-input') ||
+            activeElement.id === 'color-name-input' ||
+            activeElement.closest('.sliders-container') ||
+            activeElement.closest('.font-color-options')
+        );
+        
+        const activeId = activeElement ? activeElement.id : null;
+        const activeClasses = activeElement ? Array.from(activeElement.classList) : [];
+        const activeDataAttrs = {};
+        if (activeElement && activeElement.dataset) {
+            Object.keys(activeElement.dataset).forEach(key => {
+                activeDataAttrs[key] = activeElement.dataset[key];
+            });
+        }
         const selectionStart = activeElement ? activeElement.selectionStart : 0;
 
         renderAllMonthTiles();
 
-        if (isT6Input && activeIndex !== -1) {
-            const inputs = document.querySelectorAll('.t6-route-input');
-            if (inputs[activeIndex]) {
-                inputs[activeIndex].focus();
-                inputs[activeIndex].setSelectionRange(selectionStart, selectionStart);
+        if (isInputActive) {
+            let elementToFocus = null;
+            if (activeId) {
+                elementToFocus = document.getElementById(activeId);
             }
-        } else if (isLetterInput && activeIndex !== -1) {
-            const inputs = document.querySelectorAll('.letter-schedule-input');
-            if (inputs[activeIndex]) {
-                inputs[activeIndex].focus();
-                inputs[activeIndex].setSelectionRange(selectionStart, selectionStart);
+            if (!elementToFocus) {
+                 const selector = activeClasses.map(c => `.${c}`).join('');
+                 elementToFocus = document.querySelector(selector);
+            }
+            if(elementToFocus) {
+                elementToFocus.focus();
+                if(typeof selectionStart === 'number') {
+                   elementToFocus.setSelectionRange(selectionStart, selectionStart);
+                }
             }
         }
     }
@@ -861,7 +872,7 @@ async function renderCalendarPage(year, selectedCarrier = null, options = {}) {
     let selectedColorForCustomization = null;
     const customizerUI = document.getElementById('color-customizer-ui');
     const colorNameInput = document.getElementById('color-name-input');
-    const fontColorBtns = document.querySelectorAll('.font-color-btn');
+    const fontColorBtns = document.querySelectorAll('.font-color-btn:not(.day-cell-font-color-btn)');
     const dayCellFontColorBtns = document.querySelectorAll('.day-cell-font-color-btn');
     const colorPreviewBox = document.getElementById('color-preview-box');
     const hueSlider = document.getElementById('hue-slider');
@@ -943,6 +954,7 @@ async function renderCalendarPage(year, selectedCarrier = null, options = {}) {
             updateColorStyles();
             fontColorBtns.forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
+            refreshCalendarGridOnly();
         });
     });
 
@@ -953,6 +965,7 @@ async function renderCalendarPage(year, selectedCarrier = null, options = {}) {
             updateColorStyles();
             dayCellFontColorBtns.forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
+            refreshCalendarGridOnly();
         });
     });
 
@@ -973,6 +986,7 @@ async function renderCalendarPage(year, selectedCarrier = null, options = {}) {
         colorPreviewBox.style.backgroundColor = colorString;
         
         updateColorStyles();
+        refreshCalendarGridOnly();
     }
 
     hueSlider.addEventListener('input', handleSliderChange);
@@ -1399,34 +1413,46 @@ document.addEventListener('DOMContentLoaded', async () => {
         installAppButton.style.display = 'none';
         deferredPrompt = null;
     });
+    
+    // --- Service Worker Registration and Update Logic ---
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            const swUrl = `/mcore/service-worker.js?v=${appConfig.cacheVersion || '1'}`;
-            navigator.serviceWorker.register(swUrl)
-                .then(registration => {
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    registration.addEventListener('updatefound', () => {
-                        const installingWorker = registration.installing;
-                        if (installingWorker) {
-                            installingWorker.addEventListener('statechange', () => {
-                                if (installingWorker.state === 'installed') {
-                                    if (navigator.serviceWorker.controller) {
-                                        console.log('New content available! Please refresh to get the latest version.');
-                                    } else {
-                                        console.log('Content is now available offline!');
-                                    }
+        const swUrl = `/mcore/service-worker.js?v=${appConfig.cacheVersion || '1'}`;
+
+        navigator.serviceWorker.register(swUrl)
+            .then(registration => {
+                console.log('ServiceWorker registration successful');
+
+                // Check for updates on page load
+                registration.update();
+
+                registration.addEventListener('updatefound', () => {
+                    const installingWorker = registration.installing;
+                    if (installingWorker) {
+                        installingWorker.addEventListener('statechange', () => {
+                            if (installingWorker.state === 'installed') {
+                                // The new worker is installed and waiting.
+                                // If there's an active controller, we can assume this is an update.
+                                if (navigator.serviceWorker.controller) {
+                                    console.log('New content is available and will be used when all tabs for this page are closed.');
+                                    // Optionally, prompt the user to reload
+                                } else {
+                                    console.log('Content is cached for offline use.');
                                 }
-                            });
-                        }
-                    });
-                })
-                .catch(err => {
-                    console.error('ServiceWorker registration failed: ', err);
+                            }
+                        });
+                    }
                 });
-        });
+            })
+            .catch(err => {
+                console.error('ServiceWorker registration failed: ', err);
+            });
+
+        let refreshing;
         navigator.serviceWorker.addEventListener('controllerchange', () => {
-            console.log('New service worker controlling this page. Reloading for fresh content.');
+            if (refreshing) return;
+            console.log('New service worker has taken control. Reloading page...');
             window.location.reload();
+            refreshing = true;
         });
     }
 });
