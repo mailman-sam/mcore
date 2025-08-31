@@ -606,7 +606,7 @@ function closeDayDetailsLightbox() {
     document.getElementById('day-details-lightbox').classList.remove('active');
 }
 
-// --- Page Rendering ---
+// --- Page Rendering Functions ---
 async function renderCalendarPage(year, selectedCarrier = null, options = {}) {
     await fetchEvents();
     await fetchUserControls();
@@ -1198,41 +1198,159 @@ async function renderAcronymsPage() {
     sortAcronymDescBtn.addEventListener('click', () => { currentSortOrder = 'desc'; renderAcronymsTable(); });
 }
 
-async function router() {
-    if (timeTableInterval) {
-        clearInterval(timeTableInterval);
-        timeTableInterval = null;
-    }
-    const hash = window.location.hash;
-    const urlParams = new URLSearchParams(hash.split('?')[1]);
-    const currentYear = new Date().getFullYear();
+function renderMailManagementPage() {
+    appContent.innerHTML = `
+        <div class="page-content-wrapper align-left">
+            <h2 class="page-title">Mail Management Guide</h2>
+            <p class="info-text">This guide provides essential information on key USPS services for both carriers and customers, as detailed in the provided Carrier Guide.</p>
 
-    if (hash.startsWith('#calendar')) {
-        const year = parseInt(urlParams.get('year')) || currentYear;
-        let carrier = urlParams.get('carrier');
+            <div class="settings-accordion">
+                <button id="coa-toggle" class="settings-accordion-toggle">Change of Address</button>
+                <div id="coa-panel" class="settings-accordion-panel">
+                    <div class="card card-carrier">
+                        <h4>For Letter Carriers</h4>
+                        <p class="mb-4"><strong>Change of Address (COA) / Mail Forwarding:</strong> A request to redirect mail to a new location. Both temporary and permanent options exist, and each has a different duration.</p>
+                        <ul class="list-disc ml-6">
+                            <li><strong>Forms:</strong> Be notified of a COA via a physical Form 3575 or a digital notification in your scanner.</li>
+                            <li><strong>Duration:</strong> A permanent COA is active for a total of **18 months**: 12 months for forwarding and an additional 6 months for address correction purposes.</li>
+                            <li><strong>What to Forward:</strong>
+                                <ul class="list-circle ml-6 mt-2">
+                                    <li><strong>First-Class Mail, Priority Mail:</strong> Forwarded for 12 months.</li>
+                                    <li><strong>Periodicals (magazines):</strong> Forwarded for up to 60 days.</li>
+                                    <li><strong>USPS Marketing Mail:</strong> Generally not forwarded. Handle according to any specific instructions on the mailpiece.</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card card-customer">
+                        <h4>For Customers</h4>
+                        <p class="mb-4"><strong>Process:</strong> Customers can submit a COA request either online or in person at a Post Office. It's recommended to submit the request at least two weeks before the move to ensure a smooth transition.</p>
+                        <ul class="list-disc ml-6">
+                            <li><strong>Online:</strong> Go to <a href="https://www.usps.com/move" target="_blank" class="text-blue-600 hover:underline">USPS.com/move</a>. There is a $1.25 fee for online identity verification.</li>
+                            <li><strong>In-Person:</strong> Fill out a PS Form 3575 at any Post Office and show a valid photo ID.</li>
+                            <li><strong>Forwarding Start Date:</strong> Mail forwarding can begin as early as 3 business days after the request, but it's best to allow up to 2 weeks for processing.</li>
+                            <li><strong>Duration:</strong> A permanent COA lasts for **12 months**. A temporary COA can be requested for **15 days to one year**. For an additional fee, you can purchase an extension of **6, 12, or 18 months**.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
 
-        if (carrier === null) {
-            carrier = localStorage.getItem('mcore-selected-carrier') || 'all';
-             if (!localStorage.getItem('mcore-calendar-visited')) {
-                localStorage.setItem('mcore-calendar-visited', 'true');
-            }
-        }
-        
-        renderCalendarPage(year, carrier);
-    } else if (hash.startsWith('#resources')) {
-        renderResourcesPage();
-    } else if (hash.startsWith('#acronyms')) {
-        renderAcronymsPage();
-    } else if (hash.startsWith('#pay-periods')) {
-        const year = parseInt(urlParams.get('year')) || currentYear;
-        renderPayPeriodsPage(year);
-    } else if (hash.startsWith('#time-table')) {
-        renderTimeTablePage();
-    } else if (hash === '#disclaimer') {
-        renderDisclaimerPage();
-    } else {
-        renderLandingPage();
-    }
+            <div class="settings-accordion">
+                <button id="hold-mail-toggle" class="settings-accordion-toggle">Hold Mail</button>
+                <div id="hold-mail-panel" class="settings-accordion-panel">
+                    <div class="card card-carrier">
+                        <h4>For Letter Carriers</h4>
+                        <p class="mb-4"><strong>Hold Mail Service:</strong> A temporary pause in delivery for customers who are away from home for a short period. All mail is held securely at the Post Office.</p>
+                        <ul class="list-disc ml-6">
+                            <li><strong>Forms:</strong> You will receive a physical or digital notification to hold mail for a specific address. This is often a PS Form 8076 or a notification on your scanner.</li>
+                            <li><strong>Duration:</strong> A hold can be placed for a minimum of 3 days and a maximum of 30 days.</li>
+                            <li><strong>Carrier Process:</strong> All mail for that address must be held at the Post Office. Do not attempt delivery. The accumulated mail is delivered in one bundle on the first day of resumed delivery, unless the customer opts to pick it up.</li>
+                            <li><strong>Pick-up Window:</strong> If a customer chooses to pick up their held mail, they have **10 days** from the end of the hold period to do so before it is returned to the sender.</li>
+                        </ul>
+                    </div>
+                    <div class="card card-customer">
+                        <h4>For Customers</h4>
+                        <p class="mb-4"><strong>Process:</strong> Customers can submit a Hold Mail request online or in person.</p>
+                        <ul class="list-disc ml-6">
+                            <li><strong>Online:</strong> Visit the <a href="https://www.usps.com/manage/hold-mail.htm" target="_blank" class="text-blue-600 hover:underline">USPS Hold Mail page</a>. Identity verification is required for the first online request.</li>
+                            <li><strong>In-Person:</strong> Complete and submit a PS Form 8076 at your local Post Office.</li>
+                            <li><strong>Duration:</strong> A hold can be placed for a minimum of **3 days** and a maximum of **30 days**.</li>
+                            <li><strong>Picking Up Mail:</strong> Customers can choose to pick up their mail at the Post Office or have it delivered on the specified resumption date. If picking up, you have **10 days** after the hold ends to retrieve it.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-accordion">
+                <button id="informed-delivery-toggle" class="settings-accordion-toggle">Informed Delivery</button>
+                <div id="informed-delivery-panel" class="settings-accordion-panel">
+                    <div class="card card-carrier">
+                        <h4>For Letter Carriers</h4>
+                        <p class="mb-4"><strong>Informed Delivery:</strong> A free service for customers that provides a digital preview of their incoming mail. It does not change the physical delivery process for the carrier.</p>
+                        <ul class="list-disc ml-6">
+                            <li><strong>What is Imaged:</strong> Automated sorting machines capture grayscale images of the front of letter-sized mailpieces.</li>
+                            <li><strong>Carrier Impact:</strong> Informed Delivery is for the customer's benefit only. It does not require any specific action from the carrier. Your job is to deliver the physical mail as usual. If a customer asks about a mailpiece they saw online, explain that the image is a preview and the physical mailpiece is in the normal delivery process.</li>
+                        </ul>
+                    </div>
+                    <div class="card card-customer">
+                        <h4>For Customers</h4>
+                        <p class="mb-4"><strong>How it Works:</strong> As your mail passes through the USPS system, a picture is taken of the address side. This image is then sent to you via a daily email digest or is visible on your online dashboard.</p>
+                        <ul class="list-disc ml-6">
+                            <li><strong>How to Sign Up:</strong> Create a free USPS.com account and verify your identity.</li>
+                            <li><strong>Benefits:</strong> You can see what mail is coming before it arrives, which helps you track important documents and packages. You can also manage package deliveries and leave instructions for your carrier through the dashboard.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-accordion">
+                <button id="forms-toggle" class="settings-accordion-toggle">Common Carrier Forms</button>
+                <div id="forms-panel" class="settings-accordion-panel">
+                    <h3 class="mb-4">Common Carrier Forms</h3>
+                    <p class="text-gray-600 mb-6">This is a list of some of the most common forms used by letter carriers for various tasks, from daily duties to administrative and safety procedures.</p>
+                    
+                    <div class="card card-carrier">
+                        <h4>Delivery & Customer Service Forms</h4>
+                        <ul class="list-disc ml-6">
+                            <li><strong>PS Form 3849 (Delivery Notice/Reminder/Receipt):</strong> This is used to notify a customer of a missed delivery for which a signature or other action is required. For a one-time pick-up, a customer can fill out the back of the notice to authorize another person to pick up the item. The authorized person must present the signed notice and their own photo ID.</li>
+                            <li><strong>PS Form 3575 (Change of Address Order):</strong> Used by customers to initiate mail forwarding to a new address.</li>
+                            <li><strong>PS Form 8076 (Authorization to Hold Mail):</strong> Used by customers to temporarily hold mail delivery.</li>
+                            <li><strong>PS Form 4056 (Your Mailbox Needs Attention):</strong> Left for customers to notify them of a mailbox issue that needs to be corrected.</li>
+                        </ul>
+                    </div>
+
+                    <div class="card card-carrier">
+                        <h4>Time Management & Work Assignment Forms</h4>
+                        <ul class="list-disc ml-6">
+                            <li><strong>PS Form 3996 (Carrier Auxiliary Control):</strong> A crucial form used to authorize and track overtime or assistance needed to complete a route when the mail volume is heavy.</li>
+                            <li><strong>PS Form 1260 (Manual Time Card):</strong> Used to manually record work hours when the electronic scanner system is unavailable.</li>
+                            <li><strong>PS Form 3999 (Inspection of Carrier Route):</strong> A form used by management during a route inspection to record information about the route's conditions and workload.</li>
+                            <li><strong>PS Form 1813 (Late Leaving & Returning Report):</strong> Used to report and document why a carrier left or returned to the office late.</li>
+                        </ul>
+                    </div>
+
+                    <div class="card card-carrier">
+                        <h4>Personnel & Administrative Forms</h4>
+                        <ul class="list-disc ml-6">
+                            <li><strong>PS Form 8190 (Joint Grievance Form):</strong> Used by a carrier and union representative to file a formal grievance.</li>
+                            <li><strong>PS Form 2480 (Driving Record):</strong> A record of a carrier's driving history.</li>
+                            <li><strong>PS Form 2574 (Resignation Form):</strong> Used when a carrier wishes to resign from their position.</li>
+                        </ul>
+                    </div>
+
+                    <div class="card card-carrier">
+                        <h4>Safety & Hazard Forms</h4>
+                        <ul class="list-disc ml-6">
+                            <li><strong>PS Form 1767 (Report of Hazardous Condition):</strong> Used to report unsafe conditions in the workplace or on the route.</li>
+                            <li><strong>PS Form 1778 (Dog Warning Card):</strong> A card or notice used to alert other carriers or personnel about a dog hazard at a specific address.</li>
+                        </ul>
+                    </div>
+
+                    <div class="card card-customer">
+                        <h4>Forms for Authorizing an Agent to Receive Mail</h4>
+                        <p>These forms are used to give someone permission to receive and sign for mail on your behalf.</p>
+                        <ul class="list-disc ml-6 mt-4">
+                            <li><strong>PS Form 1583 (Application for Delivery of Mail Through Agent):</strong> This is used to authorize a **Commercial Mail Receiving Agency (CMRA)** to receive and sign for mail on your behalf. This is a formal, notarized document.</li>
+                            <li><strong>PS Form 3801 (Standing Delivery Order):</strong> This form is filed at the Post Office to authorize a specific person to permanently receive and sign for a customer's mail.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="button-group">
+                <a href="#landing" class="button primary-button">Back to Home</a>
+            </div>
+        </div>
+    `;
+
+    // Re-attach accordion listeners after content is rendered
+    document.querySelectorAll('.settings-accordion-toggle').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            button.classList.toggle('active');
+            const panel = button.nextElementSibling;
+            panel.classList.toggle('show');
+        });
+    });
 }
 
 function renderLandingPage() {
@@ -1354,7 +1472,44 @@ function updateLiveTime() {
     const timeString = `<span class="live-times">${time24String} - USPS: ${uspsTimeString}</span>`;
     liveTimeContainer.innerHTML = `${dateString}${timeString}`;
 }
+function router() {
+    if (timeTableInterval) {
+        clearInterval(timeTableInterval);
+        timeTableInterval = null;
+    }
+    const hash = window.location.hash;
+    const urlParams = new URLSearchParams(hash.split('?')[1]);
+    const currentYear = new Date().getFullYear();
 
+    if (hash.startsWith('#calendar')) {
+        const year = parseInt(urlParams.get('year')) || currentYear;
+        let carrier = urlParams.get('carrier');
+
+        if (carrier === null) {
+            carrier = localStorage.getItem('mcore-selected-carrier') || 'all';
+             if (!localStorage.getItem('mcore-calendar-visited')) {
+                localStorage.setItem('mcore-calendar-visited', 'true');
+            }
+        }
+        
+        renderCalendarPage(year, carrier);
+    } else if (hash.startsWith('#resources')) {
+        renderResourcesPage();
+    } else if (hash.startsWith('#acronyms')) {
+        renderAcronymsPage();
+    } else if (hash.startsWith('#pay-periods')) {
+        const year = parseInt(urlParams.get('year')) || currentYear;
+        renderPayPeriodsPage(year);
+    } else if (hash.startsWith('#time-table')) {
+        renderTimeTablePage();
+    } else if (hash === '#disclaimer') {
+        renderDisclaimerPage();
+    } else if (hash.startsWith('#mail-management')) {
+        renderMailManagementPage();
+    } else {
+        renderLandingPage();
+    }
+}
 // --- App Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
     await fetchAppConfig();
