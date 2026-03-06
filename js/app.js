@@ -22,7 +22,7 @@ let letterSchedule = ['', '', '', '', '', ''];
 let customColors = {};
 let timeTableInterval = null;
 
-const MCORE_LOGO_FALLBACK_PATH = '/mcore/icons/mcore-logo-fallback.png';
+const MCORE_LOGO_FALLBACK_PATH = '/icons/mcore-logo-fallback.png';
 
 const T6_CYCLE_REFERENCE_START_DATE = new Date('2025-07-05T00:00:00Z');
 const POSTAL_WORK_WEEK_START_DATE = new Date('2024-11-23T00:00:00Z');
@@ -178,7 +178,7 @@ function initPreferences() {
 async function fetchAppConfig() {
     if (Object.keys(appConfig).length > 0) return appConfig;
     try {
-        const response = await fetch(`/mcore/data/app-config.json?t=${new Date().getTime()}`);
+        const response = await fetch(`/data/app-config.json?t=${new Date().getTime()}`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         appConfig = data;
@@ -192,7 +192,7 @@ async function fetchAppConfig() {
 async function fetchEvents() {
     if (allEventsData.length > 0) return allEventsData;
     try {
-        const response = await fetch('/mcore/data/events.json');
+        const response = await fetch('/data/events.json');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         allEventsData = data;
@@ -231,7 +231,7 @@ async function fetchUserControls() {
 async function fetchAcronymsData() {
     if (allAcronymsData.length > 0) return allAcronymsData;
     try {
-        const response = await fetch('/mcore/data/acronyms.json');
+        const response = await fetch('/data/acronyms.json');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         allAcronymsData = data;
@@ -245,7 +245,7 @@ async function fetchAcronymsData() {
 async function fetchAllResourcesData() {
     if (allResourcesData.length > 0) return allResourcesData;
     try {
-        const response = await fetch('/mcore/data/resources.json');
+        const response = await fetch('/data/resources.json');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         allResourcesData = data;
@@ -521,7 +521,7 @@ function generateMonthTile(month, year, selectedCarrier) {
         if (visibleEvents.length > 0) {
             dayClasses.push('has-event-bg');
             const primaryEvent = visibleEvents[0];
-            const imageUrl = `/mcore/icons/${primaryEvent.icon}`;
+            const imageUrl = `/icons/${primaryEvent.icon}`;
             dayStyles = `style="--event-bg-image: url('${imageUrl}'); --event-bg-opacity: ${userControls.eventImageOpacity};"`;
         }
         if (eventInfos.length > 0) {
@@ -536,7 +536,7 @@ function generateMonthTile(month, year, selectedCarrier) {
         }
 
         if (payDaysForYear.has(formattedDate) && userControls.showPaydays) {
-            paydayHtml = `<img src="/mcore/icons/money-stack250.png" alt="Pay Day" class="payday-symbol">`;
+            paydayHtml = `<img src="/icons/money-stack250.png" alt="Pay Day" class="payday-symbol">`;
             dataAttributes += ` data-is-payday="true"`;
         }
         
@@ -586,11 +586,11 @@ function openDayDetailsLightbox(dayCell) {
     if (isEvent) {
         const eventData = JSON.parse(dayCell.dataset.eventsJson.replace(/&quot;/g, '"'));
         eventData.forEach(event => {
-            contentHtml += `<div class="lightbox-event-item"><img src="/mcore/icons/${event.icon}" alt="${event.name}" class="lightbox-event-icon"><div class="lightbox-event-details"><h4>${event.name}</h4><p>${event.info}</p></div></div>`;
+            contentHtml += `<div class="lightbox-event-item"><img src="/icons/${event.icon}" alt="${event.name}" class="lightbox-event-icon"><div class="lightbox-event-details"><h4>${event.name}</h4><p>${event.info}</p></div></div>`;
         });
     }
     if (isPayday) {
-        contentHtml += `<div class="lightbox-event-item"><img src="/mcore/icons/money-stack250.png" alt="Pay Day" class="lightbox-event-icon"><div class="lightbox-event-details"><h4>Pay Day</h4><p>Your pay should be deposited on or around this date.</p></div></div>`;
+        contentHtml += `<div class="lightbox-event-item"><img src="/icons/money-stack250.png" alt="Pay Day" class="lightbox-event-icon"><div class="lightbox-event-details"><h4>Pay Day</h4><p>Your pay should be deposited on or around this date.</p></div></div>`;
     }
     contentHtml += '</div>';
     dynamicContent.innerHTML = contentHtml;
@@ -1346,12 +1346,238 @@ function renderMailManagementPage() {
     });
 }
 
+function getToday() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = padZero(now.getMonth() + 1);
+    const d = padZero(now.getDate());
+    return `${y}-${m}-${d}`;
+}
+
+function formatDateDisplay(dateStr) {
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${months[parseInt(m,10)-1]} ${parseInt(d,10)}, ${y}`;
+}
+
+function timeToPostalFormats(timeStr) {
+    if (!timeStr) return null;
+    const [h, mi] = timeStr.split(':').map(Number);
+    const hun = Math.floor(mi / 60 * 100);
+    return {
+        military: `${padZero(h)}${padZero(mi)}`,
+        usps: `${padZero(h)}${padZero(hun)}`
+    };
+}
+
+function calcHoursRequested(fromDate, fromTime, thruDate, thruTime) {
+    if (!fromDate || !fromTime || !thruDate || !thruTime) return null;
+    const from = new Date(`${fromDate}T${fromTime}`);
+    const thru = new Date(`${thruDate}T${thruTime}`);
+    const diffMs = thru - from;
+    if (isNaN(diffMs) || diffMs <= 0) return null;
+    const diffMins = Math.floor(diffMs / 60000);
+    const hours = Math.floor(diffMins / 60);
+    const mins = diffMins % 60;
+    const hun = Math.floor(mins / 60 * 100);
+    return `${hours} hr${hours !== 1 ? 's' : ''} ${padZero(hun)} hun  (${hours}.${padZero(hun)})`;
+}
+
+function renderForm3971Page() {
+    const today = getToday();
+
+    const savedEin    = localStorage.getItem('mcore-3971-ein')     || '';
+    const savedPayLoc = localStorage.getItem('mcore-3971-pay-loc') || '';
+    const savedDaCode = localStorage.getItem('mcore-3971-da-code') || '';
+
+    appContent.innerHTML = `
+        <div class="page-content-wrapper align-left">
+            <h2 class="page-title">PS Form 3971 — Leave Request Tool</h2>
+            <p class="info-text">Fill in your details below. EIN, Pay Loc., and D/A Code are remembered for next time. All other fields reset on each visit.</p>
+
+            <div class="form-3971-wrapper">
+
+                <div class="form-3971-header">
+                    <div class="form-3971-header-left">
+                        <span class="form-3971-agency">United States Postal Service</span>
+                        <span class="form-3971-form-title">Request for or Notification of Absence</span>
+                    </div>
+                    <div class="form-3971-header-right">
+                        <span class="form-3971-number">PS Form 3971</span>
+                    </div>
+                </div>
+
+                <div class="form-3971-row">
+                    <div class="form-3971-cell" style="flex:3">
+                        <span class="form-3971-label">Employee ID (EIN)</span>
+                        <div class="form-3971-input-row">
+                            <input type="text" id="f3971-ein" class="form-3971-input" placeholder="Enter EIN" maxlength="30" value="${savedEin}">
+                            <button id="f3971-clear-ein" class="form-3971-clear-btn" title="Clear saved EIN">✕</button>
+                        </div>
+                    </div>
+                    <div class="form-3971-cell" style="flex:2">
+                        <span class="form-3971-label">Pay Loc. No.</span>
+                        <input type="text" id="f3971-pay-loc" class="form-3971-input" placeholder="e.g. 123" maxlength="10" value="${savedPayLoc}">
+                    </div>
+                    <div class="form-3971-cell" style="flex:2">
+                        <span class="form-3971-label">D/A Code</span>
+                        <input type="text" id="f3971-da-code" class="form-3971-input" placeholder="e.g. 21" maxlength="10" value="${savedDaCode}">
+                    </div>
+                </div>
+
+                <div class="form-3971-row">
+                    <div class="form-3971-cell" style="flex:1">
+                        <span class="form-3971-label">Date Submitted</span>
+                        <div class="form-3971-date-submitted-wrap">
+                            <span id="f3971-date-display" class="form-3971-date-display" title="Tap to change date">${formatDateDisplay(today)}</span>
+                            <input type="date" id="f3971-date-input" class="form-3971-input form-3971-hidden" value="${today}">
+                        </div>
+                        <span class="form-3971-sublabel" style="margin-top:4px">Resets to today on next visit</span>
+                    </div>
+                </div>
+
+                <div class="form-3971-row form-3971-row-from-thru">
+                    <div class="form-3971-cell" style="flex:1">
+                        <span class="form-3971-label">From</span>
+                        <div class="form-3971-dt-group">
+                            <div class="form-3971-dt-sub">
+                                <span class="form-3971-sublabel">Date</span>
+                                <input type="date" id="f3971-from-date" class="form-3971-input" value="${today}">
+                            </div>
+                            <div class="form-3971-dt-sub">
+                                <span class="form-3971-sublabel">Hour</span>
+                                <input type="time" id="f3971-from-time" class="form-3971-input">
+                                <div id="f3971-from-time-out" class="form-3971-time-out"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-3971-divider">—</div>
+                    <div class="form-3971-cell" style="flex:1">
+                        <span class="form-3971-label">Thru</span>
+                        <div class="form-3971-dt-group">
+                            <div class="form-3971-dt-sub">
+                                <span class="form-3971-sublabel">Date</span>
+                                <input type="date" id="f3971-thru-date" class="form-3971-input" value="${today}">
+                            </div>
+                            <div class="form-3971-dt-sub">
+                                <span class="form-3971-sublabel">Hour</span>
+                                <input type="time" id="f3971-thru-time" class="form-3971-input">
+                                <div id="f3971-thru-time-out" class="form-3971-time-out"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-3971-row form-3971-row-hours">
+                    <div class="form-3971-cell" style="flex:1">
+                        <span class="form-3971-label">No. of Hours Requested</span>
+                        <div id="f3971-hours-out" class="form-3971-hours-out">—</div>
+                        <span class="form-3971-sublabel">Auto-calculated from From / Thru</span>
+                    </div>
+                </div>
+
+                <div class="form-3971-footer-note">
+                    Reference tool only — not an official USPS document. Verify all information with official sources before submitting a physical form.
+                </div>
+
+            </div>
+
+            <div class="button-group">
+                <a href="#resources" class="button primary-button">Back to Resources</a>
+            </div>
+        </div>
+    `;
+
+    const einInput    = document.getElementById('f3971-ein');
+    const payLocInput = document.getElementById('f3971-pay-loc');
+    const daCodeInput = document.getElementById('f3971-da-code');
+    const clearEinBtn = document.getElementById('f3971-clear-ein');
+
+    const dateDisplay = document.getElementById('f3971-date-display');
+    const dateInput   = document.getElementById('f3971-date-input');
+
+    const fromDateInput = document.getElementById('f3971-from-date');
+    const fromTimeInput = document.getElementById('f3971-from-time');
+    const fromTimeOut   = document.getElementById('f3971-from-time-out');
+
+    const thruDateInput = document.getElementById('f3971-thru-date');
+    const thruTimeInput = document.getElementById('f3971-thru-time');
+    const thruTimeOut   = document.getElementById('f3971-thru-time-out');
+
+    const hoursOut = document.getElementById('f3971-hours-out');
+
+    function updateTimeDisplay(timeStr, el) {
+        const fmt = timeToPostalFormats(timeStr);
+        if (fmt) {
+            el.innerHTML = `<span class="form-3971-mil">Military: <strong>${fmt.military}</strong></span><span class="form-3971-usps">USPS: <strong>${fmt.usps}</strong></span>`;
+        } else {
+            el.innerHTML = '';
+        }
+    }
+
+    function updateHours() {
+        const result = calcHoursRequested(
+            fromDateInput.value, fromTimeInput.value,
+            thruDateInput.value, thruTimeInput.value
+        );
+        hoursOut.textContent = result || '—';
+        hoursOut.classList.toggle('form-3971-hours-valid', !!result);
+    }
+
+    einInput.addEventListener('input', () => localStorage.setItem('mcore-3971-ein', einInput.value));
+    payLocInput.addEventListener('input', () => localStorage.setItem('mcore-3971-pay-loc', payLocInput.value));
+    daCodeInput.addEventListener('input', () => localStorage.setItem('mcore-3971-da-code', daCodeInput.value));
+
+    clearEinBtn.addEventListener('click', () => {
+        einInput.value = '';
+        localStorage.removeItem('mcore-3971-ein');
+        einInput.focus();
+    });
+
+    dateDisplay.addEventListener('click', () => {
+        dateDisplay.classList.add('form-3971-hidden');
+        dateInput.classList.remove('form-3971-hidden');
+        dateInput.focus();
+    });
+
+    dateInput.addEventListener('change', () => {
+        dateDisplay.textContent = formatDateDisplay(dateInput.value) || formatDateDisplay(today);
+        dateInput.classList.add('form-3971-hidden');
+        dateDisplay.classList.remove('form-3971-hidden');
+    });
+
+    dateInput.addEventListener('blur', () => {
+        dateInput.classList.add('form-3971-hidden');
+        dateDisplay.classList.remove('form-3971-hidden');
+    });
+
+    fromDateInput.addEventListener('change', () => {
+        if (!thruDateInput.value || thruDateInput.value < fromDateInput.value) {
+            thruDateInput.value = fromDateInput.value;
+        }
+        updateHours();
+    });
+
+    fromTimeInput.addEventListener('change', () => {
+        updateTimeDisplay(fromTimeInput.value, fromTimeOut);
+        updateHours();
+    });
+
+    thruDateInput.addEventListener('change', updateHours);
+
+    thruTimeInput.addEventListener('change', () => {
+        updateTimeDisplay(thruTimeInput.value, thruTimeOut);
+        updateHours();
+    });
+}
+
 function renderLandingPage() {
-    appContent.innerHTML = `<div class="page-content-wrapper align-center"><h2 class="page-title">Welcome to mCORE</h2><p class="homepage-description"><span class="acronym-highlight">M</span>ail <span class="acronym-highlight">C</span>arrier <span class="acronym-highlight">O</span>perational <span class="acronym-highlight">R</span>esource & <span class="acronym-highlight">E</span>ncyclopedia</p><p class="homepage-info-text">No Ads<br>Always Free<br>Open-source & Safe<br>No Data Collection or Selling Your Info<br>Works great Offline, with Optional Web Links<br></p><div class="button-group"><a href="#disclaimer" id="disclaimer-link" class="button primary-button">Terms & Conditions</a></div><div class="logo-display-area"><img src="/mcore/icons/mcore-logo.png" alt="mCORE Logo" class="mcore-logo-large" onerror="this.onerror=null; this.src='${MCORE_LOGO_FALLBACK_PATH}';" /></div></div>`;
+    appContent.innerHTML = `<div class="page-content-wrapper align-center"><h2 class="page-title">Welcome to mCORE</h2><p class="homepage-description"><span class="acronym-highlight">M</span>ail <span class="acronym-highlight">C</span>arrier <span class="acronym-highlight">O</span>perational <span class="acronym-highlight">R</span>esource & <span class="acronym-highlight">E</span>ncyclopedia</p><p class="homepage-info-text">No Ads<br>Always Free<br>Open-source & Safe<br>No Data Collection or Selling Your Info<br>Works great Offline, with Optional Web Links<br></p><div class="button-group"><a href="#disclaimer" id="disclaimer-link" class="button primary-button">Terms & Conditions</a></div><div class="logo-display-area"><img src="/icons/mcore-logo.png" alt="mCORE Logo" class="mcore-logo-large" onerror="this.onerror=null; this.src='${MCORE_LOGO_FALLBACK_PATH}';" /></div></div>`;
 }
 
 function renderDisclaimerPage() {
-    appContent.innerHTML = `<div class="page-content-wrapper align-left"><h2 class="page-title">Terms & Conditions / Disclaimer of Responsibility</h2><div class="disclaimer-content-area"><p class="info-text"><strong>Important Disclaimer:</strong> This mCORE application is provided for informational and reference purposes only. It is developed independently by a mail carrier, for ALL mail carriers, and is not affiliated with, endorsed by, or sponsored by the United States Postal Service (USPS), any labor union, or any other official entity.</p><p class="info-text">While every effort has been made to ensure the accuracy of the information provided (including, but not limited to, calendar schedules, NALC Resource and federal holidays), this application does not constitute official guidance or legal advice. Postal regulations, labor laws, union contracts, and operational procedures are complex and subject to change.</p><p class="info-text"><strong>Users are solely responsible for verifying all information presented in this application with official USPS sources, union representatives, and/or relevant legal counsel.</strong></p><p class="info-text">The developer(s) of this application disclaim all liability for any errors or omissions in the content provided, or for any actions taken or not taken in reliance on the information contained herein. By using this application, you agree to these terms and understand that you use it at your own risk. The developer(s) shall not be liable for any direct, indirect, incidental, consequential, or punitive damages arising out of your access to, or use of, or inability to use this application.</p><p class="info-text">This application is provided "as is" without warranty of any kind, either express or implied, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement.</p><p class="info-text">Thank you for your understanding and continued dedication as a mail carrier.</p><div class="button-group"><a href="#landing" class="button primary-button">Back to Home</a></div><div class="logo-display-area"><img src="/mcore/icons/mcore-logo.png" alt="mCORE Logo" class="mcore-logo-large" onerror="this.onerror=null; this.src='${MCORE_LOGO_FALLBACK_PATH}';" /></div></div></div>`;
+    appContent.innerHTML = `<div class="page-content-wrapper align-left"><h2 class="page-title">Terms & Conditions / Disclaimer of Responsibility</h2><div class="disclaimer-content-area"><p class="info-text"><strong>Important Disclaimer:</strong> This mCORE application is provided for informational and reference purposes only. It is developed independently by a mail carrier, for ALL mail carriers, and is not affiliated with, endorsed by, or sponsored by the United States Postal Service (USPS), any labor union, or any other official entity.</p><p class="info-text">While every effort has been made to ensure the accuracy of the information provided (including, but not limited to, calendar schedules, NALC Resource and federal holidays), this application does not constitute official guidance or legal advice. Postal regulations, labor laws, union contracts, and operational procedures are complex and subject to change.</p><p class="info-text"><strong>Users are solely responsible for verifying all information presented in this application with official USPS sources, union representatives, and/or relevant legal counsel.</strong></p><p class="info-text">The developer(s) of this application disclaim all liability for any errors or omissions in the content provided, or for any actions taken or not taken in reliance on the information contained herein. By using this application, you agree to these terms and understand that you use it at your own risk. The developer(s) shall not be liable for any direct, indirect, incidental, consequential, or punitive damages arising out of your access to, or use of, or inability to use this application.</p><p class="info-text">This application is provided "as is" without warranty of any kind, either express or implied, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement.</p><p class="info-text">Thank you for your understanding and continued dedication as a mail carrier.</p><div class="button-group"><a href="#landing" class="button primary-button">Back to Home</a></div><div class="logo-display-area"><img src="/icons/mcore-logo.png" alt="mCORE Logo" class="mcore-logo-large" onerror="this.onerror=null; this.src='${MCORE_LOGO_FALLBACK_PATH}';" /></div></div></div>`;
 }
 
 function renderResourcesPage() {
@@ -1495,6 +1721,8 @@ function router() {
         renderPayPeriodsPage(year);
     } else if (hash.startsWith('#time-table')) {
         renderTimeTablePage();
+    } else if (hash.startsWith('#form-3971')) {
+        renderForm3971Page();
     } else if (hash === '#disclaimer') {
         renderDisclaimerPage();
     } else if (hash.startsWith('#mail-management')) {
@@ -1571,7 +1799,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     
     if ('serviceWorker' in navigator) {
-        const swUrl = `/mcore/service-worker.js?v=${appConfig.cacheVersion || '1'}`;
+        const swUrl = `/service-worker.js?v=${appConfig.cacheVersion || '1'}`;
 
         navigator.serviceWorker.register(swUrl)
             .then(registration => {

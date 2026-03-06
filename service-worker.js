@@ -3,49 +3,49 @@
 let CACHE_NAME; // Will be set dynamically from app-config.json
 
 const urlsToCache = [
-    '/mcore/',
-    '/mcore/index.html',
-    '/mcore/css/style.css',
-    '/mcore/js/app.js',
-    '/mcore/data/events.json',
-    '/mcore/data/acronyms.json',
-    '/mcore/data/resources.json',
-    '/mcore/manifest.json',
-    '/mcore/data/app-config.json',
-    '/mcore/icons/mcore-logo.png',
-    '/mcore/icons/mcore-logo-fallback.png',
-    '/mcore/icons/android-chrome-192x192.png',
-    '/mcore/icons/android-chrome-512x512.png',
-    '/mcore/icons/apple-touch-icon.png',
-    '/mcore/icons/favicon-32x32.png',
-    '/mcore/icons/favicon-16x16.png',
-    '/mcore/favicon.ico',
-    '/mcore/icons/us.png',
-    '/mcore/icons/money-stack250.png',
-    '/mcore/icons/light-mode.png',
-    '/mcore/icons/dark-mode.png',
+    '/',
+    '/index.html',
+    '/css/style.css',
+    '/js/app.js',
+    '/data/events.json',
+    '/data/acronyms.json',
+    '/data/resources.json',
+    '/manifest.json',
+    '/data/app-config.json',
+    '/icons/mcore-logo.png',
+    '/icons/mcore-logo-fallback.png',
+    '/icons/android-chrome-192x192.png',
+    '/icons/android-chrome-512x512.png',
+    '/icons/apple-touch-icon.png',
+    '/icons/favicon-32x32.png',
+    '/icons/favicon-16x16.png',
+    '/favicon.ico',
+    '/icons/us.png',
+    '/icons/money-stack250.png',
+    '/icons/light-mode.png',
+    '/icons/dark-mode.png',
     // Holiday Icons
-    '/mcore/icons/new-year-day.png',
-    '/mcore/icons/martin-luther-king-jr-day.png',
-    '/mcore/icons/washingtons-birthday-day.png',
-    '/mcore/icons/memorial-day.png',
-    '/mcore/icons/juneteenth-day.png',
-    '/mcore/icons/independence-day.png',
-    '/mcore/icons/labor-day.png',
-    '/mcore/icons/columbus-day.png',
-    '/mcore/icons/veterans-day.png',
-    '/mcore/icons/thanksgiving-day.png',
-    '/mcore/icons/christmas-day.png',
+    '/icons/new-year-day.png',
+    '/icons/martin-luther-king-jr-day.png',
+    '/icons/washingtons-birthday-day.png',
+    '/icons/memorial-day.png',
+    '/icons/juneteenth-day.png',
+    '/icons/independence-day.png',
+    '/icons/labor-day.png',
+    '/icons/columbus-day.png',
+    '/icons/veterans-day.png',
+    '/icons/thanksgiving-day.png',
+    '/icons/christmas-day.png',
     // Season Icons
-    '/mcore/icons/spring.png',
-    '/mcore/icons/summer.png',
-    '/mcore/icons/fall.png',
-    '/mcore/icons/winter.png',
+    '/icons/spring.png',
+    '/icons/summer.png',
+    '/icons/fall.png',
+    '/icons/winter.png',
     // Other Event Icons
-    '/mcore/icons/summer-sol.png',
-    '/mcore/icons/winter-sol.png',
-    '/mcore/icons/saving.png',
-    '/mcore/icons/food-drive.png'
+    '/icons/summer-sol.png',
+    '/icons/winter-sol.png',
+    '/icons/saving.png',
+    '/icons/food-drive.png'
 ];
 
 // Listen for a message from the client to skip waiting.
@@ -105,7 +105,7 @@ self.addEventListener('fetch', (event) => {
         }).catch(() => {
             // Fallback for navigation requests when offline.
             if (event.request.mode === 'navigate') {
-                return caches.match('/mcore/index.html');
+                return caches.match('/index.html');
             }
         })
     );

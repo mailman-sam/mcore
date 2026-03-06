@@ -24,6 +24,11 @@
         "url": "#time-table",
         "description": "An internal tool for converting standard time to postal (military and hundredths) time."
     },
+    {
+        "title": "PS Form 3971 — Leave Request Tool",
+        "url": "#form-3971",
+        "description": "A smart digital replica of PS Form 3971. Enter your From and Thru times and the tool calculates hours requested in USPS hundredths time. Remembers your EIN, Pay Loc., and D/A Code for next time."
+    },
 	{
         "title": "VEHICLE SAFETY CHECK ",
         "url": "https://www.nalc.org/workplace-issues/body/1975-02-Notice-76-from-M-41-2001.pdf",
