@@ -22,7 +22,7 @@ let letterSchedule = ['', '', '', '', '', ''];
 let customColors = {};
 let timeTableInterval = null;
 
-const MCORE_LOGO_FALLBACK_PATH = '/icons/mcore-logo-fallback.png';
+const MCORE_LOGO_FALLBACK_PATH = 'icons/mcore-logo-fallback.png';
 
 const T6_CYCLE_REFERENCE_START_DATE = new Date('2025-07-05T00:00:00Z');
 const POSTAL_WORK_WEEK_START_DATE = new Date('2024-11-23T00:00:00Z');
@@ -178,7 +178,7 @@ function initPreferences() {
 async function fetchAppConfig() {
     if (Object.keys(appConfig).length > 0) return appConfig;
     try {
-        const response = await fetch(`/data/app-config.json?t=${new Date().getTime()}`);
+        const response = await fetch(`data/app-config.json?t=${new Date().getTime()}`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         appConfig = data;
@@ -192,7 +192,7 @@ async function fetchAppConfig() {
 async function fetchEvents() {
     if (allEventsData.length > 0) return allEventsData;
     try {
-        const response = await fetch('/data/events.json');
+        const response = await fetch('data/events.json');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         allEventsData = data;
@@ -231,7 +231,7 @@ async function fetchUserControls() {
 async function fetchAcronymsData() {
     if (allAcronymsData.length > 0) return allAcronymsData;
     try {
-        const response = await fetch('/data/acronyms.json');
+        const response = await fetch('data/acronyms.json');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         allAcronymsData = data;
@@ -245,7 +245,7 @@ async function fetchAcronymsData() {
 async function fetchAllResourcesData() {
     if (allResourcesData.length > 0) return allResourcesData;
     try {
-        const response = await fetch('/data/resources.json');
+        const response = await fetch('data/resources.json');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         allResourcesData = data;
@@ -521,7 +521,8 @@ function generateMonthTile(month, year, selectedCarrier) {
         if (visibleEvents.length > 0) {
             dayClasses.push('has-event-bg');
             const primaryEvent = visibleEvents[0];
-            const imageUrl = `/icons/${primaryEvent.icon}`;
+            // Uses document.baseURI to automatically generate the correct absolute path
+            const imageUrl = new URL(`icons/${primaryEvent.icon}`, document.baseURI).href;
             dayStyles = `style="--event-bg-image: url('${imageUrl}'); --event-bg-opacity: ${userControls.eventImageOpacity};"`;
         }
         if (eventInfos.length > 0) {
@@ -536,7 +537,7 @@ function generateMonthTile(month, year, selectedCarrier) {
         }
 
         if (payDaysForYear.has(formattedDate) && userControls.showPaydays) {
-            paydayHtml = `<img src="/icons/money-stack250.png" alt="Pay Day" class="payday-symbol">`;
+            paydayHtml = `<img src="icons/money-stack250.png" alt="Pay Day" class="payday-symbol">`;
             dataAttributes += ` data-is-payday="true"`;
         }
         
@@ -586,11 +587,11 @@ function openDayDetailsLightbox(dayCell) {
     if (isEvent) {
         const eventData = JSON.parse(dayCell.dataset.eventsJson.replace(/&quot;/g, '"'));
         eventData.forEach(event => {
-            contentHtml += `<div class="lightbox-event-item"><img src="/icons/${event.icon}" alt="${event.name}" class="lightbox-event-icon"><div class="lightbox-event-details"><h4>${event.name}</h4><p>${event.info}</p></div></div>`;
+            contentHtml += `<div class="lightbox-event-item"><img src="icons/${event.icon}" alt="${event.name}" class="lightbox-event-icon"><div class="lightbox-event-details"><h4>${event.name}</h4><p>${event.info}</p></div></div>`;
         });
     }
     if (isPayday) {
-        contentHtml += `<div class="lightbox-event-item"><img src="/icons/money-stack250.png" alt="Pay Day" class="lightbox-event-icon"><div class="lightbox-event-details"><h4>Pay Day</h4><p>Your pay should be deposited on or around this date.</p></div></div>`;
+        contentHtml += `<div class="lightbox-event-item"><img src="icons/money-stack250.png" alt="Pay Day" class="lightbox-event-icon"><div class="lightbox-event-details"><h4>Pay Day</h4><p>Your pay should be deposited on or around this date.</p></div></div>`;
     }
     contentHtml += '</div>';
     dynamicContent.innerHTML = contentHtml;
@@ -1573,11 +1574,11 @@ function renderForm3971Page() {
 }
 
 function renderLandingPage() {
-    appContent.innerHTML = `<div class="page-content-wrapper align-center"><h2 class="page-title">Welcome to mCORE</h2><p class="homepage-description"><span class="acronym-highlight">M</span>ail <span class="acronym-highlight">C</span>arrier <span class="acronym-highlight">O</span>perational <span class="acronym-highlight">R</span>esource & <span class="acronym-highlight">E</span>ncyclopedia</p><p class="homepage-info-text">No Ads<br>Always Free<br>Open-source & Safe<br>No Data Collection or Selling Your Info<br>Works great Offline, with Optional Web Links<br></p><div class="button-group"><a href="#disclaimer" id="disclaimer-link" class="button primary-button">Terms & Conditions</a></div><div class="logo-display-area"><img src="/icons/mcore-logo.png" alt="mCORE Logo" class="mcore-logo-large" onerror="this.onerror=null; this.src='${MCORE_LOGO_FALLBACK_PATH}';" /></div></div>`;
+    appContent.innerHTML = `<div class="page-content-wrapper align-center"><h2 class="page-title">Welcome to mCORE</h2><p class="homepage-description"><span class="acronym-highlight">M</span>ail <span class="acronym-highlight">C</span>arrier <span class="acronym-highlight">O</span>perational <span class="acronym-highlight">R</span>esource & <span class="acronym-highlight">E</span>ncyclopedia</p><p class="homepage-info-text">No Ads<br>Always Free<br>Open-source & Safe<br>No Data Collection or Selling Your Info<br>Works great Offline, with Optional Web Links<br></p><div class="button-group"><a href="#disclaimer" id="disclaimer-link" class="button primary-button">Terms & Conditions</a></div><div class="logo-display-area"><img src="icons/mcore-logo.png" alt="mCORE Logo" class="mcore-logo-large" onerror="this.onerror=null; this.src='${MCORE_LOGO_FALLBACK_PATH}';" /></div></div>`;
 }
 
 function renderDisclaimerPage() {
-    appContent.innerHTML = `<div class="page-content-wrapper align-left"><h2 class="page-title">Terms & Conditions / Disclaimer of Responsibility</h2><div class="disclaimer-content-area"><p class="info-text"><strong>Important Disclaimer:</strong> This mCORE application is provided for informational and reference purposes only. It is developed independently by a mail carrier, for ALL mail carriers, and is not affiliated with, endorsed by, or sponsored by the United States Postal Service (USPS), any labor union, or any other official entity.</p><p class="info-text">While every effort has been made to ensure the accuracy of the information provided (including, but not limited to, calendar schedules, NALC Resource and federal holidays), this application does not constitute official guidance or legal advice. Postal regulations, labor laws, union contracts, and operational procedures are complex and subject to change.</p><p class="info-text"><strong>Users are solely responsible for verifying all information presented in this application with official USPS sources, union representatives, and/or relevant legal counsel.</strong></p><p class="info-text">The developer(s) of this application disclaim all liability for any errors or omissions in the content provided, or for any actions taken or not taken in reliance on the information contained herein. By using this application, you agree to these terms and understand that you use it at your own risk. The developer(s) shall not be liable for any direct, indirect, incidental, consequential, or punitive damages arising out of your access to, or use of, or inability to use this application.</p><p class="info-text">This application is provided "as is" without warranty of any kind, either express or implied, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement.</p><p class="info-text">Thank you for your understanding and continued dedication as a mail carrier.</p><div class="button-group"><a href="#landing" class="button primary-button">Back to Home</a></div><div class="logo-display-area"><img src="/icons/mcore-logo.png" alt="mCORE Logo" class="mcore-logo-large" onerror="this.onerror=null; this.src='${MCORE_LOGO_FALLBACK_PATH}';" /></div></div></div>`;
+    appContent.innerHTML = `<div class="page-content-wrapper align-left"><h2 class="page-title">Terms & Conditions / Disclaimer of Responsibility</h2><div class="disclaimer-content-area"><p class="info-text"><strong>Important Disclaimer:</strong> This mCORE application is provided for informational and reference purposes only. It is developed independently by a mail carrier, for ALL mail carriers, and is not affiliated with, endorsed by, or sponsored by the United States Postal Service (USPS), any labor union, or any other official entity.</p><p class="info-text">While every effort has been made to ensure the accuracy of the information provided (including, but not limited to, calendar schedules, NALC Resource and federal holidays), this application does not constitute official guidance or legal advice. Postal regulations, labor laws, union contracts, and operational procedures are complex and subject to change.</p><p class="info-text"><strong>Users are solely responsible for verifying all information presented in this application with official USPS sources, union representatives, and/or relevant legal counsel.</strong></p><p class="info-text">The developer(s) of this application disclaim all liability for any errors or omissions in the content provided, or for any actions taken or not taken in reliance on the information contained herein. By using this application, you agree to these terms and understand that you use it at your own risk. The developer(s) shall not be liable for any direct, indirect, incidental, consequential, or punitive damages arising out of your access to, or use of, or inability to use this application.</p><p class="info-text">This application is provided "as is" without warranty of any kind, either express or implied, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement.</p><p class="info-text">Thank you for your understanding and continued dedication as a mail carrier.</p><div class="button-group"><a href="#landing" class="button primary-button">Back to Home</a></div><div class="logo-display-area"><img src="icons/mcore-logo.png" alt="mCORE Logo" class="mcore-logo-large" onerror="this.onerror=null; this.src='${MCORE_LOGO_FALLBACK_PATH}';" /></div></div></div>`;
 }
 
 function renderResourcesPage() {
@@ -1799,7 +1800,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     
     if ('serviceWorker' in navigator) {
-        const swUrl = `/service-worker.js?v=${appConfig.cacheVersion || '1'}`;
+        const swUrl = `service-worker.js?v=${appConfig.cacheVersion || '1'}`;
 
         navigator.serviceWorker.register(swUrl)
             .then(registration => {
