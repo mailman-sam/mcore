@@ -29,6 +29,8 @@ mCORE is packed with features designed to make a mail carrier's job a little eas
 
 * **Event Highlighting & Filtering:** Automatically displays Federal Holidays, seasonal changes, Daylight Saving Time, paydays, and other events. A responsive control panel allows you to toggle the visibility of different event types and adjust the opacity of event background images.
 
+* **NALC Pay Period Overlays (NEW):** Displays the official NALC pay period and week number (e.g., "5-1", "5-2") directly on the calendar for easy grievance documentation and scheduling. Automatically calculates past and future dates without manual updates.
+
 * **Time Conversion Table:** An internal tool that displays a detailed breakdown of minutes to hundredths and ordinary time to 24-hour time, with the current hour and minute highlighted in real-time.
 
 * **Mail Management Guide:** An internal guide that provides essential information for carriers on key services such as Change of Address, Hold Mail, Informed Delivery, and common carrier forms.
@@ -115,7 +117,7 @@ mCORE is designed to be intuitive and easy to use. Here’s how to get the most 
     * **Color Schedule:** Select a color from the grid to see its rotating non-service days. To customize, open the "Customize" accordion, select a color button, and use the controls to change its name, color, and font.
     * **Letter Schedule:** Enter your custom schedule in the input fields. This will automatically disable and override the color schedule.
     * **T6 Route Rotation:** Enter your 5 T6 routes to see them displayed on the calendar.
-    * **Filter Events:** Use the buttons to show or hide different types of event icons. Your preferences are saved automatically.
+    * **Filter Events:** Use the buttons to show or hide different types of event icons, including the new NALC pay period labels. Your preferences are saved automatically.
 * **Day Details:** Click on any day with an icon to open a pop-up with detailed information about the events on that day.
 
 ### Mail Management Guide

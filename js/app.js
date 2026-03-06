@@ -1,5 +1,3 @@
-// app.js
-
 const FLASH_ANIMATION_COUNT = 3;
 const FLASH_ANIMATION_SINGLE_DURATION_MS = 500;
 const FLASH_ANIMATION_TOTAL_DURATION_MS = FLASH_ANIMATION_COUNT * FLASH_ANIMATION_SINGLE_DURATION_MS;
@@ -10,7 +8,6 @@ const themeIcon = document.getElementById('theme-icon');
 const body = document.body;
 const installAppButton = document.getElementById('install-app-button');
 const scrollToTopBtn = document.getElementById('scrollToTopBtn');
-
 
 let deferredPrompt;
 
@@ -27,7 +24,6 @@ let timeTableInterval = null;
 
 const MCORE_LOGO_FALLBACK_PATH = '/mcore/icons/mcore-logo-fallback.png';
 
-// --- Reference Dates & Cycles ---
 const T6_CYCLE_REFERENCE_START_DATE = new Date('2025-07-05T00:00:00Z');
 const POSTAL_WORK_WEEK_START_DATE = new Date('2024-11-23T00:00:00Z');
 const PP_REFERENCE_DATE = new Date('2024-12-14T00:00:00Z');
@@ -54,7 +50,6 @@ const CARRIER_COLORS = {
     'all': { name: 'All', class: 'carrier-sunday', textClass: 'text-calendar-heading-all' }
 };
 
-// --- Accordion State Management ---
 function getOpenAccordionIds() {
     const openAccordionIds = [];
     document.querySelectorAll('.settings-accordion-toggle.active').forEach(toggle => {
@@ -95,8 +90,6 @@ function applyAccordionStateFromSession() {
     }
 }
 
-
-// --- Theme Management ---
 function applyTheme(theme) {
     body.classList.remove('theme-light', 'theme-dark');
     body.classList.add(`theme-${theme}`);
@@ -116,7 +109,6 @@ function toggleTheme() {
     applyTheme(newTheme);
 }
 
-// --- Color Customization ---
 function loadCustomColors() {
     const savedColors = localStorage.getItem('mcore-custom-colors');
     if (savedColors) {
@@ -168,9 +160,8 @@ function resetCustomColors() {
     localStorage.removeItem('mcore-custom-colors');
     updateColorStyles();
     const currentHash = window.location.hash;
-    router(currentHash); // Re-render the current page
+    router(currentHash);
 }
-
 
 function initPreferences() {
     const savedTheme = localStorage.getItem('mcore-theme');
@@ -184,11 +175,9 @@ function initPreferences() {
     loadCustomColors();
 }
 
-// --- Data Fetching ---
 async function fetchAppConfig() {
     if (Object.keys(appConfig).length > 0) return appConfig;
     try {
-        // Add a cache-busting query parameter to ensure we always get the latest config
         const response = await fetch(`/mcore/data/app-config.json?t=${new Date().getTime()}`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
@@ -222,6 +211,7 @@ async function fetchUserControls() {
         showSeasons: true,
         showPaydays: true,
         showMisc: true,
+        showNalcLabels: true,
         eventImageOpacity: 0.25
     };
     let savedControls = {};
@@ -266,7 +256,6 @@ async function fetchAllResourcesData() {
     }
 }
 
-// --- Date & Calendar Logic ---
 function isLeapYear(year) {
     return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
 }
@@ -449,7 +438,7 @@ function saveLetterSchedule() {
 
 function getLetterForDate(date) {
     if (!letterSchedule || letterSchedule.length !== 6) return null;
-    if (date.getUTCDay() === 0) return null; // No letter on Sundays
+    if (date.getUTCDay() === 0) return null;
 
     let dayOffColorIndex = -1;
     for (const colorKey in CARRIER_COLORS) {
@@ -468,7 +457,6 @@ function getLetterForDate(date) {
     
     return null;
 }
-
 
 function generateMonthTile(month, year, selectedCarrier) {
     const today = new Date();
@@ -541,10 +529,17 @@ function generateMonthTile(month, year, selectedCarrier) {
             const escapedJsonString = jsonString.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
             dataAttributes += `data-is-event="true" data-events-json='${escapedJsonString}'`;
         }
+        
+        let nalcHtml = '';
+        if (currentDate.getDay() === 6 && userControls.showNalcLabels) {
+            nalcHtml = `<span class="nalc-label">${getNALCLabel(currentDate)}</span>`;
+        }
+
         if (payDaysForYear.has(formattedDate) && userControls.showPaydays) {
             paydayHtml = `<img src="/mcore/icons/money-stack250.png" alt="Pay Day" class="payday-symbol">`;
             dataAttributes += ` data-is-payday="true"`;
         }
+        
         const routeNumber = getT6RouteForDate(currentDate);
         if (routeNumber) {
             t6RouteHtml = `<span class="t6-route-number">${routeNumber}</span>`;
@@ -560,7 +555,7 @@ function generateMonthTile(month, year, selectedCarrier) {
         } else {
             dayClasses.push('cursor-default');
         }
-        daysHtml += `<div class="${dayClasses.join(' ')}" data-date="${currentDate.toISOString().split('T')[0]}" ${dataAttributes} ${dayStyles}>${letterScheduleHtml}<span class="day-number">${day}</span><div class="event-icon-container"></div>${paydayHtml}${t6RouteHtml}</div>`;
+        daysHtml += `<div class="${dayClasses.join(' ')}" data-date="${currentDate.toISOString().split('T')[0]}" ${dataAttributes} ${dayStyles}>${nalcHtml}${letterScheduleHtml}<span class="day-number">${day}</span><div class="event-icon-container"></div>${paydayHtml}${t6RouteHtml}</div>`;
     }
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -606,7 +601,6 @@ function closeDayDetailsLightbox() {
     document.getElementById('day-details-lightbox').classList.remove('active');
 }
 
-// --- Page Rendering Functions ---
 async function renderCalendarPage(year, selectedCarrier = null, options = {}) {
     await fetchEvents();
     await fetchUserControls();
@@ -704,6 +698,7 @@ async function renderCalendarPage(year, selectedCarrier = null, options = {}) {
                             <button class="nav-button ${userControls.showSolstice ? 'selected' : ''}" data-filter="solstice">Solstices</button>
                             <button class="nav-button ${userControls.showDaylightSaving ? 'selected' : ''}" data-filter="daylightSaving"><span class="full-text">Daylight Savings</span><span class="short-text">DST</span></button>
                             <button class="nav-button ${userControls.showPaydays ? 'selected' : ''}" data-filter="paydays">Pay</button>
+                            <button class="nav-button ${userControls.showNalcLabels ? 'selected' : ''}" data-filter="nalcLabels">NALC</button>
                             <button class="nav-button ${userControls.showMisc ? 'selected' : ''}" data-filter="misc">Misc</button>
                         </div>
                         <div class="opacity-slider-container">
@@ -757,10 +752,9 @@ async function renderCalendarPage(year, selectedCarrier = null, options = {}) {
             activeElement.closest('.font-color-options')
         );
     
-        // Store more specific info to restore focus accurately
         const activeId = activeElement ? activeElement.id : null;
         const activeClasses = activeElement ? Array.from(activeElement.classList) : [];
-        const activeIndex = activeElement?.dataset?.index; // Get the data-index
+        const activeIndex = activeElement?.dataset?.index;
         const selectionStart = activeElement ? activeElement.selectionStart : 0;
         const selectionEnd = activeElement ? activeElement.selectionEnd : 0;
     
@@ -768,20 +762,17 @@ async function renderCalendarPage(year, selectedCarrier = null, options = {}) {
     
         if (isInputActive) {
             let elementToFocus = null;
-            // Build a more specific selector using class and data-index
             const mainClass = activeClasses.find(c => c.includes('-input'));
             if (mainClass && activeIndex !== undefined) {
                 elementToFocus = document.querySelector(`.${mainClass}[data-index="${activeIndex}"]`);
             }
             
-            // Fallback to ID if the specific selector fails
             if (!elementToFocus && activeId) {
                 elementToFocus = document.getElementById(activeId);
             }
     
             if (elementToFocus) {
                 elementToFocus.focus();
-                // Restore selection range
                 if (typeof elementToFocus.setSelectionRange === 'function') {
                     elementToFocus.setSelectionRange(selectionStart, selectionEnd);
                 }
@@ -839,7 +830,7 @@ async function renderCalendarPage(year, selectedCarrier = null, options = {}) {
         button.addEventListener('click', (e) => {
             const openAccordionIds = getOpenAccordionIds();
             const filter = e.currentTarget.dataset.filter;
-            const keyMap = { holidays: 'showHolidays', seasons: 'showSeasons', solstice: 'showSolstice', daylightSaving: 'showDaylightSaving', paydays: 'showPaydays', misc: 'showMisc' };
+            const keyMap = { holidays: 'showHolidays', seasons: 'showSeasons', solstice: 'showSolstice', daylightSaving: 'showDaylightSaving', paydays: 'showPaydays', misc: 'showMisc', nalcLabels: 'showNalcLabels' };
             if (filter === 'all') {
                 Object.keys(keyMap).forEach(key => userControls[keyMap[key]] = true);
             } else if (filter === 'none') {
@@ -870,7 +861,6 @@ async function renderCalendarPage(year, selectedCarrier = null, options = {}) {
         });
     }
 
-    // --- Color Customization and Carrier Selection Logic ---
     let selectedColorForCustomization = null;
     const customizerUI = document.getElementById('color-customizer-ui');
     const colorNameInput = document.getElementById('color-name-input');
@@ -1000,26 +990,23 @@ async function renderCalendarPage(year, selectedCarrier = null, options = {}) {
         resetCustomColors();
     });
 
-    // --- Letter Schedule & T6 Route Input Logic ---
     function setupInputNavigation(selector, dataArray, saveFunction, onUpdate) {
         const inputs = document.querySelectorAll(selector);
 
         inputs.forEach((input, idx) => {
-            // Use 'input' event for live updates as the user types, pastes, etc.
             input.addEventListener('input', (e) => {
                 dataArray[idx] = e.target.value.toUpperCase();
                 saveFunction();
                 onUpdate();
             });
 
-            // Use 'keydown' for special key handling like 'Enter'
             input.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
-                    e.preventDefault(); // Prevent form submission
+                    e.preventDefault();
                     if (idx < inputs.length - 1) {
-                        inputs[idx + 1].focus(); // Move to next input
+                        inputs[idx + 1].focus();
                     } else {
-                        inputs[idx].blur(); // Or blur the last input
+                        inputs[idx].blur();
                     }
                 }
             });
@@ -1082,8 +1069,6 @@ async function renderCalendarPage(year, selectedCarrier = null, options = {}) {
         });
     }
 
-
-    // Restore accordion state
     if (options.openAccordionIds) {
         restoreAccordionState(options.openAccordionIds);
     } else {
@@ -1126,6 +1111,15 @@ function getPayPeriodInfo(date) {
     const payDate = new Date(ppEndDate.getTime());
     payDate.setUTCDate(ppEndDate.getUTCDate() + 7);
     return { payPeriodYear: currentPayPeriodYear, payPeriodNumber: String(currentPayPeriodNumber).padStart(2, '0'), startDate: ppStartDate, endDate: ppEndDate, payDate: payDate };
+}
+
+function getNALCLabel(date) {
+    const ppInfo = getPayPeriodInfo(date);
+    const checkDateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+    const diffTime = checkDateUtc - ppInfo.startDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const weekNum = diffDays < 7 ? 1 : 2;
+    return `${Number(ppInfo.payPeriodNumber)}-${weekNum}`;
 }
 
 function formatDate(date) {
@@ -1342,7 +1336,6 @@ function renderMailManagementPage() {
         </div>
     `;
 
-    // Re-attach accordion listeners after content is rendered
     document.querySelectorAll('.settings-accordion-toggle').forEach(button => {
         button.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -1439,7 +1432,6 @@ function renderTimeTablePage() {
     timeTableInterval = setInterval(updateHighlight, 1000);
 }
 
-// --- Live Time Clock Functions ---
 function getDaySuffix(day) {
     if (day > 3 && day < 21) return 'th';
     switch (day % 10) {
@@ -1472,6 +1464,7 @@ function updateLiveTime() {
     const timeString = `<span class="live-times">${time24String} - USPS: ${uspsTimeString}</span>`;
     liveTimeContainer.innerHTML = `${dateString}${timeString}`;
 }
+
 function router() {
     if (timeTableInterval) {
         clearInterval(timeTableInterval);
@@ -1510,7 +1503,7 @@ function router() {
         renderLandingPage();
     }
 }
-// --- App Initialization ---
+
 document.addEventListener('DOMContentLoaded', async () => {
     await fetchAppConfig();
     const lightbox = document.getElementById('day-details-lightbox');
@@ -1577,7 +1570,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         deferredPrompt = null;
     });
     
-    // --- Service Worker Registration and Update Logic ---
     if ('serviceWorker' in navigator) {
         const swUrl = `/mcore/service-worker.js?v=${appConfig.cacheVersion || '1'}`;
 
@@ -1585,7 +1577,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             .then(registration => {
                 console.log('ServiceWorker registration successful');
 
-                // Check for updates on page load
                 registration.update();
 
                 registration.addEventListener('updatefound', () => {
@@ -1593,11 +1584,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (installingWorker) {
                         installingWorker.addEventListener('statechange', () => {
                             if (installingWorker.state === 'installed') {
-                                // The new worker is installed and waiting.
-                                // If there's an active controller, we can assume this is an update.
                                 if (navigator.serviceWorker.controller) {
                                     console.log('New content is available and will be used when all tabs for this page are closed.');
-                                    // Optionally, prompt the user to reload
                                 } else {
                                     console.log('Content is cached for offline use.');
                                 }

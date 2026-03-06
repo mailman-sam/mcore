@@ -1,4 +1,4 @@
-Copyright 2025 mailman.sam
+Copyright 2026 mailman.sam
 
 Permission is hereby granted, free of charge,
 to any person obtaining a copy of this software
